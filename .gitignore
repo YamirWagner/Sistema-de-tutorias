@@ -1,0 +1,50 @@
+# .gitignore - Sistema de Tutorías
+
+# Variables de entorno
+.env
+.env.local
+.env.production
+
+# Logs
+backend/storage/logs/*.log
+backend/storage/logs/*.txt
+*.log
+
+# Archivos subidos
+backend/storage/uploads/*
+!backend/storage/uploads/.gitkeep
+
+# Backups
+backend/storage/backups/*
+!backend/storage/backups/.gitkeep
+
+# Dependencias PHP
+/vendor/
+composer.lock
+composer.phar
+
+# Dependencias Node (si se usa)
+node_modules/
+package-lock.json
+yarn.lock
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Sistema operativo
+Thumbs.db
+desktop.ini
+
+# Archivos temporales
+*.tmp
+*.temp
+*.cache
+
+# Configuraciones locales
+config.local.php
+database.local.php
