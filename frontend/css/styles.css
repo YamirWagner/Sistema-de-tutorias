@@ -11,7 +11,9 @@
 
 body {
     font-family: 'Inter', sans-serif;
-    background-color: #f3f4f6;
+    background-image: url('../assets/Foto_tricentenario.jpg'); 
+    background-size: cover;
+    background-position: center;
 }
 
 /* Estilos personalizados */
@@ -110,9 +112,6 @@ select:focus {
     }
 }
 .fondo {
-    background-image: url('../assets/Foto_tricentenario.jpg'); 
-    background-size: cover;
-    background-position: center;
     background-repeat: no-repeat;
     background-attachment: fixed;
 }
