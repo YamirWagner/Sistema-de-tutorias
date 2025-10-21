@@ -109,3 +109,10 @@ select:focus {
         padding: 0 0.5rem;
     }
 }
+.fondo {
+    background-image: url('../assets/Foto_tricentenario.jpg'); 
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
