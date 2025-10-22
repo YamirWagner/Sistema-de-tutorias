@@ -20,7 +20,7 @@ async function verifyCode(email, code) {
             localStorage.setItem('token', response.token);
             localStorage.setItem('user', JSON.stringify(response.user));
         }
-        
+         
         return response;
     } catch (error) {
         console.error('Error al verificar código:', error);
@@ -33,7 +33,7 @@ function showMessage(elementId, message, type = 'info') {
     const messageDiv = document.getElementById(elementId);
     const colors = {
         'success': 'bg-green-100 border-green-500 text-green-700',
-        'error': 'bg-red-100 border-red-500 text-red-700',
+        'error': 'message-error',
         'info': 'bg-blue-100 border-blue-500 text-blue-700'
     };
     
@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     showMessage('message', response.message || 'Error al enviar código', 'error');
                 }
             } catch (error) {
-                showMessage('message', 'Error de conexión. Intenta nuevamente.', 'error');
+                showMessage('login-message', 'Intenta nuevamente.', 'error');
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Enviar Código de Verificación';
