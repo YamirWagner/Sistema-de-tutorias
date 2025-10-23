@@ -76,10 +76,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const email = document.getElementById('email').value;
             const submitBtn = e.target.querySelector('button[type="submit"]');
             const verificacionContainer = document.getElementById('login-verificacion');
+            const validarBtn = document.getElementById('validar-btn');
             
             // Ocultar el bloque de verificación si ya estaba visible (reintento)
             if (verificacionContainer) {
                 verificacionContainer.style.display = 'none';
+            }
+            
+            // Mostrar el botón de validar si estaba oculto (reintento)
+            if (validarBtn) {
+                validarBtn.style.display = 'block';
             }
             
             submitBtn.disabled = true;
@@ -100,13 +106,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     // NO mostrar el campo de verificación
                 }
             } catch (error) {
-<<<<<<< HEAD
                 // Error de conexión o de parsing
                 showMessage('login-message', 'Error de conexión. Intenta nuevamente.', 'error');
                 // NO mostrar el campo de verificación
-=======
-                showMessage('login-message', 'Intenta nuevamente', 'error');
->>>>>>> cd7f2868ca199f7a6355a84c0bf6f8a274701fea
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Validar correo';
@@ -119,6 +121,12 @@ document.addEventListener('DOMContentLoaded', () => {
 function renderInlineVerification(email) {
     const container = document.getElementById('login-verificacion');
     if (!container) return;
+    
+    // Ocultar el botón de validar correo
+    const validarBtn = document.getElementById('validar-btn');
+    if (validarBtn) {
+        validarBtn.style.display = 'none';
+    }
     
     // Mostrar el bloque (ya existe en el HTML)
     container.style.display = 'block';
