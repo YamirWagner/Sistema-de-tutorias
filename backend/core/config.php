@@ -28,8 +28,8 @@ define('GOOGLE_REDIRECT_URI', getenv('GOOGLE_REDIRECT_URI') ?: '');
 
 // Configuración general
 define('APP_NAME', 'Sistema de Tutorías');
-define('APP_URL', getenv('APP_URL') ?: 'http://localhost/sistema-tutorias');
-define('TIMEZONE', 'America/Mexico_City');
+define('APP_URL', getenv('APP_URL') ?: 'http://localhost/Sistema-de-tutorias1');
+define('TIMEZONE', 'America/Lima');
 
 // Configuración de sesiones
 define('SESSION_LIFETIME', 3600); // 1 hora
