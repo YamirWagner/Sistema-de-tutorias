@@ -42,9 +42,15 @@ try {
     // Guardar código en la base de datos con expiración de 10 minutos
     $expiration = date('Y-m-d H:i:s', time() + 600); // 10 minutos
     
+    // Primero eliminar códigos anteriores del usuario
+    $query = "DELETE FROM verification_codes WHERE user_id = :user_id";
+    $stmt = $db->prepare($query);
+    $stmt->bindParam(':user_id', $user['id']);
+    $stmt->execute();
+    
+    // Insertar nuevo código
     $query = "INSERT INTO verification_codes (user_id, code, expires_at) 
-              VALUES (:user_id, :code, :expires_at)
-              ON DUPLICATE KEY UPDATE code = :code, expires_at = :expires_at, used = 0";
+              VALUES (:user_id, :code, :expires_at)";
     
     $stmt = $db->prepare($query);
     $stmt->bindParam(':user_id', $user['id']);

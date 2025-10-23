@@ -1,0 +1,38 @@
+# Oculta el listado de directorios
+Options -Indexes
+
+# Página por defecto del sitio
+DirectoryIndex frontend/index.html
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # No reescribir si el recurso existe (archivos o carpetas reales)
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Evitar reescritura de cualquier cosa bajo backend/
+  RewriteRule ^backend/ - [L]
+
+  # Raíz -> frontend/index.html
+  RewriteRule ^$ frontend/index.html [L]
+
+  # Rutas limpias de páginas del frontend
+  RewriteRule ^login(?:\.html)?/?$ frontend/login.html [L,NC]
+  RewriteRule ^verify(?:\.html)?/?$ frontend/verify.html [L,NC]
+  RewriteRule ^dashboard(?:\.html)?/?$ frontend/dashboard.html [L,NC]
+  RewriteRule ^index(?:\.html)?$ frontend/index.html [L,NC]
+
+  # Mapeo genérico: /pagina o /pagina.html -> frontend/pagina.html (si existe)
+  RewriteCond %{DOCUMENT_ROOT}/frontend/$1.html -f
+  RewriteRule ^([^/]+)/?$ frontend/$1.html [L,NC]
+  RewriteCond %{DOCUMENT_ROOT}/frontend/$1.html -f
+  RewriteRule ^([^/]+)\.html$ frontend/$1.html [L,NC]
+
+  # Servir assets del frontend desde la raíz
+  RewriteRule ^(css|js|assets|components)/(.*)$ frontend/$1/$2 [L,NC]
+
+  # Fallback a index del frontend para cualquier otra ruta (SPA-like)
+  RewriteRule . frontend/index.html [L]
+</IfModule>

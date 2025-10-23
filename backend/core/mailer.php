@@ -1,6 +1,11 @@
 <?php
 // mailer.php - Envío de correos con PHPMailer
 
+// Cargar PHPMailer manualmente
+require_once __DIR__ . '/../vendor/phpmailer/PHPMailer.php';
+require_once __DIR__ . '/../vendor/phpmailer/SMTP.php';
+require_once __DIR__ . '/../vendor/phpmailer/Exception.php';
+
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
@@ -23,7 +28,13 @@ class Mailer {
             $this->mail->SMTPAuth = true;
             $this->mail->Username = SMTP_USER;
             $this->mail->Password = SMTP_PASS;
-            $this->mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            
+            // Usar SSL para puerto 465, STARTTLS para 587
+            if (SMTP_PORT == 465) {
+                $this->mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            } else {
+                $this->mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            }
             $this->mail->Port = SMTP_PORT;
             
             // Codificación

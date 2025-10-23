@@ -24,21 +24,34 @@
                 <i class="bx bx-envelope"></i>
             </div>
             <button type="submit" class="btn">
-                Enviar Código de Verificación
+                Validar correo
             </button>
             <div id="login-message"></div>
-            <div id="login-verificacion" class="mb-4 hidden">
-
-            </div>
-
         </form>
+
+        <!-- Bloque de verificación (oculto inicialmente, se muestra SOLO tras enviar código exitosamente) -->
+        <div id="login-verificacion" style="display: none;">
+            <form id="inlineVerifyForm" class="mt-4">
+                <p class="text-center mb-3">Ingresa el código de 6 dígitos</p>
+                <div class="code-inputs">
+                    <input type="text" maxlength="1" class="code-input" data-index="0" autocomplete="off">
+                    <input type="text" maxlength="1" class="code-input" data-index="1" autocomplete="off">
+                    <input type="text" maxlength="1" class="code-input" data-index="2" autocomplete="off">
+                    <input type="text" maxlength="1" class="code-input" data-index="3" autocomplete="off">
+                    <input type="text" maxlength="1" class="code-input" data-index="4" autocomplete="off">
+                    <input type="text" maxlength="1" class="code-input" data-index="5" autocomplete="off">
+                </div>
+                <button type="submit" class="btn mt-3">Ingresar</button>
+            </form>
+        </div>
 
         <div class="login-inicio">
             <a href="index.html">Volver al inicio</a>
         </div>
     </div>
 
-    <script src="js/api.js"></script>
-    <script src="js/auth.js"></script>
+    <script>window.APP_BASE_PATH = '/Sistema-de-tutorias1';</script>
+    <script src="js/api.js?v=3"></script>
+    <script src="js/auth.js?v=4"></script>
 </body>
 </html>

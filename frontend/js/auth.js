@@ -16,9 +16,22 @@ async function verifyCode(email, code) {
     try {
         const response = await apiPost('/auth/verify-code.php', { email, code });
         
-        if (response.success && response.token) {
-            localStorage.setItem('token', response.token);
-            localStorage.setItem('user', JSON.stringify(response.user));
+        console.log('Respuesta verify-code:', response);
+        
+        if (response && response.success) {
+            // Verificar que tenemos token y data
+            const token = response.token || (response.data && response.data.token);
+            const user = response.user || (response.data && response.data.user);
+            
+            if (token) {
+                localStorage.setItem('token', token);
+                console.log('Token guardado:', token);
+            }
+            
+            if (user) {
+                localStorage.setItem('user', JSON.stringify(user));
+                console.log('Usuario guardado:', user);
+            }
         }
          
         return response;
@@ -28,9 +41,15 @@ async function verifyCode(email, code) {
     }
 }
 
-// Mostrar mensaje
+// Mostrar mensaje (usa login-message si existe, si no, usa el id indicado o crea uno)
 function showMessage(elementId, message, type = 'info') {
-    const messageDiv = document.getElementById(elementId);
+    let messageDiv = document.getElementById('login-message') || document.getElementById(elementId);
+    if (!messageDiv) {
+        messageDiv = document.createElement('div');
+        messageDiv.id = elementId || 'message';
+        const form = document.getElementById('loginForm') || document.body;
+        form.prepend(messageDiv);
+    }
     const colors = {
         'success': 'bg-green-100 border-green-500 text-green-700',
         'error': 'message-error',
@@ -56,87 +75,167 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const email = document.getElementById('email').value;
             const submitBtn = e.target.querySelector('button[type="submit"]');
+            const verificacionContainer = document.getElementById('login-verificacion');
+            
+            // Ocultar el bloque de verificación si ya estaba visible (reintento)
+            if (verificacionContainer) {
+                verificacionContainer.style.display = 'none';
+            }
             
             submitBtn.disabled = true;
-            submitBtn.textContent = 'Enviando...';
+            submitBtn.textContent = 'Validando...';
             
             try {
                 const response = await sendVerificationCode(email);
                 
-                if (response.success) {
-                    showMessage('message', 'Código enviado exitosamente. Revisa tu correo.', 'success');
-                    
-                    // Guardar email temporalmente y redirigir
-                    sessionStorage.setItem('tempEmail', email);
-                    
-                    setTimeout(() => {
-                        window.location.href = 'verify.html';
-                    }, 2000);
+                if (response && response.success) {
+                    // Código enviado exitosamente
+                    showMessage('login-message', 'Código enviado. Revisa tu correo e ingresa el código.', 'success');
+                    // Mostrar bloque de verificación
+                    renderInlineVerification(email);
                 } else {
-                    showMessage('message', response.message || 'Error al enviar código', 'error');
+                    // Error: correo no existe o error al enviar
+                    const msg = (response && (response.message || response.error)) || 'Correo no existe o error al enviar código';
+                    showMessage('login-message', msg, 'error');
+                    // NO mostrar el campo de verificación
                 }
             } catch (error) {
-                showMessage('login-message', 'Intenta nuevamente.', 'error');
+                // Error de conexión o de parsing
+                showMessage('login-message', 'Error de conexión. Intenta nuevamente.', 'error');
+                // NO mostrar el campo de verificación
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Enviar Código de Verificación';
+                submitBtn.textContent = 'Validar correo';
             }
         });
-    }
-    
-    // Formulario de verificación
-    const verifyForm = document.getElementById('verifyForm');
-    
-    if (verifyForm) {
-        const email = sessionStorage.getItem('tempEmail');
-        
-        if (!email) {
-            window.location.href = 'login.html';
-            return;
-        }
-        
-        verifyForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const code = document.getElementById('code').value;
-            const submitBtn = e.target.querySelector('button[type="submit"]');
-            
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Verificando...';
-            
-            try {
-                const response = await verifyCode(email, code);
-                
-                if (response.success) {
-                    showMessage('message', 'Código verificado. Redirigiendo...', 'success');
-                    
-                    sessionStorage.removeItem('tempEmail');
-                    
-                    setTimeout(() => {
-                        window.location.href = 'dashboard.html';
-                    }, 1500);
-                } else {
-                    showMessage('message', response.message || 'Código inválido', 'error');
-                }
-            } catch (error) {
-                showMessage('message', 'Error de conexión. Intenta nuevamente.', 'error');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Verificar';
-            }
-        });
-        
-        // Botón reenviar código
-        const resendBtn = document.getElementById('resendBtn');
-        if (resendBtn) {
-            resendBtn.addEventListener('click', async () => {
-                try {
-                    await sendVerificationCode(email);
-                    showMessage('message', 'Código reenviado exitosamente', 'success');
-                } catch (error) {
-                    showMessage('message', 'Error al reenviar código', 'error');
-                }
-            });
-        }
     }
 });
+
+// Renderizar verificación inline en login.html
+function renderInlineVerification(email) {
+    const container = document.getElementById('login-verificacion');
+    if (!container) return;
+    
+    // Mostrar el bloque (ya existe en el HTML)
+    container.style.display = 'block';
+
+    const inlineForm = document.getElementById('inlineVerifyForm');
+    if (!inlineForm) return;
+    
+    // Obtener todos los inputs de código (6 dígitos individuales)
+    const codeInputs = inlineForm.querySelectorAll('.code-input');
+    
+    // Limpiar todos los inputs
+    codeInputs.forEach(input => input.value = '');
+    
+    // Remover event listeners previos clonando el formulario
+    const newForm = inlineForm.cloneNode(true);
+    inlineForm.parentNode.replaceChild(newForm, inlineForm);
+    
+    // Configurar navegación entre inputs
+    setupCodeInputs(newForm);
+    
+    // Adjuntar handler de verificación
+    attachVerifyHandler(newForm, email, 'login-message');
+    
+    // Enfocar el primer input
+    const firstInput = newForm.querySelector('.code-input');
+    if (firstInput) firstInput.focus();
+}
+
+// Configurar navegación entre inputs de código
+function setupCodeInputs(formEl) {
+    const inputs = formEl.querySelectorAll('.code-input');
+    
+    inputs.forEach((input, index) => {
+        // Solo permitir números
+        input.addEventListener('input', (e) => {
+            const value = e.target.value;
+            
+            // Solo aceptar números
+            if (!/^\d*$/.test(value)) {
+                e.target.value = '';
+                return;
+            }
+            
+            // Si hay un dígito, mover al siguiente input
+            if (value.length === 1 && index < inputs.length - 1) {
+                inputs[index + 1].focus();
+            }
+        });
+        
+        // Manejar teclas especiales
+        input.addEventListener('keydown', (e) => {
+            // Backspace: borrar y regresar al anterior
+            if (e.key === 'Backspace' && !input.value && index > 0) {
+                inputs[index - 1].focus();
+            }
+            
+            // Flechas izquierda/derecha
+            if (e.key === 'ArrowLeft' && index > 0) {
+                e.preventDefault();
+                inputs[index - 1].focus();
+            }
+            
+            if (e.key === 'ArrowRight' && index < inputs.length - 1) {
+                e.preventDefault();
+                inputs[index + 1].focus();
+            }
+        });
+        
+        // Manejar pegado de código completo
+        input.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const pastedData = e.clipboardData.getData('text').trim();
+            
+            // Si pegaron el código completo (6 dígitos)
+            if (/^\d{6}$/.test(pastedData)) {
+                inputs.forEach((inp, idx) => {
+                    inp.value = pastedData[idx] || '';
+                });
+                inputs[inputs.length - 1].focus();
+            }
+        });
+    });
+}
+
+function attachVerifyHandler(formEl, email, messageElementId) {
+    if (!formEl) return;
+    formEl.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = formEl.querySelector('button[type="submit"]');
+        
+        // Recolectar código de los 6 inputs individuales
+        const codeInputs = formEl.querySelectorAll('.code-input');
+        let code = '';
+        codeInputs.forEach(input => {
+            code += input.value;
+        });
+        
+        code = code.trim();
+        
+        if (!code || code.length !== 6) { 
+            showMessage(messageElementId, 'Ingresa el código de 6 dígitos', 'error'); 
+            return; 
+        }
+        
+        submitBtn.disabled = true; 
+        submitBtn.textContent = 'Verificando...';
+        
+        try {
+            const response = await verifyCode(email, code);
+            if (response && response.success) {
+                showMessage(messageElementId, 'Código verificado. Ingresando al sistema...', 'success');
+                setTimeout(() => { window.location.href = 'dashboard.html'; }, 1000);
+            } else {
+                const msg = (response && (response.message || response.error)) || 'Código inválido o expirado';
+                showMessage(messageElementId, msg, 'error');
+            }
+        } catch (err) {
+            showMessage(messageElementId, 'Error de conexión. Intenta nuevamente.', 'error');
+        } finally {
+            submitBtn.disabled = false; 
+            submitBtn.textContent = 'Ingresar';
+        }
+    });
+}
