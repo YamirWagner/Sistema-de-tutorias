@@ -1,6 +1,25 @@
 <?php
 // config.php - Configuración general del sistema
 
+// Cargar variables de entorno desde .env
+$envFile = __DIR__ . '/../.env';
+if (file_exists($envFile)) {
+    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos(trim($line), '#') === 0) continue;
+        if (strpos($line, '=') !== false) {
+            list($key, $value) = explode('=', $line, 2);
+            $key = trim($key);
+            $value = trim($value);
+            if (!getenv($key)) {
+                putenv("$key=$value");
+                $_ENV[$key] = $value;
+                $_SERVER[$key] = $value;
+            }
+        }
+    }
+}
+
 // Configuración de la base de datos
 define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
 define('DB_NAME', getenv('DB_NAME') ?: 'sistema_tutorias');
@@ -9,11 +28,11 @@ define('DB_PASS', getenv('DB_PASS') ?: '');
 define('DB_CHARSET', 'utf8mb4');
 
 // Configuración SMTP para correos
-define('SMTP_HOST', getenv('SMTP_HOST') ?: 'smtp.gmail.com');
-define('SMTP_PORT', getenv('SMTP_PORT') ?: 587);
-define('SMTP_USER', getenv('SMTP_USER') ?: '');
+define('SMTP_HOST', getenv('SMTP_HOST') ?: 'mail.michat-bot.com');
+define('SMTP_PORT', getenv('SMTP_PORT') ?: 465);
+define('SMTP_USER', getenv('SMTP_USER') ?: 'info@michat-bot.com');
 define('SMTP_PASS', getenv('SMTP_PASS') ?: '');
-define('SMTP_FROM', getenv('SMTP_FROM') ?: 'noreply@institucion.edu');
+define('SMTP_FROM', getenv('SMTP_FROM') ?: 'info@michat-bot.com');
 define('SMTP_FROM_NAME', getenv('SMTP_FROM_NAME') ?: 'Sistema de Tutorías');
 
 // Configuración JWT

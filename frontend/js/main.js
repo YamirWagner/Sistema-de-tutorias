@@ -3,14 +3,21 @@
 // Verificar autenticación
 function checkAuth() {
     const token = localStorage.getItem('token');
-    const currentPage = window.location.pathname.split('/').pop();
+    const path = window.location.pathname;
     
-    if (!token && currentPage === 'dashboard.html') {
+    // Detectar página actual (funciona con URLs limpias y .html)
+    const isDashboard = path.includes('dashboard');
+    const isLogin = path.includes('login');
+    const isVerify = path.includes('verify');
+    
+    // Si no hay token y está en dashboard, redirigir a login
+    if (!token && isDashboard) {
         window.location.href = 'login.html';
         return false;
     }
     
-    if (token && (currentPage === 'login.html' || currentPage === 'verify.html')) {
+    // Si hay token y está en login/verify, redirigir a dashboard
+    if (token && (isLogin || isVerify)) {
         window.location.href = 'dashboard.html';
         return false;
     }
@@ -137,9 +144,13 @@ function showNotification(message, type = 'info') {
 
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
-    const currentPage = window.location.pathname.split('/').pop();
+    const path = window.location.pathname;
     
-    if (currentPage === 'dashboard.html') {
+    // Detectar si estamos en dashboard (funciona con URLs limpias y .html)
+    if (path.includes('dashboard')) {
+        console.log('Inicializando dashboard...');
+        console.log('Token:', localStorage.getItem('token'));
+        console.log('User:', localStorage.getItem('user'));
         initDashboard();
     } else {
         checkAuth();

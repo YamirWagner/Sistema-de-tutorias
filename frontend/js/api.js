@@ -1,6 +1,15 @@
 // api.js - Peticiones fetch al backend
 
-const API_BASE_URL = '../backend/api';
+// Usar SIEMPRE el path fijo del proyecto (definido en el HTML antes de cargar este script)
+// Si no está definido, usar el primer segmento del path como fallback
+const API_BASE_URL = (function() {
+    const base = window.APP_BASE_PATH || '/Sistema-de-tutorias1';
+    return base.replace(/\/$/, '') + '/backend/api';
+})();
+
+// Exponer para depuración
+window.__API_BASE_URL = API_BASE_URL;
+console.log('API_BASE_URL configurado en:', API_BASE_URL);
 
 // Obtener token de autenticación
 function getAuthToken() {
@@ -25,7 +34,9 @@ async function apiGet(endpoint) {
             headers: headers
         });
         
-        const data = await response.json();
+        // Asegurar parseo JSON seguro
+        const contentType = response.headers.get('content-type') || '';
+        const data = contentType.includes('application/json') ? await response.json() : { success: false, message: 'Respuesta no JSON del servidor' };
         
         if (response.status === 401) {
             // Token inválido o expirado
@@ -60,7 +71,8 @@ async function apiPost(endpoint, data) {
             body: JSON.stringify(data)
         });
         
-        const responseData = await response.json();
+        const contentType = response.headers.get('content-type') || '';
+        const responseData = contentType.includes('application/json') ? await response.json() : { success: false, message: 'Respuesta no JSON del servidor' };
         
         if (response.status === 401) {
             localStorage.removeItem('token');
@@ -94,7 +106,8 @@ async function apiPut(endpoint, data) {
             body: JSON.stringify(data)
         });
         
-        const responseData = await response.json();
+        const contentType = response.headers.get('content-type') || '';
+        const responseData = contentType.includes('application/json') ? await response.json() : { success: false, message: 'Respuesta no JSON del servidor' };
         
         if (response.status === 401) {
             localStorage.removeItem('token');
@@ -127,7 +140,8 @@ async function apiDelete(endpoint) {
             headers: headers
         });
         
-        const data = await response.json();
+        const contentType = response.headers.get('content-type') || '';
+        const data = contentType.includes('application/json') ? await response.json() : { success: false, message: 'Respuesta no JSON del servidor' };
         
         if (response.status === 401) {
             localStorage.removeItem('token');
@@ -159,7 +173,8 @@ async function apiUpload(endpoint, formData) {
             body: formData
         });
         
-        const data = await response.json();
+        const contentType = response.headers.get('content-type') || '';
+        const data = contentType.includes('application/json') ? await response.json() : { success: false, message: 'Respuesta no JSON del servidor' };
         
         if (response.status === 401) {
             localStorage.removeItem('token');
