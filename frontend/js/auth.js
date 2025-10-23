@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     showMessage('message', response.message || 'Error al enviar código', 'error');
                 }
             } catch (error) {
-                showMessage('login-message', 'Intenta nuevamente.', 'error');
+                showMessage('login-message', 'Intenta nuevamente', 'error');
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Enviar Código de Verificación';

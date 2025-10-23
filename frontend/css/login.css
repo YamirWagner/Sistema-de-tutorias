@@ -1,5 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color:#ededed;
+}
 .fondo {
     display: flex;
     justify-content: center;
@@ -9,7 +18,6 @@
     background-size: cover;
     background-position: center; 
 }
-
 .login-form{
     width: 420px;
     background-color: transparent;
@@ -24,14 +32,12 @@
     font-size: 36px;
     text-align: center;
 }
-
 .login-correo{
     width: 100%;
     height: 50px;
     position: relative;
     margin: 30px 0 20px;
 }
-
 .login-correo input{
     width: 100%;
     height: 100%;
