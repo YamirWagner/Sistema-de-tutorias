@@ -100,9 +100,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     // NO mostrar el campo de verificación
                 }
             } catch (error) {
+<<<<<<< HEAD
                 // Error de conexión o de parsing
                 showMessage('login-message', 'Error de conexión. Intenta nuevamente.', 'error');
                 // NO mostrar el campo de verificación
+=======
+                showMessage('login-message', 'Intenta nuevamente', 'error');
+>>>>>>> cd7f2868ca199f7a6355a84c0bf6f8a274701fea
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Validar correo';
