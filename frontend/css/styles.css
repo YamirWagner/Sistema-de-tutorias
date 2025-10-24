@@ -1,6 +1,4 @@
-/* styles.css - Estilos generales */
 
-/* Importar Tailwind si es necesario */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 
 * {
@@ -38,3 +36,18 @@ body {
 }
 
 /* Botones personalizados */
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color:#fff;
+}
+
+.index-fondo{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-image: url(../assets/Foto_panoramica.webp);
+    background-size: cover;
+    background-position: center; 
+
+}
