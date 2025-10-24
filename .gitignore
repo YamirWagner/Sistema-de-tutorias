@@ -48,3 +48,4 @@ desktop.ini
 # Configuraciones locales
 config.local.php
 database.local.php
+*.example
