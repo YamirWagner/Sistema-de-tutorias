@@ -8,19 +8,32 @@
     <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
-    <div class="min-h-screen bg-gray-100">
-        <!-- Encabezado -->
-        <header class="bg-blue-600 text-white p-4">
-            <div class="container mx-auto">
-                <h1 class="text-3xl font-bold">Sistema de Tutorías Institucional</h1>
-                <img src="assets/Logo-UNSAAC.webp" alt="Logo" class="mx-auto mb-8 w-32 h-32">
-            </div>
+    <div class="fondo" >
+        <header class="encabezado">
+            <img src="assets/Logo-UNSAAC.webp" alt="Logo" class="index-logo">
         </header>
+        <section class="carousel-section">
+            <div class="carousel-container">
+                <div class="carousel-track">
+                    <div class="carousel-slide">
+                        <img src="../frontend/assets/Foto_informatica.webp" alt="Imagen de oficina 1">
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="../frontend/assets/Foto_panoramica.webp" alt="Imagen de oficina 2">
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="../frontend/assets/Foto_tricentenario.jpg" alt="Imagen de oficina 3">
+                    </div>
+                </div>
+                <button class="carousel-btn btn-prev">&lt;</button>
+                <button class="carousel-btn btn-next">&gt;</button>
+
+            </div>  
+        </section>
 
         <!-- Banner Principal -->
-        <section class="bg-white py-16">
+        <section>
             <div class="container mx-auto text-center">
-                <img src="assets/Logo-UNSAAC.webp" alt="Logo" class="mx-auto mb-8 w-32 h-32">
                 <h2 class="text-4xl font-bold mb-4">Bienvenido al Sistema de Tutorías</h2>
                 <p class="text-xl text-gray-600 mb-8">Gestiona tus sesiones de tutoría de manera eficiente</p>
                 <a href="login.html" class="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition">
