@@ -6,70 +6,76 @@
     <title>Sistema de Tutorías</title>
     <link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.1/dist/flowbite.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="css/index.css">
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-    <div class="fondo" >
-        <header class="encabezado">
-            <img src="assets/Logo-UNSAAC.webp" alt="Logo" class="index-logo">
-        </header>
-        <section class="carousel-section">
-            <div class="carousel-container">
-                <div class="carousel-track">
-                    <div class="carousel-slide">
-                        <img src="../frontend/assets/Foto_informatica.webp" alt="Imagen de oficina 1">
-                    </div>
-                    <div class="carousel-slide">
-                        <img src="../frontend/assets/Foto_panoramica.webp" alt="Imagen de oficina 2">
-                    </div>
-                    <div class="carousel-slide">
-                        <img src="../frontend/assets/Foto_tricentenario.jpg" alt="Imagen de oficina 3">
-                    </div>
-                </div>
-                <button class="carousel-btn btn-prev">&lt;</button>
-                <button class="carousel-btn btn-next">&gt;</button>
-
-            </div>  
-        </section>
-
-        <!-- Banner Principal -->
-        <section>
-            <div class="container mx-auto text-center">
-                <h2 class="text-4xl font-bold mb-4">Bienvenido al Sistema de Tutorías</h2>
-                <p class="text-xl text-gray-600 mb-8">Gestiona tus sesiones de tutoría de manera eficiente</p>
-                <a href="login.html" class="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition">
-                    Iniciar Sesión
-                </a>
+    <header>
+        <div class="encabezado">
+            <div class="index1"><img src="assets/Logo-UNSAAC.webp" alt="Logo" class="index-logo"></div>
+            <div class="index2"><a href="index.html" class="active">Nuestro sistema de tutorias</a></div>
+            <div class="index3"><a href="#">Nuestros tutores</a></div>
+            <div class="index4"><a href="#">Alumnos por tutor</a></div>
+            <div class="index5"><a href="login.html">Iniciar sesion</a></div>
+        </div>
+    </header>
+    <div id="default-carousel" class="relative w-full" data-carousel="slide">
+        <div class="absolute p-6 mi-ventana-carrusel rounded-tr-15">
+            <h2 class="text-5xl font-bold text-red-900 leading-tight pt-6 px-6">
+                Sistema de tutorias
+            </h2>
+            <h2 class="text-2xl font-bold text-gray-600 leading-tight pb-6 px-6">
+                Gestiona tus sesiones de tutoria de manera eficiente
+            </h2>
+        </div>
+        <div class="relative altura overflow-hidden rounded-br-130">
+            <div class="hidden duration-700 ease-in-out" data-carousel-item>
+                <img src="../frontend/assets/Foto_informatica_1536x864.webp" class="absolute block w-full -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2" alt="...">
             </div>
-        </section>
-
-        <!-- Características -->
-        <section class="py-16 bg-gray-50">
-            <div class="container mx-auto">
-                <h3 class="text-3xl font-bold text-center mb-12">Características del Sistema</h3>
-                <div class="grid md:grid-cols-3 gap-8">
-                    <div class="bg-white p-6 rounded-lg shadow">
-                        <h4 class="text-xl font-bold mb-3">Gestión de Sesiones</h4>
-                        <p class="text-gray-600">Programa y administra sesiones de tutoría fácilmente</p>
-                    </div>
-                    <div class="bg-white p-6 rounded-lg shadow">
-                        <h4 class="text-xl font-bold mb-3">Calendario Integrado</h4>
-                        <p class="text-gray-600">Sincronización con Google Calendar</p>
-                    </div>
-                    <div class="bg-white p-6 rounded-lg shadow">
-                        <h4 class="text-xl font-bold mb-3">Reportes</h4>
-                        <p class="text-gray-600">Genera reportes de actividades y progreso</p>
-                    </div>
-                </div>
+            <div class="hidden duration-700 ease-in-out" data-carousel-item>
+                <img src="../frontend/assets/Foto_tricentenario.jpg" class="absolute block w-full -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2" alt="...">
             </div>
-        </section>
-
-        <!-- Footer -->
-        <footer class="bg-gray-800 text-white p-6 mt-16">
-            <div class="container mx-auto text-center">
-                <p>&copy; 2025 Sistema de Tutorías Institucional. Todos los derechos reservados.</p>
+            <div class="hidden duration-700 ease-in-out" data-carousel-item>
+                <img src="../frontend/assets/Foto_panoramica_1536x864.webp" class="absolute block w-full -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2" alt="...">
             </div>
-        </footer>
+            <div class="hidden duration-700 ease-in-out" data-carousel-item>
+                <img src="../frontend/assets/Foto_docentes_1536x864.webp" class="absolute block w-full -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2" alt="...">
+            </div>
+        </div>
+        <div class="absolute z-30 flex bori-4 space-x-3 rtl:space-x-reverse">
+            <button type="button" class="w-3 h-3 rounded-full" aria-current="true" aria-label="Slide 1" data-carousel-slide-to="0"></button>
+            <button type="button" class="w-3 h-3 rounded-full" aria-current="false" aria-label="Slide 2" data-carousel-slide-to="1"></button>
+            <button type="button" class="w-3 h-3 rounded-full" aria-current="false" aria-label="Slide 3" data-carousel-slide-to="2"></button>
+            <button type="button" class="w-3 h-3 rounded-full" aria-current="false" aria-label="Slide 4" data-carousel-slide-to="3"></button>
+        </div>
     </div>
+
+    <!-- Características -->
+    <section class="pb-10 pt-10">
+        <div class="container mx-auto bg-plomo rounded-lg">
+            <h3 class="text-3xl font-bold text-center mb-12 text-red-900 p-6">Características del Sistema</h3>
+            <div class="grid md:grid-cols-3 gap-8 pb-10">
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h4 class="text-xl font-bold mb-3 text-center">Gestión de Sesiones</h4>
+                    <p class="text-gray-600 text-justify">Programa y administra sesiones de tutoría fácilmente</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h4 class="text-xl font-bold mb-3 text-center">Calendario Integrado</h4>
+                    <p class="text-gray-600 text-justify">Sincronización con Google Calendar</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h4 class="text-xl font-bold mb-3 text-center">Reportes</h4>
+                    <p class="text-gray-600 text-justify">Genera reportes de actividades y progreso</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white p-6 mt-16">
+        <div class="container mx-auto text-center">
+            <p>&copy; 2025 Sistema de Tutorías Institucional. Todos los derechos reservados.</p>
+        </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.1/dist/flowbite.min.js"></script>
     <script>window.APP_BASE_PATH = '/Sistema-de-tutorias1';</script>
