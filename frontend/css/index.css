@@ -11,16 +11,12 @@ header{
 }
 .encabezado{
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    grid-template-rows: 1fr;
-    grid-column-gap: 20px;
-    grid-row-gap: 0px;
+    grid-template-columns: repeat(5, 1fr); 
     background-color: #EDEDED;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     color: #7B1113;
 }
 .index1{
-    grid-area: 1 / 1 / 2 / 2;
     background-color: #9B192D;
     display: flex;
     align-items: center;
@@ -35,25 +31,21 @@ header{
     border-right: 30px solid #9B192D;
 }
 .index2{
-    grid-area: 1 / 2 / 2 / 3;
     display: flex;
     align-items: center; 
     justify-content: center; 
 }
 .index3{
-    grid-area: 1 / 3 / 2 / 4; 
     display: flex;
     align-items: center;  
     justify-content: center; 
 }
 .index4{
-    grid-area: 1 / 4 / 2 / 5;
     display: flex;
     align-items: center;  
     justify-content: center; 
 }
 .index5{
-    grid-area: 1 / 5 / 2 / 6;
     display: flex;
     align-items: center;  
     justify-content: center;
@@ -170,4 +162,12 @@ header{
     left: 0 ;
     width: 50%;
 }
-
+.cuadricula{
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    margin-left: 2.5%;
+    margin-right: 2.5%;
+}
+.cara{
+    width: 95%;
+}
