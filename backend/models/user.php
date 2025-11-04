@@ -1,44 +1,135 @@
 <?php
-// user.php - Modelo de Usuario
+// user.php - Modelo de Usuario (usuariosistema y estudiante)
 
 class User {
     private $conn;
-    private $table = 'users';
+    private $tableSistema = 'usuariosistema';
+    private $tableEstudiante = 'estudiante';
     
     // Propiedades
     public $id;
     public $email;
+    public $correo; // alias para email
     public $name;
+    public $nombres;
+    public $apellidos;
+    public $dni;
+    public $codigo;
     public $role;
+    public $rol; // alias para role
+    public $especialidad;
+    public $semestre;
     public $active;
+    public $estado;
     public $created_at;
+    public $userType; // 'sistema' o 'estudiante'
     
     public function __construct($db) {
         $this->conn = $db;
     }
     
     /**
-     * Obtener usuario por email
+     * Obtener usuario por email (busca en ambas tablas)
      */
     public function getByEmail($email) {
-        $query = "SELECT id, email, name, role, active, created_at 
-                  FROM {$this->table} 
-                  WHERE email = :email";
+        // Primero buscar en usuariosistema (Admin, Tutor, Verificador)
+        $query = "SELECT 
+                    id, 
+                    correo as email, 
+                    CONCAT(nombres, ' ', apellidos) as name,
+                    nombres,
+                    apellidos,
+                    dni,
+                    rol as role,
+                    especialidad,
+                    estado as active,
+                    created_at,
+                    'sistema' as userType
+                  FROM {$this->tableSistema} 
+                  WHERE correo = :email AND estado = 'Activo'";
         
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':email', $email);
         $stmt->execute();
         
-        return $stmt->fetch();
+        $user = $stmt->fetch();
+        
+        // Si no se encuentra, buscar en estudiante
+        if (!$user) {
+            $query = "SELECT 
+                        id, 
+                        correo as email, 
+                        CONCAT(nombres, ' ', apellidos) as name,
+                        nombres,
+                        apellidos,
+                        codigo,
+                        'student' as role,
+                        'Estudiante' as rol,
+                        semestre,
+                        CASE WHEN estado = 'Activo' THEN 1 ELSE 0 END as active,
+                        created_at,
+                        'estudiante' as userType
+                      FROM {$this->tableEstudiante} 
+                      WHERE correo = :email AND estado = 'Activo'";
+            
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':email', $email);
+            $stmt->execute();
+            
+            $user = $stmt->fetch();
+        }
+        
+        // Normalizar el role para el sistema
+        if ($user && isset($user['role'])) {
+            $roleMap = [
+                'Administrador' => 'admin',
+                'Tutor' => 'tutor',
+                'Verificador' => 'verifier',
+                'Estudiante' => 'student',
+                'student' => 'student'
+            ];
+            $user['role'] = $roleMap[$user['role']] ?? strtolower($user['role']);
+            $user['active'] = ($user['active'] === 'Activo' || $user['active'] == 1) ? 1 : 0;
+        }
+        
+        return $user;
     }
     
     /**
-     * Obtener usuario por ID
+     * Obtener usuario por ID (busca en ambas tablas)
      */
-    public function getById($id) {
-        $query = "SELECT id, email, name, role, active, created_at 
-                  FROM {$this->table} 
-                  WHERE id = :id";
+    public function getById($id, $userType = null) {
+        if ($userType === 'estudiante') {
+            $query = "SELECT 
+                        id, 
+                        correo as email, 
+                        CONCAT(nombres, ' ', apellidos) as name,
+                        nombres,
+                        apellidos,
+                        codigo,
+                        'student' as role,
+                        semestre,
+                        estado as active,
+                        created_at,
+                        'estudiante' as userType
+                      FROM {$this->tableEstudiante} 
+                      WHERE id = :id";
+        } else {
+            $query = "SELECT 
+                        id, 
+                        correo as email, 
+                        CONCAT(nombres, ' ', apellidos) as name,
+                        nombres,
+                        apellidos,
+                        dni,
+                        rol as role,
+                        especialidad,
+                        estado as active,
+                        created_at,
+                        'sistema' as userType
+                      FROM {$this->tableSistema} 
+                      WHERE id = :id";
+        }
         
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':id', $id);
@@ -48,64 +139,85 @@ class User {
     }
     
     /**
-     * Crear usuario
-     */
-    public function create() {
-        $query = "INSERT INTO {$this->table} (email, name, role, active) 
-                  VALUES (:email, :name, :role, :active)";
-        
-        $stmt = $this->conn->prepare($query);
-        
-        $stmt->bindParam(':email', $this->email);
-        $stmt->bindParam(':name', $this->name);
-        $stmt->bindParam(':role', $this->role);
-        $stmt->bindParam(':active', $this->active);
-        
-        if ($stmt->execute()) {
-            $this->id = $this->conn->lastInsertId();
-            return true;
-        }
-        
-        return false;
-    }
-    
-    /**
-     * Actualizar usuario
-     */
-    public function update() {
-        $query = "UPDATE {$this->table} 
-                  SET name = :name, role = :role, active = :active 
-                  WHERE id = :id";
-        
-        $stmt = $this->conn->prepare($query);
-        
-        $stmt->bindParam(':id', $this->id);
-        $stmt->bindParam(':name', $this->name);
-        $stmt->bindParam(':role', $this->role);
-        $stmt->bindParam(':active', $this->active);
-        
-        return $stmt->execute();
-    }
-    
-    /**
-     * Eliminar usuario
-     */
-    public function delete() {
-        $query = "DELETE FROM {$this->table} WHERE id = :id";
-        
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':id', $this->id);
-        
-        return $stmt->execute();
-    }
-    
-    /**
-     * Listar todos los usuarios
+     * Listar todos los usuarios del sistema (solo usuariosistema)
      */
     public function getAll() {
-        $query = "SELECT id, email, name, role, active, created_at 
-                  FROM {$this->table} 
+        $query = "SELECT 
+                    id, 
+                    correo as email, 
+                    CONCAT(nombres, ' ', apellidos) as name,
+                    nombres,
+                    apellidos,
+                    dni,
+                    rol as role,
+                    especialidad,
+                    estado as active,
+                    created_at
+                  FROM {$this->tableSistema} 
                   ORDER BY created_at DESC";
+        
+        $stmt = $this->conn->query($query);
+        return $stmt->fetchAll();
+    }
+    
+    /**
+     * Listar todos los tutores
+     */
+    public function getAllTutors() {
+        $query = "SELECT 
+                    id, 
+                    correo as email, 
+                    CONCAT(nombres, ' ', apellidos) as name,
+                    nombres,
+                    apellidos,
+                    dni,
+                    especialidad,
+                    estado as active
+                  FROM {$this->tableSistema} 
+                  WHERE rol = 'Tutor' AND estado = 'Activo'
+                  ORDER BY apellidos, nombres";
+        
+        $stmt = $this->conn->query($query);
+        return $stmt->fetchAll();
+    }
+    
+    /**
+     * Listar todos los estudiantes
+     */
+    public function getAllStudents() {
+        $query = "SELECT 
+                    id, 
+                    correo as email, 
+                    CONCAT(nombres, ' ', apellidos) as name,
+                    nombres,
+                    apellidos,
+                    codigo,
+                    semestre,
+                    estado as active
+                  FROM {$this->tableEstudiante} 
+                  WHERE estado = 'Activo'
+                  ORDER BY apellidos, nombres";
+        
+        $stmt = $this->conn->query($query);
+        return $stmt->fetchAll();
+    }
+    
+    /**
+     * Listar todos los verificadores
+     */
+    public function getAllVerifiers() {
+        $query = "SELECT 
+                    id, 
+                    correo as email, 
+                    CONCAT(nombres, ' ', apellidos) as name,
+                    nombres,
+                    apellidos,
+                    dni,
+                    especialidad,
+                    estado as active
+                  FROM {$this->tableSistema} 
+                  WHERE rol = 'Verificador' AND estado = 'Activo'
+                  ORDER BY apellidos, nombres";
         
         $stmt = $this->conn->query($query);
         return $stmt->fetchAll();

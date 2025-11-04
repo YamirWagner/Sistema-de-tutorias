@@ -1,12 +1,22 @@
 <?php
-// session.php - Modelo de Sesión de Tutoría
+// session.php - Modelo de Sesión de Tutoría (usa nueva estructura: tutoria, cronograma, asignaciontutor)
 
 class Session {
     private $conn;
-    private $table = 'sessions';
+    private $tableTutoria = 'tutoria';
+    private $tableCronograma = 'cronograma';
+    private $tableAsignacion = 'asignaciontutor';
     
     // Propiedades
     public $id;
+    public $idAsignacion;
+    public $idCronograma;
+    public $tipo;
+    public $fechaRealizada;
+    public $observaciones;
+    public $estado;
+    
+    // Propiedades legacy para compatibilidad
     public $tutor_id;
     public $student_id;
     public $title;
@@ -14,84 +24,34 @@ class Session {
     public $start_time;
     public $end_time;
     public $status;
-    public $verified;
-    public $verified_by;
-    public $google_event_id;
     
     public function __construct($db) {
         $this->conn = $db;
     }
     
     /**
-     * Crear sesión
-     */
-    public function create() {
-        $query = "INSERT INTO {$this->table} 
-                  (tutor_id, student_id, title, description, start_time, end_time, status) 
-                  VALUES (:tutor_id, :student_id, :title, :description, :start_time, :end_time, :status)";
-        
-        $stmt = $this->conn->prepare($query);
-        
-        $stmt->bindParam(':tutor_id', $this->tutor_id);
-        $stmt->bindParam(':student_id', $this->student_id);
-        $stmt->bindParam(':title', $this->title);
-        $stmt->bindParam(':description', $this->description);
-        $stmt->bindParam(':start_time', $this->start_time);
-        $stmt->bindParam(':end_time', $this->end_time);
-        $stmt->bindParam(':status', $this->status);
-        
-        if ($stmt->execute()) {
-            $this->id = $this->conn->lastInsertId();
-            return true;
-        }
-        
-        return false;
-    }
-    
-    /**
-     * Actualizar sesión
-     */
-    public function update() {
-        $query = "UPDATE {$this->table} 
-                  SET title = :title, description = :description, 
-                      start_time = :start_time, end_time = :end_time, 
-                      status = :status 
-                  WHERE id = :id";
-        
-        $stmt = $this->conn->prepare($query);
-        
-        $stmt->bindParam(':id', $this->id);
-        $stmt->bindParam(':title', $this->title);
-        $stmt->bindParam(':description', $this->description);
-        $stmt->bindParam(':start_time', $this->start_time);
-        $stmt->bindParam(':end_time', $this->end_time);
-        $stmt->bindParam(':status', $this->status);
-        
-        return $stmt->execute();
-    }
-    
-    /**
-     * Obtener sesión por ID
-     */
-    public function getById($id) {
-        $query = "SELECT * FROM {$this->table} WHERE id = :id";
-        
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':id', $id);
-        $stmt->execute();
-        
-        return $stmt->fetch();
-    }
-    
-    /**
-     * Obtener sesiones por tutor
+     * Obtener tutorías por tutor
      */
     public function getByTutor($tutorId) {
-        $query = "SELECT s.*, u.name as student_name 
-                  FROM {$this->table} s 
-                  LEFT JOIN users u ON s.student_id = u.id 
-                  WHERE s.tutor_id = :tutor_id 
-                  ORDER BY s.start_time DESC";
+        $query = "SELECT 
+                    t.id,
+                    t.tipo,
+                    t.fechaRealizada,
+                    t.observaciones,
+                    t.estado,
+                    a.nombreEstudiante,
+                    a.apellidoEstudiante,
+                    a.codigoEstudiante,
+                    c.fecha,
+                    c.horaInicio,
+                    c.horaFin,
+                    c.ambiente,
+                    c.descripcion
+                  FROM {$this->tableTutoria} t
+                  INNER JOIN {$this->tableAsignacion} a ON t.idAsignacion = a.id
+                  INNER JOIN {$this->tableCronograma} c ON t.idCronograma = c.id
+                  WHERE a.idTutor = :tutor_id
+                  ORDER BY c.fecha DESC, c.horaInicio DESC";
         
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':tutor_id', $tutorId);
@@ -101,19 +61,87 @@ class Session {
     }
     
     /**
-     * Obtener sesiones por estudiante
+     * Obtener tutorías por estudiante
      */
     public function getByStudent($studentId) {
-        $query = "SELECT s.*, u.name as tutor_name 
-                  FROM {$this->table} s 
-                  JOIN users u ON s.tutor_id = u.id 
-                  WHERE s.student_id = :student_id 
-                  ORDER BY s.start_time DESC";
+        $query = "SELECT 
+                    t.id,
+                    t.tipo,
+                    t.fechaRealizada,
+                    t.observaciones,
+                    t.estado,
+                    a.nombreTutor,
+                    a.apellidoTutor,
+                    c.fecha,
+                    c.horaInicio,
+                    c.horaFin,
+                    c.ambiente,
+                    c.descripcion
+                  FROM {$this->tableTutoria} t
+                  INNER JOIN {$this->tableAsignacion} a ON t.idAsignacion = a.id
+                  INNER JOIN {$this->tableCronograma} c ON t.idCronograma = c.id
+                  WHERE a.idEstudiante = :student_id
+                  ORDER BY c.fecha DESC, c.horaInicio DESC";
         
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':student_id', $studentId);
         $stmt->execute();
         
+        return $stmt->fetchAll();
+    }
+    
+    /**
+     * Obtener tutorías pendientes de verificación
+     */
+    public function getPendingVerification() {
+        $query = "SELECT 
+                    t.id,
+                    t.tipo,
+                    t.fechaRealizada,
+                    t.observaciones,
+                    t.estado,
+                    a.nombreTutor,
+                    a.apellidoTutor,
+                    a.nombreEstudiante,
+                    a.apellidoEstudiante,
+                    c.fecha,
+                    c.horaInicio,
+                    c.horaFin
+                  FROM {$this->tableTutoria} t
+                  INNER JOIN {$this->tableAsignacion} a ON t.idAsignacion = a.id
+                  INNER JOIN {$this->tableCronograma} c ON t.idCronograma = c.id
+                  LEFT JOIN verificacion v ON t.id = v.idTutoria
+                  WHERE t.estado = 'Realizada' AND v.id IS NULL
+                  ORDER BY c.fecha DESC";
+        
+        $stmt = $this->conn->query($query);
+        return $stmt->fetchAll();
+    }
+    
+    /**
+     * Obtener todas las tutorías con detalles
+     */
+    public function getAll() {
+        $query = "SELECT 
+                    t.id,
+                    t.tipo,
+                    t.fechaRealizada,
+                    t.observaciones,
+                    t.estado,
+                    a.nombreTutor,
+                    a.apellidoTutor,
+                    a.nombreEstudiante,
+                    a.apellidoEstudiante,
+                    c.fecha,
+                    c.horaInicio,
+                    c.horaFin,
+                    c.ambiente
+                  FROM {$this->tableTutoria} t
+                  INNER JOIN {$this->tableAsignacion} a ON t.idAsignacion = a.id
+                  INNER JOIN {$this->tableCronograma} c ON t.idCronograma = c.id
+                  ORDER BY c.fecha DESC, c.horaInicio DESC";
+        
+        $stmt = $this->conn->query($query);
         return $stmt->fetchAll();
     }
 }

@@ -25,13 +25,10 @@ try {
     $database = new Database();
     $db = $database->getConnection();
     
-    // Buscar usuario
-    $query = "SELECT id, email, name, role FROM users WHERE email = :email AND active = 1";
-    $stmt = $db->prepare($query);
-    $stmt->bindParam(':email', $email);
-    $stmt->execute();
-    
-    $user = $stmt->fetch();
+    // Buscar usuario en nuevas tablas
+    require_once '../../models/user.php';
+    $userModel = new User($db);
+    $user = $userModel->getByEmail($email);
     
     if (!$user) {
         Response::error('Usuario no encontrado', 404);
@@ -39,11 +36,11 @@ try {
     
     // Verificar código
     $query = "SELECT * FROM verification_codes 
-              WHERE user_id = :user_id AND code = :code AND used = 0 
+              WHERE correo = :correo AND code = :code AND used = 0 
               AND expires_at > NOW()";
     
     $stmt = $db->prepare($query);
-    $stmt->bindParam(':user_id', $user['id']);
+    $stmt->bindParam(':correo', $email);
     $stmt->bindParam(':code', $code);
     $stmt->execute();
     
@@ -59,22 +56,33 @@ try {
     $stmt->bindParam(':id', $verification['id']);
     $stmt->execute();
     
-    // Generar token JWT
+    // Generar token JWT con datos completos
     $payload = [
         'user_id' => $user['id'],
         'email' => $user['email'],
         'name' => $user['name'],
-        'role' => $user['role']
+        'role' => $user['role'],
+        'userType' => $user['userType']
     ];
+    
+    // Agregar datos específicos según el tipo de usuario
+    if ($user['userType'] === 'estudiante') {
+        $payload['codigo'] = $user['codigo'] ?? null;
+        $payload['semestre'] = $user['semestre'] ?? null;
+    } else {
+        $payload['dni'] = $user['dni'] ?? null;
+        $payload['especialidad'] = $user['especialidad'] ?? null;
+    }
     
     $token = JWT::encode($payload);
     
     // Registrar inicio de sesión
-    $query = "INSERT INTO login_history (user_id, ip_address, user_agent) 
-              VALUES (:user_id, :ip, :user_agent)";
+    $query = "INSERT INTO login_history (correo, rol, ip_address, user_agent) 
+              VALUES (:correo, :rol, :ip, :user_agent)";
     
     $stmt = $db->prepare($query);
-    $stmt->bindParam(':user_id', $user['id']);
+    $stmt->bindParam(':correo', $email);
+    $stmt->bindParam(':rol', $user['role']);
     $stmt->bindValue(':ip', $_SERVER['REMOTE_ADDR'] ?? '');
     $stmt->bindValue(':user_agent', $_SERVER['HTTP_USER_AGENT'] ?? '');
     $stmt->execute();

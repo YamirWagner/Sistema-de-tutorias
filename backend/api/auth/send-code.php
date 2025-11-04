@@ -24,13 +24,10 @@ try {
     $database = new Database();
     $db = $database->getConnection();
     
-    // Verificar si el usuario existe
-    $query = "SELECT id, email, name, role FROM users WHERE email = :email AND active = 1";
-    $stmt = $db->prepare($query);
-    $stmt->bindParam(':email', $email);
-    $stmt->execute();
-    
-    $user = $stmt->fetch();
+    // Verificar si el usuario existe (buscar en usuariosistema y estudiante)
+    require_once '../../models/user.php';
+    $userModel = new User($db);
+    $user = $userModel->getByEmail($email);
     
     if (!$user) {
         Response::error('Usuario no encontrado o inactivo', 404);
@@ -43,17 +40,17 @@ try {
     $expiration = date('Y-m-d H:i:s', time() + 600); // 10 minutos
     
     // Primero eliminar códigos anteriores del usuario
-    $query = "DELETE FROM verification_codes WHERE user_id = :user_id";
+    $query = "DELETE FROM verification_codes WHERE correo = :correo";
     $stmt = $db->prepare($query);
-    $stmt->bindParam(':user_id', $user['id']);
+    $stmt->bindParam(':correo', $email);
     $stmt->execute();
     
     // Insertar nuevo código
-    $query = "INSERT INTO verification_codes (user_id, code, expires_at) 
-              VALUES (:user_id, :code, :expires_at)";
+    $query = "INSERT INTO verification_codes (correo, code, expires_at) 
+              VALUES (:correo, :code, :expires_at)";
     
     $stmt = $db->prepare($query);
-    $stmt->bindParam(':user_id', $user['id']);
+    $stmt->bindParam(':correo', $email);
     $stmt->bindParam(':code', $code);
     $stmt->bindParam(':expires_at', $expiration);
     $stmt->execute();

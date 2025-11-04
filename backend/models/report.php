@@ -1,52 +1,85 @@
 <?php
-// report.php - Modelo de Reporte de Tutoría
+// report.php - Modelo de Materiales y Verificación (nueva estructura)
 
 class Report {
     private $conn;
-    private $table = 'reports';
+    private $tableMateriales = 'materiales';
+    private $tableVerificacion = 'verificacion';
     
     public $id;
-    public $session_id;
-    public $tutor_id;
-    public $content;
-    public $observations;
+    public $idTutoria;
+    public $titulo;
+    public $descripcion;
+    public $tipo;
+    public $enlace;
     
     public function __construct($db) {
         $this->conn = $db;
     }
     
     /**
-     * Crear reporte
+     * Obtener materiales por tutoría
      */
-    public function create() {
-        $query = "INSERT INTO {$this->table} (session_id, tutor_id, content, observations) 
-                  VALUES (:session_id, :tutor_id, :content, :observations)";
+    public function getBySession($tutoriaId) {
+        $query = "SELECT * FROM {$this->tableMateriales} 
+                  WHERE idTutoria = :idTutoria 
+                  ORDER BY fechaRegistro DESC";
         
         $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':idTutoria', $tutoriaId);
+        $stmt->execute();
         
-        $stmt->bindParam(':session_id', $this->session_id);
-        $stmt->bindParam(':tutor_id', $this->tutor_id);
-        $stmt->bindParam(':content', $this->content);
-        $stmt->bindParam(':observations', $this->observations);
-        
-        if ($stmt->execute()) {
-            $this->id = $this->conn->lastInsertId();
-            return true;
-        }
-        
-        return false;
+        return $stmt->fetchAll();
     }
     
     /**
-     * Obtener reporte por sesión
+     * Obtener verificación de tutoría
      */
-    public function getBySession($sessionId) {
-        $query = "SELECT * FROM {$this->table} WHERE session_id = :session_id";
+    public function getVerification($tutoriaId) {
+        $query = "SELECT 
+                    v.*,
+                    CONCAT(u.nombres, ' ', u.apellidos) as verificador_nombre
+                  FROM {$this->tableVerificacion} v
+                  INNER JOIN usuariosistema u ON v.idVerificador = u.id
+                  WHERE v.idTutoria = :idTutoria";
         
         $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':session_id', $sessionId);
+        $stmt->bindParam(':idTutoria', $tutoriaId);
         $stmt->execute();
         
         return $stmt->fetch();
+    }
+    
+    /**
+     * Obtener todos los materiales
+     */
+    public function getAllMaterials() {
+        $query = "SELECT 
+                    m.*,
+                    t.tipo as tipo_tutoria,
+                    t.estado as estado_tutoria
+                  FROM {$this->tableMateriales} m
+                  INNER JOIN tutoria t ON m.idTutoria = t.id
+                  ORDER BY m.fechaRegistro DESC";
+        
+        $stmt = $this->conn->query($query);
+        return $stmt->fetchAll();
+    }
+    
+    /**
+     * Obtener todas las verificaciones
+     */
+    public function getAllVerifications() {
+        $query = "SELECT 
+                    v.*,
+                    CONCAT(u.nombres, ' ', u.apellidos) as verificador_nombre,
+                    t.tipo as tipo_tutoria
+                  FROM {$this->tableVerificacion} v
+                  INNER JOIN usuariosistema u ON v.idVerificador = u.id
+                  INNER JOIN tutoria t ON v.idTutoria = t.id
+                  ORDER BY v.fechaVerificacion DESC";
+        
+        $stmt = $this->conn->query($query);
+        return $stmt->fetchAll();
     }
 }

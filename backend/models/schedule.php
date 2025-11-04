@@ -1,57 +1,64 @@
 <?php
-// schedule.php - Modelo de Cronograma
+// schedule.php - Modelo de Cronograma (nueva estructura)
 
 class Schedule {
     private $conn;
-    private $table = 'schedules';
+    private $table = 'cronograma';
     
     public $id;
-    public $tutor_id;
-    public $day_of_week;
-    public $start_time;
-    public $end_time;
-    public $active;
+    public $idSemestre;
+    public $fecha;
+    public $horaInicio;
+    public $horaFin;
+    public $ambiente;
+    public $descripcion;
+    public $estado;
     
     public function __construct($db) {
         $this->conn = $db;
     }
     
     /**
-     * Crear horario
+     * Obtener cronograma por semestre
      */
-    public function create() {
-        $query = "INSERT INTO {$this->table} 
-                  (tutor_id, day_of_week, start_time, end_time, active) 
-                  VALUES (:tutor_id, :day_of_week, :start_time, :end_time, :active)";
+    public function getBySemestre($semestreId) {
+        $query = "SELECT * FROM {$this->table} 
+                  WHERE idSemestre = :idSemestre 
+                  ORDER BY fecha, horaInicio";
         
         $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':idSemestre', $semestreId);
+        $stmt->execute();
         
-        $stmt->bindParam(':tutor_id', $this->tutor_id);
-        $stmt->bindParam(':day_of_week', $this->day_of_week);
-        $stmt->bindParam(':start_time', $this->start_time);
-        $stmt->bindParam(':end_time', $this->end_time);
-        $stmt->bindParam(':active', $this->active);
-        
-        if ($stmt->execute()) {
-            $this->id = $this->conn->lastInsertId();
-            return true;
-        }
-        
-        return false;
+        return $stmt->fetchAll();
     }
     
     /**
-     * Obtener horarios por tutor
+     * Obtener cronograma activo (semestre actual)
      */
-    public function getByTutor($tutorId) {
-        $query = "SELECT * FROM {$this->table} 
-                  WHERE tutor_id = :tutor_id AND active = 1 
-                  ORDER BY day_of_week, start_time";
+    public function getActiveSemester() {
+        $query = "SELECT c.* 
+                  FROM {$this->table} c
+                  INNER JOIN semestre s ON c.idSemestre = s.id
+                  WHERE s.estado = 'Activo'
+                  ORDER BY c.fecha, c.horaInicio";
         
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':tutor_id', $tutorId);
-        $stmt->execute();
+        $stmt = $this->conn->query($query);
+        return $stmt->fetchAll();
+    }
+    
+    /**
+     * Obtener todos los cronogramas
+     */
+    public function getAll() {
+        $query = "SELECT 
+                    c.*,
+                    s.nombre as semestre
+                  FROM {$this->table} c
+                  INNER JOIN semestre s ON c.idSemestre = s.id
+                  ORDER BY c.fecha DESC, c.horaInicio";
         
+        $stmt = $this->conn->query($query);
         return $stmt->fetchAll();
     }
 }

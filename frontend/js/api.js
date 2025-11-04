@@ -64,12 +64,22 @@ async function apiPost(endpoint, data) {
         headers['Authorization'] = `Bearer ${token}`;
     }
     
+    const fullUrl = `${API_BASE_URL}${endpoint}`;
+    console.log('POST Request:', fullUrl);
+    
     try {
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        const response = await fetch(fullUrl, {
             method: 'POST',
             headers: headers,
             body: JSON.stringify(data)
         });
+        
+        console.log('Response status:', response.status);
+        
+        if (response.status === 404) {
+            console.error('Endpoint no encontrado:', fullUrl);
+            throw new Error(`Endpoint no encontrado: ${endpoint}`);
+        }
         
         const contentType = response.headers.get('content-type') || '';
         const responseData = contentType.includes('application/json') ? await response.json() : { success: false, message: 'Respuesta no JSON del servidor' };
