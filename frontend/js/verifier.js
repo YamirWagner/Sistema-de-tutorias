@@ -14,13 +14,19 @@ async function loadVerifierDashboard() {
 // Cargar estadísticas del verificador
 async function loadVerifierStats() {
     try {
-        const response = await apiGet('/verifier.php?action=stats');
+        // Datos mock mientras se implementa el endpoint
+        console.log('Cargando estadísticas del verificador (datos temporales)...');
+        document.getElementById('totalSessions').textContent = '0';
+        document.getElementById('pendingSessions').textContent = '0';
+        document.getElementById('completedSessions').textContent = '0';
         
-        if (response.success) {
-            document.getElementById('totalSessions').textContent = response.data.totalSessions || 0;
-            document.getElementById('pendingSessions').textContent = response.data.pendingVerification || 0;
-            document.getElementById('completedSessions').textContent = response.data.verifiedSessions || 0;
-        }
+        // TODO: Descomentar cuando el endpoint esté listo
+        // const response = await apiGet('/verifier?action=stats');
+        // if (response.success) {
+        //     document.getElementById('totalSessions').textContent = response.data.totalSessions || 0;
+        //     document.getElementById('pendingSessions').textContent = response.data.pendingVerification || 0;
+        //     document.getElementById('completedSessions').textContent = response.data.verifiedSessions || 0;
+        // }
     } catch (error) {
         console.error('Error al cargar estadísticas:', error);
     }
@@ -59,7 +65,7 @@ function renderVerifierContent() {
 // Ver sesiones pendientes de verificación
 async function viewPendingVerifications() {
     try {
-        const response = await apiGet('/verifier.php?action=pending');
+        const response = await apiGet('/verifier?action=pending');
         
         if (response.success) {
             console.log('Sesiones pendientes:', response.data);
@@ -73,7 +79,7 @@ async function viewPendingVerifications() {
 // Ver sesiones verificadas
 async function viewVerifiedSessions() {
     try {
-        const response = await apiGet('/verifier.php?action=verified');
+        const response = await apiGet('/verifier?action=verified');
         
         if (response.success) {
             console.log('Sesiones verificadas:', response.data);
@@ -92,7 +98,7 @@ async function generateVerificationReport() {
 // Ver historial de verificaciones
 async function viewVerificationHistory() {
     try {
-        const response = await apiGet('/verifier.php?action=history');
+        const response = await apiGet('/verifier?action=history');
         
         if (response.success) {
             console.log('Historial:', response.data);

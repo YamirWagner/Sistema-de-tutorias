@@ -73,6 +73,7 @@ define('GOOGLE_REDIRECT_URI', env('GOOGLE_REDIRECT_URI', ''));
 define('APP_NAME', 'Sistema de Tutorías UNSAAC');
 define('APP_URL', env('APP_URL'));
 define('APP_ENV', env('APP_ENV', 'production'));
+define('APP_VERSION', env('APP_VERSION', '1.0.0'));
 define('TIMEZONE', 'America/Lima');
 
 // Configuración de sesiones

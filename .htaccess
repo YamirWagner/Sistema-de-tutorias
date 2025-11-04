@@ -1,38 +1,70 @@
-# Oculta el listado de directorios
-Options -Indexes
-
-# Página por defecto del sitio
+# Configuración del Sistema de Tutorías UNSAAC
+Options -Indexes -MultiViews
 DirectoryIndex frontend/index.html
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
+  RewriteBase /Sistema-de-tutorias/
 
-  # No reescribir si el recurso existe (archivos o carpetas reales)
+  # ============================================
+  # BACKEND API - Rutas sin extensión .php
+  # ============================================
+  
+  # Bloquear acceso directo a archivos PHP del backend
+  RewriteCond %{REQUEST_URI} backend/.*\.php$
+  RewriteCond %{REQUEST_URI} !backend/routes\.php$
+  RewriteRule .* - [F,L]
+  
+  # Todas las rutas /api/* van al enrutador routes.php
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^api/(.*)$ backend/routes.php [L,QSA]
+
+  # Permitir acceso directo a archivos estáticos del backend
+  RewriteRule ^backend/(storage|vendor)/(.*)$ backend/$1/$2 [L,NC]
+
+  # ============================================
+  # FRONTEND - Rutas limpias sin .html
+  # ============================================
+  
+  # Recursos estáticos (CSS, JS, imágenes, componentes) - Reescribir rutas
+  # IMPORTANTE: Estas reglas deben ir ANTES de cualquier otra regla
+  # La bandera [L] hace que sean las ÚLTIMAS reglas aplicadas
+  RewriteRule ^js/(.*)$ frontend/js/$1 [L,NC,END]
+  RewriteRule ^css/(.*)$ frontend/css/$1 [L,NC,END]
+  RewriteRule ^assets/(.*)$ frontend/assets/$1 [L,NC,END]
+  RewriteRule ^components/(.*)$ frontend/components/$1 [L,NC,END]
+  
+  # Permitir acceso directo a archivos estáticos existentes
+  RewriteCond %{REQUEST_FILENAME} -f
+  RewriteRule ^ - [L]
+
+  # Raíz del sitio
+  RewriteRule ^$ frontend/index.html [L]
+
+  # Páginas principales sin extensión
+  RewriteRule ^login/?$ frontend/login.html [L,NC]
+  RewriteRule ^verify/?$ frontend/verify.html [L,NC]
+  RewriteRule ^panel/?$ frontend/panel.html [L,NC]
+  RewriteRule ^dashboard/?$ frontend/panel.html [L,NC]
+  RewriteRule ^index/?$ frontend/index.html [L,NC]
+
+  # Redirigir URLs con .html a versiones sin extensión
+  # EXCEPTO para componentes, js, css y assets
+  RewriteCond %{THE_REQUEST} ^[A-Z]{3,}\s([^.]+)\.html [NC]
+  RewriteCond %{REQUEST_URI} !^/Sistema-de-tutorias/(components|js|css|assets)/ [NC]
+  RewriteRule ^ %1 [R=301,L]
+
+  # NO aplicar más reglas si es un archivo o directorio existente
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
-
-  # Evitar reescritura de cualquier cosa bajo backend/
-  RewriteRule ^backend/ - [L]
-
-  # Raíz -> frontend/index.html
-  RewriteRule ^$ frontend/index.html [L]
-
-  # Rutas limpias de páginas del frontend
-  RewriteRule ^login(?:\.html)?/?$ frontend/login.html [L,NC]
-  RewriteRule ^verify(?:\.html)?/?$ frontend/verify.html [L,NC]
-  RewriteRule ^dashboard(?:\.html)?/?$ frontend/dashboard.html [L,NC]
-  RewriteRule ^index(?:\.html)?$ frontend/index.html [L,NC]
-
-  # Mapeo genérico: /pagina o /pagina.html -> frontend/pagina.html (si existe)
-  RewriteCond %{DOCUMENT_ROOT}/frontend/$1.html -f
-  RewriteRule ^([^/]+)/?$ frontend/$1.html [L,NC]
-  RewriteCond %{DOCUMENT_ROOT}/frontend/$1.html -f
-  RewriteRule ^([^/]+)\.html$ frontend/$1.html [L,NC]
-
-  # Servir assets del frontend desde la raíz
-  RewriteRule ^(css|js|assets|components)/(.*)$ frontend/$1/$2 [L,NC]
-
-  # Fallback a index del frontend para cualquier otra ruta (SPA-like)
-  RewriteRule . frontend/index.html [L]
 </IfModule>
+
+# ============================================
+# Seguridad
+# ============================================
+<FilesMatch "\.(env|md|sql)$">
+  Order allow,deny
+  Deny from all
+</FilesMatch>

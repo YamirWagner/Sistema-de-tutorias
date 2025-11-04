@@ -1,10 +1,11 @@
 <?php
 // verify-code.php - Verificar código y generar token
 
-require_once '../../core/config.php';
-require_once '../../core/database.php';
-require_once '../../core/response.php';
-require_once '../../core/jwt.php';
+// Las rutas son relativas a routes.php que está en backend/
+require_once __DIR__ . '/../../core/config.php';
+require_once __DIR__ . '/../../core/database.php';
+require_once __DIR__ . '/../../core/response.php';
+require_once __DIR__ . '/../../core/jwt.php';
 
 try {
     // Obtener datos de la petición
@@ -26,7 +27,7 @@ try {
     $db = $database->getConnection();
     
     // Buscar usuario en nuevas tablas
-    require_once '../../models/user.php';
+    require_once __DIR__ . '/../../models/user.php';
     $userModel = new User($db);
     $user = $userModel->getByEmail($email);
     
@@ -76,6 +77,41 @@ try {
     
     $token = JWT::encode($payload);
     
+    // Helper IP similar al usado en send-code
+    $getClientIp = function() {
+        $keys = [
+            'HTTP_CF_CONNECTING_IP',
+            'HTTP_CLIENT_IP',
+            'HTTP_X_FORWARDED_FOR',
+            'HTTP_X_REAL_IP',
+            'REMOTE_ADDR'
+        ];
+        foreach ($keys as $key) {
+            if (!empty($_SERVER[$key])) {
+                $value = $_SERVER[$key];
+                if ($key === 'HTTP_X_FORWARDED_FOR') {
+                    $parts = array_map('trim', explode(',', $value));
+                    foreach ($parts as $part) {
+                        if (filter_var($part, FILTER_VALIDATE_IP)) {
+                            if ($part === '::1' || $part === '0:0:0:0:0:0:0:1') {
+                                return '127.0.0.1';
+                            }
+                            return $part;
+                        }
+                    }
+                } else {
+                    if (filter_var($value, FILTER_VALIDATE_IP)) {
+                        if ($value === '::1' || $value === '0:0:0:0:0:0:0:1') {
+                            return '127.0.0.1';
+                        }
+                        return $value;
+                    }
+                }
+            }
+        }
+        return '';
+    };
+
     // Registrar inicio de sesión
     $query = "INSERT INTO login_history (correo, rol, ip_address, user_agent) 
               VALUES (:correo, :rol, :ip, :user_agent)";
@@ -83,7 +119,7 @@ try {
     $stmt = $db->prepare($query);
     $stmt->bindParam(':correo', $email);
     $stmt->bindParam(':rol', $user['role']);
-    $stmt->bindValue(':ip', $_SERVER['REMOTE_ADDR'] ?? '');
+    $stmt->bindValue(':ip', $getClientIp());
     $stmt->bindValue(':user_agent', $_SERVER['HTTP_USER_AGENT'] ?? '');
     $stmt->execute();
     

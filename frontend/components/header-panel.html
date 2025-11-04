@@ -1,0 +1,53 @@
+<header class="header-panel">
+    <div class="header-content">
+        <!-- Botón de menú móvil -->
+        <button class="mobile-menu-btn" onclick="toggleSidebarMobile()" type="button" title="Abrir menú" aria-label="Menú de navegación">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+        </button>
+        
+        <!-- Información del Sistema y Semestre -->
+        <div class="header-info-section">
+            <div class="header-title">
+                <h1>Sistema de Tutorías</h1>
+                <p class="header-subtitle">UNSAAC</p>
+            </div>
+            <div class="header-semester">
+                <div class="semester-info">
+                    <span class="semester-label">Semestre:</span>
+                    <span class="semester-value" id="headerSemester">2025-I</span>
+                </div>
+                <div class="days-remaining">
+                    <span class="days-label">Días:</span>
+                    <span class="days-value" id="headerDaysRemaining">--</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Información del Usuario -->
+        <div class="header-user-section">
+            <div class="user-info">
+                <p class="user-name" id="headerUserName">Usuario</p>
+                <p class="user-role" id="headerUserRole">Rol</p>
+            </div>
+        </div>
+        
+        <!-- Botones de Acción -->
+        <div class="header-actions">
+            <button onclick="showHelp()" class="btn-help" type="button" title="Centro de ayuda" aria-label="Abrir ayuda">
+                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="btn-text">Ayuda</span>
+            </button>
+            
+            <button onclick="logout()" class="btn-logout" type="button" title="Cerrar sesión" aria-label="Cerrar sesión">
+                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                </svg>
+                <span class="btn-text">Cerrar Sesión</span>
+            </button>
+        </div>
+    </div>
+</header>

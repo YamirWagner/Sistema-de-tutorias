@@ -1,0 +1,213 @@
+/* ============================================
+   PANEL LAYOUT - Sistema de Tutorías UNSAAC
+   ============================================ */
+
+/* ========== RESET BASE ========== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    margin: 0 !important;
+    padding: 0 !important;
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background-color: #f3f4f6;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* ========== CONTENEDORES FIJOS ========== */
+/* Sidebar Container */
+#sidebar-container {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    width: 250px;
+    z-index: 30;
+    overflow: hidden;
+    transition: width 0.3s ease;
+}
+
+/* Sidebar Colapsado */
+.sidebar-panel.collapsed ~ #sidebar-container {
+    width: 70px;
+}
+
+/* Header Container */
+#header-container {
+    position: fixed;
+    top: 0;
+    left: 250px;
+    right: 0;
+    z-index: 20;
+    height: 80px;
+    transition: left 0.3s ease;
+}
+
+/* Header cuando sidebar está colapsado */
+body:has(.sidebar-panel.collapsed) #header-container {
+    left: 70px !important;
+}
+
+/* ========== CONTENEDOR PRINCIPAL ========== */
+.main-wrapper {
+    margin-top: 80px;
+    margin-left: 250px;
+    min-height: calc(100vh - 80px);
+    display: flex;
+    flex-direction: column;
+    background-color: #f3f4f6;
+    transition: margin-left 0.3s ease, width 0.3s ease;
+    width: calc(100% - 250px);
+}
+
+/* Main cuando sidebar está colapsado */
+body:has(.sidebar-panel.collapsed) .main-wrapper {
+    margin-left: 70px !important;
+    width: calc(100% - 70px) !important;
+}
+
+main.flex-1 {
+    flex: 1 0 auto;
+    padding: 24px;
+    width: 100%;
+    max-width: 100%;
+}
+
+/* ========== FOOTER ========== */
+#footer-container {
+    display: block !important;
+    width: 100% !important;
+    margin-top: auto !important;
+    flex-shrink: 0 !important;
+    margin-bottom: 0 !important;
+    padding: 0 !important;
+    position: relative !important;
+    background: transparent !important;
+}
+
+#footer-container footer {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    margin: 0 !important;
+    padding-bottom: 0 !important;
+    position: relative !important;
+}
+
+/* Modales Container */
+#modals-container {
+    position: relative;
+    z-index: 1000;
+}
+
+/* ========== RESPONSIVE: DESKTOP ========== */
+@media (max-width: 1400px) {
+    main.flex-1 {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 1200px) {
+    main.flex-1 {
+        padding: 18px;
+    }
+}
+
+@media (max-width: 992px) {
+    main.flex-1 {
+        padding: 16px;
+    }
+}
+
+/* ========== RESPONSIVE: MÓVIL ========== */
+@media (max-width: 768px) {
+    /* Header móvil - Ocupa todo el ancho */
+    #header-container {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        z-index: 25 !important;
+        height: 70px !important;
+    }
+    
+    /* Sidebar móvil - Oculto por defecto */
+    #sidebar-container {
+        position: fixed !important;
+        width: 280px !important;
+        max-width: 85vw !important;
+        z-index: 100 !important;
+        top: 0 !important;
+        left: 0 !important;
+        height: 100vh !important;
+    }
+    
+    /* Main wrapper móvil - Sin margen lateral */
+    .main-wrapper {
+        margin-left: 0 !important;
+        margin-top: 70px !important;
+        width: 100% !important;
+        min-height: calc(100vh - 70px);
+    }
+    
+    main.flex-1 {
+        padding: 16px !important;
+    }
+    
+    /* Sidebar colapsado en móvil no tiene efecto */
+    body:has(.sidebar-panel.collapsed) #header-container {
+        left: 0 !important;
+        width: 100% !important;
+    }
+    
+    body:has(.sidebar-panel.collapsed) .main-wrapper {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+    
+    /* Footer en móvil */
+    #footer-container {
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+    }
+}
+
+/* ========== RESPONSIVE: MÓVIL PEQUEÑO ========== */
+@media (max-width: 576px) {
+    #header-container {
+        height: 65px !important;
+    }
+    
+    #sidebar-container {
+        width: 100% !important;
+        max-width: 320px !important;
+    }
+    
+    .main-wrapper {
+        margin-top: 65px !important;
+        min-height: calc(100vh - 65px);
+    }
+    
+    main.flex-1 {
+        padding: 12px !important;
+    }
+}
+
+/* ========== RESPONSIVE: MÓVIL EXTRA PEQUEÑO ========== */
+@media (max-width: 400px) {
+    main.flex-1 {
+        padding: 10px !important;
+    }
+}

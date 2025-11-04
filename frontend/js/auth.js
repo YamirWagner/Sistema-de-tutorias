@@ -3,7 +3,7 @@
 // Enviar código de verificación
 async function sendVerificationCode(email) {
     try {
-        const response = await apiPost('/auth/send-code.php', { email });
+        const response = await apiPost('/auth/send-code', { email });
         return response;
     } catch (error) {
         console.error('Error al enviar código:', error);
@@ -14,7 +14,7 @@ async function sendVerificationCode(email) {
 // Verificar código
 async function verifyCode(email, code) {
     try {
-        const response = await apiPost('/auth/verify-code.php', { email, code });
+        const response = await apiPost('/auth/verify-code', { email, code });
         
         console.log('Respuesta verify-code:', response);
         
@@ -232,7 +232,8 @@ function attachVerifyHandler(formEl, email, messageElementId) {
             const response = await verifyCode(email, code);
             if (response && response.success) {
                 showMessage(messageElementId, 'Código verificado. Ingresando al sistema...', 'success');
-                setTimeout(() => { window.location.href = 'dashboard.html'; }, 1000);
+                const basePath = window.APP_BASE_PATH || '';
+                setTimeout(() => { window.location.href = basePath + '/panel'; }, 1000);
             } else {
                 const msg = (response && (response.message || response.error)) || 'Código inválido o expirado';
                 showMessage(messageElementId, msg, 'error');

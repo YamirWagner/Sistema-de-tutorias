@@ -14,13 +14,19 @@ async function loadAdminDashboard() {
 // Cargar estadísticas del administrador
 async function loadAdminStats() {
     try {
-        const response = await apiGet('/admin.php?action=stats');
+        // Datos mock mientras se implementa el endpoint
+        console.log('Cargando estadísticas del administrador (datos temporales)...');
+        document.getElementById('totalSessions').textContent = '0';
+        document.getElementById('pendingSessions').textContent = '0';
+        document.getElementById('completedSessions').textContent = '0';
         
-        if (response.success) {
-            document.getElementById('totalSessions').textContent = response.data.totalSessions || 0;
-            document.getElementById('pendingSessions').textContent = response.data.pendingSessions || 0;
-            document.getElementById('completedSessions').textContent = response.data.completedSessions || 0;
-        }
+        // TODO: Descomentar cuando el endpoint esté listo
+        // const response = await apiGet('/admin?action=stats');
+        // if (response.success) {
+        //     document.getElementById('totalSessions').textContent = response.data.totalSessions || 0;
+        //     document.getElementById('pendingSessions').textContent = response.data.pendingSessions || 0;
+        //     document.getElementById('completedSessions').textContent = response.data.completedSessions || 0;
+        // }
     } catch (error) {
         console.error('Error al cargar estadísticas:', error);
     }
@@ -59,7 +65,7 @@ function renderAdminContent() {
 // Gestionar usuarios
 async function manageUsers() {
     try {
-        const response = await apiGet('/admin.php?action=users');
+        const response = await apiGet('/admin?action=users');
         
         if (response.success) {
             console.log('Usuarios:', response.data);
@@ -73,7 +79,7 @@ async function manageUsers() {
 // Gestionar tutores
 async function manageTutors() {
     try {
-        const response = await apiGet('/admin.php?action=tutors');
+        const response = await apiGet('/admin?action=tutors');
         
         if (response.success) {
             console.log('Tutores:', response.data);
@@ -87,7 +93,7 @@ async function manageTutors() {
 // Ver reportes
 async function viewReports() {
     try {
-        const response = await apiGet('/admin.php?action=reports');
+        const response = await apiGet('/admin?action=reports');
         
         if (response.success) {
             console.log('Reportes:', response.data);

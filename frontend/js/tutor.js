@@ -14,13 +14,19 @@ async function loadTutorDashboard() {
 // Cargar estadísticas del tutor
 async function loadTutorStats() {
     try {
-        const response = await apiGet('/tutor.php?action=stats');
+        // Datos mock mientras se implementa el endpoint
+        console.log('Cargando estadísticas del tutor (datos temporales)...');
+        document.getElementById('totalSessions').textContent = '0';
+        document.getElementById('pendingSessions').textContent = '0';
+        document.getElementById('completedSessions').textContent = '0';
         
-        if (response.success) {
-            document.getElementById('totalSessions').textContent = response.data.totalSessions || 0;
-            document.getElementById('pendingSessions').textContent = response.data.pendingSessions || 0;
-            document.getElementById('completedSessions').textContent = response.data.completedSessions || 0;
-        }
+        // TODO: Descomentar cuando el endpoint esté listo
+        // const response = await apiGet('/tutor?action=stats');
+        // if (response.success) {
+        //     document.getElementById('totalSessions').textContent = response.data.totalSessions || 0;
+        //     document.getElementById('pendingSessions').textContent = response.data.pendingSessions || 0;
+        //     document.getElementById('completedSessions').textContent = response.data.completedSessions || 0;
+        // }
     } catch (error) {
         console.error('Error al cargar estadísticas:', error);
     }
@@ -59,7 +65,7 @@ function renderTutorContent() {
 // Ver sesiones del tutor
 async function viewMySessions() {
     try {
-        const response = await apiGet('/tutor.php?action=sessions');
+        const response = await apiGet('/tutor?action=sessions');
         
         if (response.success) {
             console.log('Mis sesiones:', response.data);
@@ -78,7 +84,7 @@ async function createSession() {
 // Ver estudiantes
 async function viewStudents() {
     try {
-        const response = await apiGet('/tutor.php?action=students');
+        const response = await apiGet('/tutor?action=students');
         
         if (response.success) {
             console.log('Mis estudiantes:', response.data);

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Previsualización | Correo de verificación</title>
+	<style>
+		body { margin:0; padding:24px; background:#f6f7fb; font-family: Arial, Helvetica, sans-serif; color:#111827; }
+		.container { max-width:600px; margin:0 auto; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 1px 2px rgba(0,0,0,.05); }
+		/* Guinda como en index.html (red-900) */
+		.header { padding:20px 24px; background:#7f1d1d; color:#fff; display:flex; align-items:center; gap:12px; }
+		.header img { height:32px; width:auto; }
+		.brand { font-weight:600; }
+		.content { padding:24px; }
+		h1 { margin:0 0 8px; font-size:20px; }
+		p { margin:0 0 12px; color:#374151; }
+		/* Código con acento guinda */
+		.code { font-size:28px; font-weight:700; letter-spacing:6px; text-align:center; color:#991b1b; background:#fef2f2; padding:16px; border-radius:10px; margin:16px 0 4px; }
+		.muted { color:#6b7280; font-size:12px; }
+		.details { background:#f9fafb; border:1px solid #e5e7eb; padding:12px 14px; border-radius:8px; margin-top:12px; }
+		.details-item { font-size:13px; color:#374151; margin:4px 0; }
+		.button { display:inline-block; background:#7f1d1d; color:#ffffff; text-decoration:none; padding:10px 16px; border-radius:8px; font-weight:600; margin-top:12px; }
+		.button:hover { background:#991b1b; }
+		.footer { padding:16px 24px; background:#fef2f2; color:#7f1d1d; font-size:12px; text-align:center; }
+		.hr { height:1px; background:#e5e7eb; border:none; margin:20px 0; }
+	</style>
+</head>
+<body>
+	<div class="container">
+		<div class="header">
+					<img src="{{logo_url}}" alt="Logo" />
+					<div class="brand">{{app_name}}</div>
+		</div>
+		<div class="content">
+					<h1>Hola, {{name}} 👋</h1>
+			<p>Usa este código para ingresar a tu cuenta:</p>
+					<div class="code">{{code}}</div>
+					<p class="muted">El código expira en {{expires_minutes}} minutos.</p>
+
+			<div class="details">
+						<div class="details-item">Fecha y hora: <strong>{{datetime}}</strong></div>
+						<div class="details-item">Navegador: <strong>{{browser}}</strong></div>
+						<div class="details-item">IP: <strong>{{ip}}</strong></div>
+						<div class="details-item muted">Agente: {{user_agent}}</div>
+			</div>
+
+			<p>
+						<a class="button" href="{{login_url}}">Acceder al sistema</a>
+			</p>
+			<hr class="hr" />
+			<p class="muted">Si no solicitaste este código, ignora este mensaje.</p>
+		</div>
+				<div class="footer">© {{year}} {{app_name}}.</div>
+	</div>
+</body>
+</html>

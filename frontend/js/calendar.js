@@ -3,8 +3,13 @@
 // Obtener eventos del calendario
 async function getCalendarEvents() {
     try {
-        const response = await apiGet('/calendar.php?action=list');
-        return response;
+        // Datos mock mientras se implementa el endpoint
+        console.log('Función de calendario aún no implementada, usando datos temporales...');
+        return { success: true, events: [] };
+        
+        // TODO: Descomentar cuando el endpoint esté listo
+        // const response = await apiGet('/calendar?action=list');
+        // return response;
     } catch (error) {
         console.error('Error al obtener eventos:', error);
         return { success: false, events: [] };
@@ -14,7 +19,7 @@ async function getCalendarEvents() {
 // Crear evento en el calendario
 async function createCalendarEvent(eventData) {
     try {
-        const response = await apiPost('/calendar.php?action=create', eventData);
+        const response = await apiPost('/calendar?action=create', eventData);
         return response;
     } catch (error) {
         console.error('Error al crear evento:', error);
@@ -25,18 +30,18 @@ async function createCalendarEvent(eventData) {
 // Actualizar evento
 async function updateCalendarEvent(eventId, eventData) {
     try {
-        const response = await apiPut(`/calendar.php?action=update&id=${eventId}`, eventData);
+        const response = await apiPut(`/calendar?action=update&id=${eventId}`, eventData);
         return response;
     } catch (error) {
         console.error('Error al actualizar evento:', error);
-        throw error;
+        return { success: false };
     }
 }
 
 // Eliminar evento
 async function deleteCalendarEvent(eventId) {
     try {
-        const response = await apiDelete(`/calendar.php?action=delete&id=${eventId}`);
+        const response = await apiDelete(`/calendar?action=delete&id=${eventId}`);
         return response;
     } catch (error) {
         console.error('Error al eliminar evento:', error);
@@ -89,9 +94,9 @@ function formatDate(dateString) {
     return date.toLocaleDateString('es-ES', options);
 }
 
-// Inicializar calendario en el dashboard
+// Inicializar calendario en el panel
 document.addEventListener('DOMContentLoaded', () => {
-    if (window.location.pathname.includes('dashboard.html')) {
+    if (window.location.pathname.includes('panel') || window.location.pathname.includes('dashboard')) {
         setTimeout(() => {
             renderUpcomingSessions();
         }, 1000);

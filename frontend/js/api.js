@@ -1,10 +1,9 @@
 // api.js - Peticiones fetch al backend
 
-// Usar SIEMPRE el path fijo del proyecto (definido en el HTML antes de cargar este script)
-// Si no está definido, usar el primer segmento del path como fallback
+// Configuración de la URL base del API (rutas limpias sin .php)
 const API_BASE_URL = (function() {
-    const base = window.APP_BASE_PATH || '/Sistema-de-tutorias1';
-    return base.replace(/\/$/, '') + '/backend/api';
+    const base = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+    return base.replace(/\/$/, '') + '/api';
 })();
 
 // Exponer para depuración
@@ -41,7 +40,8 @@ async function apiGet(endpoint) {
         if (response.status === 401) {
             // Token inválido o expirado
             localStorage.removeItem('token');
-            window.location.href = 'login.html';
+            const basePath = window.APP_BASE_PATH || '';
+            window.location.href = basePath + '/login';
             throw new Error('Sesión expirada');
         }
         
@@ -76,18 +76,21 @@ async function apiPost(endpoint, data) {
         
         console.log('Response status:', response.status);
         
-        if (response.status === 404) {
-            console.error('Endpoint no encontrado:', fullUrl);
-            throw new Error(`Endpoint no encontrado: ${endpoint}`);
-        }
-        
         const contentType = response.headers.get('content-type') || '';
         const responseData = contentType.includes('application/json') ? await response.json() : { success: false, message: 'Respuesta no JSON del servidor' };
         
+        // Manejar respuestas de error específicas
         if (response.status === 401) {
             localStorage.removeItem('token');
-            window.location.href = 'login.html';
+            const basePath = window.APP_BASE_PATH || '';
+            window.location.href = basePath + '/login';
             throw new Error('Sesión expirada');
+        }
+        
+        // Para errores 404, 400, etc, devolver el responseData con el mensaje del servidor
+        if (!response.ok && responseData) {
+            console.error('Error del servidor:', responseData);
+            return responseData;
         }
         
         return responseData;
@@ -121,7 +124,8 @@ async function apiPut(endpoint, data) {
         
         if (response.status === 401) {
             localStorage.removeItem('token');
-            window.location.href = 'login.html';
+            const basePath = window.APP_BASE_PATH || '';
+            window.location.href = basePath + '/login';
             throw new Error('Sesión expirada');
         }
         
@@ -155,7 +159,8 @@ async function apiDelete(endpoint) {
         
         if (response.status === 401) {
             localStorage.removeItem('token');
-            window.location.href = 'login.html';
+            const basePath = window.APP_BASE_PATH || '';
+            window.location.href = basePath + '/login';
             throw new Error('Sesión expirada');
         }
         
@@ -188,7 +193,8 @@ async function apiUpload(endpoint, formData) {
         
         if (response.status === 401) {
             localStorage.removeItem('token');
-            window.location.href = 'login.html';
+            const basePath = window.APP_BASE_PATH || '';
+            window.location.href = basePath + '/login';
             throw new Error('Sesión expirada');
         }
         

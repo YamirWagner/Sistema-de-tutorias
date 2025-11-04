@@ -14,13 +14,19 @@ async function loadStudentDashboard() {
 // Cargar estadísticas del estudiante
 async function loadStudentStats() {
     try {
-        const response = await apiGet('/student.php?action=stats');
+        // Datos mock mientras se implementa el endpoint
+        console.log('Cargando estadísticas del estudiante (datos temporales)...');
+        document.getElementById('totalSessions').textContent = '0';
+        document.getElementById('pendingSessions').textContent = '0';
+        document.getElementById('completedSessions').textContent = '0';
         
-        if (response.success) {
-            document.getElementById('totalSessions').textContent = response.data.totalSessions || 0;
-            document.getElementById('pendingSessions').textContent = response.data.pendingSessions || 0;
-            document.getElementById('completedSessions').textContent = response.data.completedSessions || 0;
-        }
+        // TODO: Descomentar cuando el endpoint esté listo
+        // const response = await apiGet('/student?action=stats');
+        // if (response.success) {
+        //     document.getElementById('totalSessions').textContent = response.data.totalSessions || 0;
+        //     document.getElementById('pendingSessions').textContent = response.data.pendingSessions || 0;
+        //     document.getElementById('completedSessions').textContent = response.data.completedSessions || 0;
+        // }
     } catch (error) {
         console.error('Error al cargar estadísticas:', error);
     }
@@ -59,7 +65,7 @@ function renderStudentContent() {
 // Buscar tutores
 async function searchTutors() {
     try {
-        const response = await apiGet('/student.php?action=tutors');
+        const response = await apiGet('/student?action=tutors');
         
         if (response.success) {
             console.log('Tutores disponibles:', response.data);
@@ -78,7 +84,7 @@ async function requestSession() {
 // Ver mis solicitudes
 async function viewMyRequests() {
     try {
-        const response = await apiGet('/student.php?action=requests');
+        const response = await apiGet('/student?action=requests');
         
         if (response.success) {
             console.log('Mis solicitudes:', response.data);
@@ -92,7 +98,7 @@ async function viewMyRequests() {
 // Ver materiales
 async function viewMaterials() {
     try {
-        const response = await apiGet('/student.php?action=materials');
+        const response = await apiGet('/student?action=materials');
         
         if (response.success) {
             console.log('Materiales:', response.data);

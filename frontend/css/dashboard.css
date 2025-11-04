@@ -1,5 +1,10 @@
 /* dashboard.css - Diseño del panel */
 
+body {
+    margin: 0;
+    padding: 0;
+}
+
 .dashboard-container {
     display: flex;
     min-height: 100vh;
@@ -14,6 +19,7 @@
     position: fixed;
     height: 100vh;
     overflow-y: auto;
+    z-index: 10;
 }
 
 .sidebar-menu {
@@ -50,6 +56,12 @@
     flex: 1;
     margin-left: 250px;
     padding: 2rem;
+}
+
+/* Ajuste para el main del panel */
+body main.flex-1 {
+    margin-left: 264px; /* 250px sidebar + 14px padding */
+    width: calc(100% - 264px);
 }
 
 /* Header del dashboard */

@@ -12,10 +12,10 @@
     <header>
         <div class="encabezado">
             <div class="index1"><img src="assets/Logo-UNSAAC.webp" alt="Logo" class="index-logo"></div>
-            <div class="index2"><a href="index.html" class="active">Nuestro sistema de tutorias</a></div>
+            <div class="index2"><a href="/" class="active">Nuestro sistema de tutorias</a></div>
             <div class="index3"><a href="#">Nuestros tutores</a></div>
             <div class="index4"><a href="#">Alumnos por tutor</a></div>
-            <div class="index5"><a href="login.html">Iniciar sesion</a></div>
+            <div class="index5"><a href="login">Iniciar sesion</a></div>
         </div>
     </header>
     <div id="default-carousel" class="relative w-full" data-carousel="slide">
@@ -73,12 +73,41 @@
     <!-- Footer -->
     <footer class="bg-gray-800 text-white p-6 mt-16">
         <div class="container mx-auto text-center">
-            <p>&copy; 2025 Sistema de Tutorías Institucional. Todos los derechos reservados.</p>
+            <p>&copy; 2025 Sistema de Tutorías UNSAAC. Todos los derechos reservados. | v<span class="app-version">1.0.0</span></p>
         </div>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.1/dist/flowbite.min.js"></script>
     <script>window.APP_BASE_PATH = '/Sistema-de-tutorias';</script>
-    <script src="js/main.js?v=2"></script>
+    <script>
+        // Si el usuario ya está logueado, redirigir al panel INMEDIATAMENTE
+        (function() {
+            const token = localStorage.getItem('token');
+            if (token) {
+                const basePath = window.APP_BASE_PATH || '';
+                window.location.replace(basePath + '/panel');
+            }
+        })();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.1/dist/flowbite.min.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        // Cargar configuración y actualizar versión
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+                const response = await fetch(`${basePath}/api/config`);
+                const config = await response.json();
+                
+                if (config.success && config.data.version) {
+                    const versionElements = document.querySelectorAll('.app-version');
+                    versionElements.forEach(el => {
+                        el.textContent = config.data.version;
+                    });
+                }
+            } catch (error) {
+                console.error('Error al cargar configuración:', error);
+            }
+        });
+    </script>
 </body>
 </html>
