@@ -6,6 +6,7 @@ require_once __DIR__ . '/../../core/config.php';
 require_once __DIR__ . '/../../core/database.php';
 require_once __DIR__ . '/../../core/response.php';
 require_once __DIR__ . '/../../core/mailer.php';
+require_once __DIR__ . '/../../core/activity.php';
 
 try {
     // Obtener datos de la petición
@@ -34,6 +35,28 @@ try {
         Response::error('Usuario no encontrado o inactivo', 404);
     }
     
+    // Si es usuario del sistema con sesión activa, cerrar la sesión actual
+    $closedPrev = false;
+    if (($user['userType'] ?? '') === 'sistema' || ($user['userType'] ?? '') === 'estudiante') {
+        $roleMap = ['admin' => 'Administrador', 'tutor' => 'Tutor', 'verifier' => 'Verificador', 'student' => 'Estudiante'];
+        $tipoAcceso = $roleMap[$user['role']] ?? ($user['rol'] ?? ($user['userType'] === 'estudiante' ? 'Estudiante' : null));
+        $closedPrev = Activity::closeActiveIfExists($db, (int)$user['id'], $user['name'] ?? null, $tipoAcceso, 'Cierre de sesión por acceso desde otro dispositivo', $user['userType']);
+        if ($closedPrev) {
+            // Notificar por correo cierre por acceso desde otro dispositivo
+            try {
+                $mailerTmp = new Mailer();
+                $meta = [
+                    'ip' => Activity::clientIp(),
+                    'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
+                    'datetime' => date('d/m/Y H:i:s')
+                ];
+                $mailerTmp->sendSessionClosedEmail($email, $user['name'] ?? null, $meta, 'acceso desde otro dispositivo');
+            } catch (Exception $e) {
+                error_log('No se pudo enviar correo por cierre desde otro dispositivo: ' . $e->getMessage());
+            }
+        }
+    }
+
     // Generar código de 6 dígitos
     $code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
     
@@ -56,48 +79,11 @@ try {
     $stmt->bindParam(':expires_at', $expiration);
     $stmt->execute();
     
-    // Función auxiliar para obtener la IP del cliente (considerando proxies)
-    $getClientIp = function() {
-        $keys = [
-            'HTTP_CF_CONNECTING_IP', // Cloudflare
-            'HTTP_CLIENT_IP',
-            'HTTP_X_FORWARDED_FOR',
-            'HTTP_X_REAL_IP',
-            'REMOTE_ADDR'
-        ];
-        foreach ($keys as $key) {
-            if (!empty($_SERVER[$key])) {
-                $value = $_SERVER[$key];
-                // X-Forwarded-For puede traer lista
-                if ($key === 'HTTP_X_FORWARDED_FOR') {
-                    $parts = array_map('trim', explode(',', $value));
-                    foreach ($parts as $part) {
-                        if (filter_var($part, FILTER_VALIDATE_IP)) {
-                            // Normalizar ::1 a 127.0.0.1
-                            if ($part === '::1' || $part === '0:0:0:0:0:0:0:1') {
-                                return '127.0.0.1';
-                            }
-                            return $part;
-                        }
-                    }
-                } else {
-                    if (filter_var($value, FILTER_VALIDATE_IP)) {
-                        if ($value === '::1' || $value === '0:0:0:0:0:0:0:1') {
-                            return '127.0.0.1';
-                        }
-                        return $value;
-                    }
-                }
-            }
-        }
-        return '';
-    };
-
     // Enviar código por correo (con nombre y metadatos)
     $mailer = new Mailer();
     $recipientName = $user['name'] ?? null;
     $meta = [
-        'ip' => $getClientIp(),
+        'ip' => Activity::clientIp(),
         'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
         'datetime' => date('d/m/Y H:i:s')
     ];
@@ -106,8 +92,9 @@ try {
     if (!$sent) {
         Response::serverError('Error al enviar el correo');
     }
-    
-    Response::success(null, 'Código enviado exitosamente');
+
+    $msg = $closedPrev ? 'Sesión previa cerrada y código enviado' : 'Código enviado exitosamente';
+    Response::success([ 'sessionClosed' => $closedPrev ], $msg);
     
 } catch (Exception $e) {
     error_log("Error en send-code.php: " . $e->getMessage());

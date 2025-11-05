@@ -48,3 +48,8 @@ desktop.ini
 config.local.php
 database.local.php
 
+# Entorno y credenciales sensibles
+backend/.env
+backend/storage/credentials/
+backend/storage/tokens/
+

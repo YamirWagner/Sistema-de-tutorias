@@ -7,7 +7,12 @@ class Response {
      * Respuesta exitosa
      */
     public static function success($data = null, $message = 'Operación exitosa', $code = 200) {
-        http_response_code($code);
+    http_response_code($code);
+    header('Content-Type: application/json; charset=utf-8');
+        // Limpiar cualquier salida previa (warnings/notices) para garantizar JSON válido
+        if (function_exists('ob_get_length') && ob_get_length()) {
+            @ob_clean();
+        }
         
         $response = [
             'success' => true,
@@ -18,7 +23,7 @@ class Response {
             $response['data'] = $data;
         }
         
-        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+    echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         exit();
     }
     
@@ -26,7 +31,12 @@ class Response {
      * Respuesta de error
      */
     public static function error($message = 'Error en la operación', $code = 400, $errors = null) {
-        http_response_code($code);
+    http_response_code($code);
+    header('Content-Type: application/json; charset=utf-8');
+        // Limpiar cualquier salida previa (warnings/notices) para garantizar JSON válido
+        if (function_exists('ob_get_length') && ob_get_length()) {
+            @ob_clean();
+        }
         
         $response = [
             'success' => false,
@@ -37,7 +47,7 @@ class Response {
             $response['errors'] = $errors;
         }
         
-        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+    echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         exit();
     }
     

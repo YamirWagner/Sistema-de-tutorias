@@ -88,17 +88,7 @@ define('BACKUP_PATH', BASE_PATH . '/storage/backups/');
 // Zona horaria
 date_default_timezone_set(TIMEZONE);
 
-// Headers CORS
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
-header('Content-Type: application/json; charset=utf-8');
-
-// Manejar preflight requests
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit();
-}
+// Las cabeceras CORS y manejo de OPTIONS se hacen en routes.php (centralizado)
 
 // Error reporting basado en APP_ENV
 if (APP_ENV === 'development') {

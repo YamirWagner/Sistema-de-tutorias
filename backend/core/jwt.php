@@ -13,8 +13,12 @@ class JWT {
         ];
         
         // Agregar tiempo de expiración
-        $payload['iat'] = time();
-        $payload['exp'] = time() + JWT_EXPIRATION;
+        if (!isset($payload['iat'])) {
+            $payload['iat'] = time();
+        }
+        if (!isset($payload['exp'])) {
+            $payload['exp'] = $payload['iat'] + JWT_EXPIRATION;
+        }
         
         $base64UrlHeader = self::base64UrlEncode(json_encode($header));
         $base64UrlPayload = self::base64UrlEncode(json_encode($payload));

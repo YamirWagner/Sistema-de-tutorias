@@ -3,13 +3,8 @@
 // Obtener eventos del calendario
 async function getCalendarEvents() {
     try {
-        // Datos mock mientras se implementa el endpoint
-        console.log('Función de calendario aún no implementada, usando datos temporales...');
-        return { success: true, events: [] };
-        
-        // TODO: Descomentar cuando el endpoint esté listo
-        // const response = await apiGet('/calendar?action=list');
-        // return response;
+        const response = await apiGet('/calendar?action=list');
+        return response;
     } catch (error) {
         console.error('Error al obtener eventos:', error);
         return { success: false, events: [] };

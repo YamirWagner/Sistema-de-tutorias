@@ -1,6 +1,26 @@
 <?php
 // routes.php - Enrutador central del backend
 
+// Asegurar buffer de salida para evitar que avisos HTML rompan el JSON
+if (function_exists('ob_get_level') && ob_get_level() === 0) {
+    ob_start();
+}
+
+// Forzar que los errores no se impriman en HTML (se loguean a archivo)
+@ini_set('display_errors', '0');
+@ini_set('html_errors', '0');
+
+// Manejo de errores fatales para devolver JSON
+register_shutdown_function(function() {
+    $e = error_get_last();
+    if ($e && in_array($e['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+        if (function_exists('ob_get_length') && ob_get_length()) { @ob_clean(); }
+        http_response_code(500);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['success' => false, 'message' => 'Error interno del servidor'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+});
+
 // Configurar headers antes de cualquier salida
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
@@ -38,6 +58,9 @@ $routes = [
     // Rutas de autenticación
     'POST|api/auth/send-code' => 'api/auth/send-code.php',
     'POST|api/auth/verify-code' => 'api/auth/verify-code.php',
+    // Google OAuth (inicio y callback)
+    'GET|api/auth/google/start' => 'api/auth/google/start.php',
+    'GET|api/auth/google/callback' => 'api/auth/google/callback.php',
     
     // Rutas de administrador
     'GET|api/admin' => 'api/admin.php',
@@ -61,6 +84,10 @@ $routes = [
     // Rutas de calendario
     'GET|api/calendar' => 'api/calendar.php',
     'POST|api/calendar' => 'api/calendar.php',
+
+    // Rutas de bitácora (log de acceso/actividad)
+    'GET|api/log' => 'api/log.php',
+    'POST|api/log' => 'api/log.php',
 ];
 
 // Obtener el método HTTP

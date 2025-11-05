@@ -5,6 +5,7 @@ require_once '../core/config.php';
 require_once '../core/database.php';
 require_once '../core/response.php';
 require_once '../core/jwt.php';
+require_once '../core/activity.php';
 
 try {
     // Verificar autenticación
@@ -16,6 +17,11 @@ try {
     
     $payload = JWT::decode($token);
     
+    // Control de actividad (cierre por inactividad + touch)
+    $database = new Database();
+    $db = $database->getConnection();
+    Activity::enforceAndTouch($db, $payload);
+    
     // Verificar rol de administrador
     if ($payload['role'] !== 'admin') {
         Response::forbidden('Acceso denegado');
@@ -24,8 +30,7 @@ try {
     // Obtener acción
     $action = $_GET['action'] ?? '';
     
-    $database = new Database();
-    $db = $database->getConnection();
+    // $db ya inicializado
     
     switch ($action) {
         case 'stats':

@@ -6,6 +6,8 @@ require_once __DIR__ . '/../../core/config.php';
 require_once __DIR__ . '/../../core/database.php';
 require_once __DIR__ . '/../../core/response.php';
 require_once __DIR__ . '/../../core/jwt.php';
+require_once __DIR__ . '/../../core/activity.php';
+require_once __DIR__ . '/../../models/logacceso.php';
 
 try {
     // Obtener datos de la petición
@@ -75,6 +77,13 @@ try {
         $payload['especialidad'] = $user['especialidad'] ?? null;
     }
     
+    // Cerrar cualquier sesión activa previa (sesión única estricta)
+    if (($user['userType'] ?? '') === 'sistema') {
+        $roleMap = ['admin' => 'Administrador', 'tutor' => 'Tutor', 'verifier' => 'Verificador'];
+        $tipoAcceso = $roleMap[$user['role']] ?? ($user['rol'] ?? null);
+        Activity::closeActiveIfExists($db, (int)$user['id'], $user['name'] ?? null, $tipoAcceso, 'Cierre de sesión previa (nuevo inicio de sesión)');
+    }
+
     $token = JWT::encode($payload);
     
     // Helper IP similar al usado en send-code
@@ -123,6 +132,33 @@ try {
     $stmt->bindValue(':user_agent', $_SERVER['HTTP_USER_AGENT'] ?? '');
     $stmt->execute();
     
+    // Registrar en bitácora (inicio de sesión)
+    try {
+        $logger = new LogAcceso($db);
+        // Map rol a etiquetas esperadas en tipoAcceso
+        $map = ['admin' => 'Administrador', 'tutor' => 'Tutor', 'verifier' => 'Verificador', 'student' => 'Estudiante'];
+        $tipoAcceso = $map[$user['role']] ?? $user['role'];
+        $dataLog = [
+            'usuario' => $user['name'] ?? null,
+            'tipoAcceso' => $tipoAcceso,
+            'accion' => 'inicio sesión',
+            'descripcion' => 'Autenticación mediante código de verificación',
+            'estadoSesion' => 'activa',
+            'ipOrigen' => $getClientIp(),
+            'correo' => $user['email'] ?? null,
+        ];
+        if ($user['userType'] === 'estudiante') {
+            $dataLog['idEstudiante'] = $user['id'];
+            $dataLog['codigo'] = $user['codigo'] ?? null;
+        } else {
+            $dataLog['idUsuario'] = $user['id'];
+        }
+        $logger->registrar($dataLog);
+    } catch (Exception $e) {
+        // No bloquear autenticación por fallo al registrar log
+        error_log('No se pudo registrar bitácora de login: ' . $e->getMessage());
+    }
+
     Response::success([
         'token' => $token,
         'user' => [

@@ -24,6 +24,8 @@ CREATE TABLE IF NOT EXISTS usuariosistema (
     INDEX idx_estado (estado)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- (Eliminado: no usar tablas adicionales para control de sesión)
+
 -- ============================================
 -- 2. TABLA ESTUDIANTE
 -- ============================================
@@ -280,3 +282,31 @@ INSERT INTO verificacion (idTutoria, idVerificador, fechaVerificacion, comentari
 (2, 9, '2025-04-21', 'Comunicación efectiva', 1),
 (3, 8, '2025-05-10', 'Evaluación profesional pendiente', 1),
 (4, 9, '2025-06-05', 'Tutoría aprobada', 1);
+
+-- ============================================
+-- 9. TABLA LOGACCESO (Bitácora del sistema)
+-- ============================================
+CREATE TABLE IF NOT EXISTS logacceso (
+    idLog INT AUTO_INCREMENT PRIMARY KEY,
+    idUsuario INT NULL,
+    idEstudiante INT NULL,
+    usuario VARCHAR(100) NULL,
+    tipoAcceso VARCHAR(50) NULL,
+    accion VARCHAR(100) NOT NULL,
+    descripcion TEXT,
+    fechaHora DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    estadoSesion ENUM('activa', 'cerrada') NULL,
+    ipOrigen VARCHAR(50) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (idUsuario) REFERENCES usuariosistema(id) ON DELETE SET NULL,
+    FOREIGN KEY (idEstudiante) REFERENCES estudiante(id) ON DELETE SET NULL,
+    INDEX idx_idUsuario (idUsuario),
+    INDEX idx_idEstudiante (idEstudiante),
+    INDEX idx_usuario (usuario),
+    INDEX idx_tipoAcceso (tipoAcceso),
+    INDEX idx_accion (accion),
+    INDEX idx_fechaHora (fechaHora),
+    INDEX idx_estadoSesion (estadoSesion),
+    INDEX idx_ipOrigen (ipOrigen)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
