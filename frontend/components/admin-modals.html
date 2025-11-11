@@ -1,0 +1,149 @@
+<!-- Modal: Crear Usuario -->
+<template id="createUserModalTemplate">
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" data-modal="createUser">
+        <div class="bg-white rounded-lg max-w-md w-full" onclick="event.stopPropagation()">
+            <div class="p-6 border-b">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xl font-bold text-gray-800">Crear Nuevo Usuario</h3>
+                    <button onclick="closeModal('createUser')" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <form id="createUserForm" class="p-6">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
+                    <input type="email" id="newUserEmail" required
+                           class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Nombre</label>
+                    <input type="text" id="newUserName" required
+                           class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Rol</label>
+                    <select id="newUserRole" required
+                            class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Seleccionar rol</option>
+                        <option value="admin">Administrador</option>
+                        <option value="tutor">Tutor</option>
+                        <option value="student">Estudiante</option>
+                        <option value="verifier">Verificador</option>
+                    </select>
+                </div>
+                <div class="flex justify-end gap-3">
+                    <button type="button" onclick="closeModal('createUser')"
+                            class="px-4 py-2 text-gray-600 hover:text-gray-800">
+                        Cancelar
+                    </button>
+                    <button type="submit"
+                            class="px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800">
+                        Crear Usuario
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</template>
+
+<!-- Modal: Ver Reportes -->
+<template id="reportsModalTemplate">
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" data-modal="reports">
+        <div class="bg-white rounded-lg max-w-4xl w-full max-h-screen overflow-hidden" onclick="event.stopPropagation()">
+            <div class="p-6 border-b">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xl font-bold text-gray-800">Reportes del Sistema</h3>
+                    <button onclick="closeModal('reports')" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="p-6">
+                <div id="reportsContent">
+                    <p class="text-gray-500 text-center py-4">Cargando reportes...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<!-- Template: Tabla de Reportes -->
+<template id="reportsTableTemplate">
+    <div class="overflow-x-auto max-h-96 overflow-y-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50 sticky top-0">
+                <tr>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Tutor</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Fecha</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Descripción</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200" id="reportsTableBody">
+                <!-- Filas se insertan dinámicamente -->
+            </tbody>
+        </table>
+    </div>
+</template>
+
+<!-- Template: Fila de Reporte -->
+<template id="reportRowTemplate">
+    <tr class="hover:bg-gray-50">
+        <td class="px-4 py-2 text-sm" data-field="tutor_name"></td>
+        <td class="px-4 py-2 text-sm" data-field="created_at"></td>
+        <td class="px-4 py-2 text-sm" data-field="description"></td>
+    </tr>
+</template>
+
+<!-- Template: Tabla de Usuarios -->
+<template id="usersTableTemplate">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rol</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200" id="usersTableBody">
+            <!-- Filas se insertan dinámicamente -->
+        </tbody>
+    </table>
+</template>
+
+<!-- Template: Fila de Usuario -->
+<template id="userRowTemplate">
+    <tr>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-field="email"></td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-field="name"></td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-field="role"></td>
+        <td class="px-6 py-4 whitespace-nowrap" data-field="status"></td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm" data-field="actions"></td>
+    </tr>
+</template>
+
+<!-- Template: Tarjeta de Asignación -->
+<template id="assignmentCardTemplate">
+    <div class="border rounded-lg p-4 hover:shadow-md transition">
+        <div class="flex justify-between items-start mb-2">
+            <div>
+                <h4 class="font-semibold text-gray-800" data-field="tutor_name"></h4>
+                <p class="text-sm text-gray-600">Tutor</p>
+            </div>
+            <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800" data-field="student_count"></span>
+        </div>
+        <div class="text-sm text-gray-500">
+            <p data-field="tutor_email"></p>
+            <p class="mt-1" data-field="created_at"></p>
+        </div>
+        <button data-field="details_button" class="mt-3 text-blue-600 hover:text-blue-800 text-sm">
+            Ver detalles →
+        </button>
+    </div>
+</template>

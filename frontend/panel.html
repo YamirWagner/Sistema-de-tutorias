@@ -25,17 +25,36 @@
         <!-- Contenido Principal -->
         <main class="flex-1">
             <div class="mb-6">
-                <h1 class="text-3xl font-bold text-gray-800" id="welcomeMessage">Bienvenido</h1>
-                <p class="text-gray-600 mt-2" id="userRole"></p>
+                <h1 class="text-3xl font-bold text-gray-800" id="welcomeMessage">Panel de Control - Principal</h1>
             </div>
 
             <!-- Contenido Dinámico según Rol -->
             <div id="dashboardContent">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <!-- Estadísticas -->
+                <!-- Estadísticas Principales - Grid 2x2 para Admin -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8" id="adminMainStats">
+                    <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+                        <h3 class="text-sm font-semibold mb-2 text-gray-600">Total de tutores</h3>
+                        <p class="text-5xl font-bold text-red-700" id="totalTutors">8</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+                        <h3 class="text-sm font-semibold mb-2 text-gray-600">Total de estudiantes</h3>
+                        <p class="text-5xl font-bold text-red-700" id="totalStudents">12</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+                        <h3 class="text-sm font-semibold mb-2 text-gray-600">Sesiones de este mes</h3>
+                        <p class="text-5xl font-bold text-red-700" id="totalSessions">123</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+                        <h3 class="text-sm font-semibold mb-2 text-gray-600">Asignaciones activas</h3>
+                        <p class="text-5xl font-bold text-red-700" id="activeAssignments">8</p>
+                    </div>
+                </div>
+
+                <!-- Estadísticas alternativas para otros roles -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8" id="otherRolesStats" style="display: none;">
                     <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
                         <h3 class="text-lg font-semibold mb-2 text-gray-700">Sesiones Totales</h3>
-                        <p class="text-3xl font-bold text-blue-600" id="totalSessions">0</p>
+                        <p class="text-3xl font-bold text-blue-600" id="totalSessionsAlt">0</p>
                     </div>
                     <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
                         <h3 class="text-lg font-semibold mb-2 text-gray-700">Sesiones Pendientes</h3>
@@ -46,6 +65,9 @@
                         <p class="text-3xl font-bold text-green-600" id="completedSessions">0</p>
                     </div>
                 </div>
+
+                <!-- Estadísticas Adicionales para Administrador (solo visible para admin) -->
+                <div id="adminExtraStats" class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8" style="display: none;">
 
                 <!-- Calendario y Actividades Recientes -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -72,8 +94,25 @@
     <!-- Modales -->
     <div id="modals-container"></div>
 
+    <!-- Templates de Administrador -->
+    <div id="admin-templates" style="display: none;"></div>
+
     <script>
         window.APP_BASE_PATH = '/Sistema-de-tutorias';
+        
+        // Cargar templates de administrador
+        async function loadAdminTemplates() {
+            try {
+                const response = await fetch('/Sistema-de-tutorias/components/admin-modals.html');
+                const html = await response.text();
+                document.getElementById('admin-templates').innerHTML = html;
+            } catch (error) {
+                console.error('Error al cargar templates:', error);
+            }
+        }
+        
+        // Cargar templates al inicio
+        loadAdminTemplates();
         
         // Debug: Verificar carga de página
         console.clear(); // Limpiar consola para mejor legibilidad

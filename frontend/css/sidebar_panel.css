@@ -139,6 +139,25 @@
     margin-right: 12px;
 }
 
+/* Estilo para iconos emoji */
+.sidebar-menu a .emoji-icon {
+    font-size: 20px;
+    min-width: 24px;
+    margin-right: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Estilo para enlaces de peligro (cerrar sesión) */
+.sidebar-menu a.danger {
+    margin-top: auto;
+}
+
+.sidebar-menu a.danger:hover {
+    background-color: rgba(220, 38, 38, 0.2);
+}
+
 .sidebar-menu-text {
     opacity: 1;
     transition: opacity 0.3s ease;
@@ -243,14 +262,15 @@
 
 .sidebar-panel.collapsed .sidebar-menu a {
     justify-content: center;
-    padding: 10px 0;
+    padding: 12px;
 }
 
 .sidebar-panel.collapsed .sidebar-menu a:hover {
-    padding-left: 0;
+    padding-left: 12px;
 }
 
-.sidebar-panel.collapsed .sidebar-menu a svg {
+.sidebar-panel.collapsed .sidebar-menu a svg,
+.sidebar-panel.collapsed .sidebar-menu a .emoji-icon {
     margin-right: 0;
 }
 
