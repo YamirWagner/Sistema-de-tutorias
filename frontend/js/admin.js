@@ -150,7 +150,6 @@ function renderUsersTable(users) {
     container.innerHTML = '';
     container.appendChild(tableClone);
 }
-
 // Fallback para mostrar tabla sin template
 function displayUsersTableFallback(users, container) {
     const roleLabels = {
