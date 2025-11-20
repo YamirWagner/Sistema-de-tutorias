@@ -223,6 +223,240 @@ async function loadActiveAssignments() {
             '<p class="text-red-500 text-center py-4">Error al cargar asignaciones</p>';
     }
 }
+// ------------------- PRUEBA (Para la historia de usuario de las asignaciones)------------------
+/* ------------------------------------------------------------
+   1. DATOS DE PRUEBA (Simulan lo que devolvería el backend)
+   ------------------------------------------------------------ */
+
+// Lista de tutores
+let tutores = [
+    { id: "T001", nombre: "Carlos López", max: 10 },
+    { id: "T002", nombre: "Ana Ruiz", max: 10 },
+    { id: "T003", nombre: "Miguel Torres", max: 10 },
+];
+
+// Estudiantes asignados por tutor
+let asignaciones = {
+    T001: [
+        { id: "E001", nombre: "Juan Perez Mamani" },
+        { id: "E002", nombre: "Luis Quispe" },
+        { id: "E003", nombre: "María Huamán" },
+        { id: "E004", nombre: "Diego Soria" },
+        { id: "E005", nombre: "Lucía Apaza" },
+    ],
+    T002: [
+        { id: "E006", nombre: "Rosa Palomino" }
+    ],
+    T003: []
+};
+
+// Estudiantes sin asignación
+let estudiantesNoAsignados = [
+    { id: "E007", nombre: "Antony Vargas" },
+    { id: "E008", nombre: "Julio Cárdenas" },
+    { id: "E009", nombre: "Fiorella Gutiérrez" }
+];
+
+// ID del tutor actualmente seleccionado
+let tutorSeleccionado = null;
+
+
+/* ------------------------------------------------------------
+   2. Cargar lista de tutores
+   ------------------------------------------------------------ */
+
+function cargarTutores() {
+    const contenedor = document.querySelector("#tutor-list .tutor-items");
+    if (!contenedor) return;
+
+    contenedor.innerHTML = "";
+
+    tutores.forEach(tutor => {
+        const totalAsignados = asignaciones[tutor.id]?.length || 0;
+
+        const btn = document.createElement("button");
+        btn.className = `
+            tutor-btn text-left px-3 py-2 bg-gray-100 rounded-lg 
+            hover:bg-gray-200 transition
+        `;
+        btn.dataset.id = tutor.id;
+
+        btn.innerHTML = `
+            <strong>${tutor.nombre}</strong><br>
+            <span class="text-sm text-gray-600">
+                Estudiantes asignados: ${totalAsignados} / ${tutor.max}
+            </span>
+        `;
+
+        btn.addEventListener("click", () => seleccionarTutor(tutor.id));
+
+        contenedor.appendChild(btn);
+    });
+}
+
+
+/* ------------------------------------------------------------
+   3. Seleccionar tutor
+   ------------------------------------------------------------ */
+
+function seleccionarTutor(tutorID) {
+    tutorSeleccionado = tutorID;
+
+    // Resaltar el tutor seleccionado
+    document.querySelectorAll(".tutor-btn").forEach(btn => {
+        btn.classList.toggle("bg-red-200", btn.dataset.id === tutorID);
+        btn.classList.toggle("border", true);
+        btn.classList.toggle("border-red-600", btn.dataset.id === tutorID);
+    });
+
+    cargarEstudiantesAsignados();
+    cargarEstudiantesNoAsignados();
+}
+
+
+/* ------------------------------------------------------------
+   4. Mostrar estudiantes asignados
+   ------------------------------------------------------------ */
+
+function cargarEstudiantesAsignados() {
+    const contenedor = document.getElementById("assigned-students");
+    contenedor.innerHTML = "";
+
+    if (!tutorSeleccionado) {
+        contenedor.innerHTML = `<p class="text-gray-500">Seleccione un tutor</p>`;
+        return;
+    }
+
+    asignaciones[tutorSeleccionado].forEach(est => {
+        const div = document.createElement("div");
+        div.className = `
+            student-item bg-white border rounded-lg p-3 
+            flex justify-between items-center shadow-sm
+        `;
+
+        div.innerHTML = `
+            <span>${est.nombre}</span>
+            <button class="remove-btn bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">
+                Quitar
+            </button>
+        `;
+
+        div.querySelector(".remove-btn").addEventListener("click", () => {
+            quitarEstudiante(est.id);
+        });
+
+        contenedor.appendChild(div);
+    });
+}
+
+
+/* ------------------------------------------------------------
+   5. Mostrar estudiantes NO asignados
+   ------------------------------------------------------------ */
+
+function cargarEstudiantesNoAsignados() {
+    const contenedor = document.getElementById("unassigned-students");
+    contenedor.innerHTML = "";
+
+    estudiantesNoAsignados.forEach(est => {
+        const div = document.createElement("div");
+        div.className = `
+            student-item bg-white border rounded-lg p-3 
+            flex justify-between items-center shadow-sm
+        `;
+
+        div.innerHTML = `
+            <span>${est.nombre}</span>
+            <button class="assign-btn bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">
+                + Asignar
+            </button>
+        `;
+
+        div.querySelector(".assign-btn").addEventListener("click", () => {
+            asignarEstudiante(est.id);
+        });
+
+        contenedor.appendChild(div);
+    });
+}
+
+
+/* ------------------------------------------------------------
+   6. Asignar un estudiante
+   ------------------------------------------------------------ */
+
+function asignarEstudiante(idEstudiante) {
+    if (!tutorSeleccionado) return;
+
+    const estudiante = estudiantesNoAsignados.find(e => e.id === idEstudiante);
+    if (!estudiante) return;
+
+    asignaciones[tutorSeleccionado].push(estudiante);
+    estudiantesNoAsignados = estudiantesNoAsignados.filter(e => e.id !== idEstudiante);
+
+    cargarEstudiantesAsignados();
+    cargarEstudiantesNoAsignados();
+    cargarTutores();
+}
+
+
+/* ------------------------------------------------------------
+   7. Quitar un estudiante (volver a "no asignado")
+   ------------------------------------------------------------ */
+
+function quitarEstudiante(idEstudiante) {
+    if (!tutorSeleccionado) return;
+
+    const estudiante = asignaciones[tutorSeleccionado].find(e => e.id === idEstudiante);
+    if (!estudiante) return;
+
+    estudiantesNoAsignados.push(estudiante);
+    asignaciones[tutorSeleccionado] = asignaciones[tutorSeleccionado].filter(e => e.id !== idEstudiante);
+
+    cargarEstudiantesAsignados();
+    cargarEstudiantesNoAsignados();
+    cargarTutores();
+}
+
+
+/* ------------------------------------------------------------
+   8. Botón "Asignar Aleatoriamente"
+   ------------------------------------------------------------ */
+
+function asignarAleatoriamente() {
+    estudiantesNoAsignados.forEach(est => {
+        const tutor = tutores[Math.floor(Math.random() * tutores.length)];
+        asignaciones[tutor.id].push(est);
+    });
+
+    estudiantesNoAsignados = [];
+
+    cargarEstudiantesAsignados();
+    cargarEstudiantesNoAsignados();
+    cargarTutores();
+}
+
+const btnRandom = document.getElementById("btnAsignarAleatorio");
+if (btnRandom) {
+    btnRandom.addEventListener("click", asignarAleatoriamente);
+}
+
+
+/* ------------------------------------------------------------
+   9. Inicializar
+   ------------------------------------------------------------ */
+
+window.addEventListener("load", () => {
+    cargarTutores();
+    seleccionarTutor(tutores[0].id)
+});
+
+
+
+
+// -------------------
+
+
 
 // Renderizar asignaciones usando template
 function renderAssignments(assignments) {
