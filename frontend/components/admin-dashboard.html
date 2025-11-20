@@ -59,4 +59,83 @@
             <p class="text-gray-500 text-center py-4">Cargando asignaciones...</p>
         </div>
     </div>
+
+
+    <!-- === ASIGNACIONES === -->
+    <!-- Lista de tutores -->
+    <!-- Encabezado -->
+    <div class="white p-6 rounded-lg shadow mb-6">
+        <h3 class="text-xl font-bold">Asignación y Re-Asignación de Tutorías</h3>
+    <!-- Botón asignar aleatoriamente -->
+    <div class="mb-6 text-right">
+        <button id="btnAsignarAleatorio"
+            class="px-6 py-2 bg-yellow-400 text-white rounded-lg hover:bg-yellow-400 transition shadow-md">
+            Asignar Aleatoriamente
+        </button>
+    </div>
+
+    <!-- ====================== DOS COLUMNAS (Tutores | Asignados) ====================== -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- =================================== 1. Seleccionar Tutor =================================== -->
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h3 class="text-lg font-bold mb-4">Seleccionar Tutor</h3>
+
+            <!-- Búsqueda -->
+            <form id="formBuscarTutor" class="flex gap-2 items-center mb-3">
+                <input type="text" id="inputBuscarTutor"
+                    placeholder="Busca tutor por nombre..."
+                    class="border p-2 rounded-lg w-full">
+                <button type="submit"
+                    class="bg-red-800 text-white px-4 py-2 rounded-lg hover:bg-red-900">
+                    Buscar
+                </button>
+            </form>
+
+            <!-- Lista de tutores -->
+            <div class="tutor-items flex flex-col gap-2">
+                <!-- Se llena dinámicamente -->
+            </div>
+        </div>
+
+        <!-- =================================== 2. Asignar Estudiantes =================================== -->
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h3 class="text-lg font-bold mb-4">Estudiantes Asignados</h3>
+            <!-- Búsqueda -->
+            <form id="formBuscarEstudianteAsignado" class="flex gap-2 items-center mb-3">
+                <input type="text" id="inputBuscarEstudianteAsignado"
+                        placeholder="Busca estudiante por nombre..."
+                        class="border p-2 rounded-lg w-full">
+                <button type="submit"
+                    class="bg-red-800 text-white px-4 py-2 rounded-lg hover:bg-red-900">
+                    Buscar
+                </button>
+            </form>
+            <div id="assigned-students" class="space-y-2">
+                <!-- Se llena dinámicamente -->
+            </div>
+        </div>
+
+    </div>
+
+        <!-- ====================== ESTUDIANTES SIN ASIGNAR ====================== -->
+    <div class="bg-white p-6 rounded-lg shadow mt-6">
+        <h3 class="text-lg font-bold mb-4">Estudiantes Sin Asignar</h3>
+
+        <!-- Búsqueda -->
+        <form id="formBuscarEstudianteNoAsignado" class="flex gap-2 items-center mb-3">
+            <input type="text" id="inputBuscarEstudianteNoAsignado"
+                    placeholder="Busca estudiante por nombre..."
+                    class="border p-2 rounded-lg w-full">
+            <button type="submit"
+                class="bg-red-800 text-white px-4 py-2 rounded-lg hover:bg-red-900">
+                Buscar
+            </button>
+        </form>
+
+        <div id="unassigned-students"
+            class="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
+            <!-- Se llena dinámicamente -->
+        </div>
+    </div>
 </div>
