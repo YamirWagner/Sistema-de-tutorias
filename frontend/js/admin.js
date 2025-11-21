@@ -70,6 +70,17 @@ async function loadAdminContent() {
     } catch (error) {
         console.error('Error al cargar contenido del administrador:', error);
     }
+
+    // Insertar nuevo contenido
+    content.insertAdjacentHTML('beforeend', html);
+
+    // Cargar asignaciones activas (resumen)
+    loadActiveAssignments();
+
+    // Inicializar módulo de asignación/reasignación
+    initAssignmentModule();
+    // Inicializar módulo de Registro de Auditoría (admin)
+    initAuditModule();
 }
 
 // Gestionar usuarios
@@ -225,7 +236,7 @@ async function loadActiveAssignments() {
 }
 // ------------------- PRUEBA (Para la historia de usuario de las asignaciones)------------------
 /* ------------------------------------------------------------
-   1. DATOS DE PRUEBA (Simulan lo que devolvería el backend)
+   0. DATOS DE PRUEBA (Simulan lo que devolvería el backend)
    ------------------------------------------------------------ */
 
 // Lista de tutores
@@ -260,40 +271,78 @@ let estudiantesNoAsignados = [
 // ID del tutor actualmente seleccionado
 let tutorSeleccionado = null;
 
+/* ------------------------------------------------------------
+   1. Inicializar módulo
+   ------------------------------------------------------------ */
+
+async function initAssignmentModule() {
+    try {
+        // TODO: ajustar endpoint según tu backend
+        const response = await apiGet('/admin?action=assignmentData');
+
+        if (response.success) {
+            const data = response.data;
+
+            tutores = data.tutors || [];
+            asignaciones = data.assignments || {};
+            estudiantesNoAsignados = data.unassignedStudents || [];
+
+            cargarTutores();
+            if (tutores.length > 0) {
+                seleccionarTutor(tutores[0].id);
+            }
+
+            // Eventos de búsqueda (si quieres hacerlos funcionales)
+            initAssignmentSearchEvents();
+
+            // Botón asignar aleatoriamente
+            const btnRandom = document.getElementById("btnAsignarAleatorio");
+            if (btnRandom) {
+                btnRandom.addEventListener("click", asignarAleatoriamente);
+            }
+        } else {
+            console.error('Error al cargar datos de asignación:', response.message);
+        }
+    } catch (error) {
+        console.error('Error al inicializar módulo de asignación:', error);
+    }
+}
 
 /* ------------------------------------------------------------
    2. Cargar lista de tutores
    ------------------------------------------------------------ */
 
-function cargarTutores() {
-    const contenedor = document.querySelector("#tutor-list .tutor-items");
+
+function cargarTutores(filtroNombre = "") {
+    const contenedor = document.querySelector(".tutor-items");
     if (!contenedor) return;
 
     contenedor.innerHTML = "";
 
-    tutores.forEach(tutor => {
-        const totalAsignados = asignaciones[tutor.id]?.length || 0;
+    tutores
+        .filter(t => t.nombre.toLowerCase().includes(filtroNombre.toLowerCase()))
+        .forEach(tutor => {
+            const totalAsignados = asignaciones[tutor.id]?.length || 0;
 
-        const btn = document.createElement("button");
-        btn.className = `
-            tutor-btn text-left px-3 py-2 bg-gray-100 rounded-lg 
-            hover:bg-gray-200 transition
-        `;
-        btn.dataset.id = tutor.id;
+            const btn = document.createElement("button");
+            btn.className = `
+                tutor-btn text-left px-3 py-2 bg-gray-100 rounded-lg 
+                hover:bg-gray-200 transition
+            `;
+            btn.dataset.id = tutor.id;
 
-        btn.innerHTML = `
-            <strong>${tutor.nombre}</strong><br>
-            <span class="text-sm text-gray-600">
-                Estudiantes asignados: ${totalAsignados} / ${tutor.max}
-            </span>
-        `;
+            btn.innerHTML = `
+                <strong>${tutor.nombre}</strong><br>
+                <span class="text-sm text-gray-600">
+                    Estudiantes asignados: ${totalAsignados} / ${tutor.max}
+                </span>
+            `;
 
-        btn.addEventListener("click", () => seleccionarTutor(tutor.id));
+            btn.addEventListener("click", () => seleccionarTutor(tutor.id));
 
-        contenedor.appendChild(btn);
-    });
+            contenedor.appendChild(btn);
+        });
 }
-
 
 /* ------------------------------------------------------------
    3. Seleccionar tutor
@@ -304,6 +353,7 @@ function seleccionarTutor(tutorID) {
 
     // Resaltar el tutor seleccionado
     document.querySelectorAll(".tutor-btn").forEach(btn => {
+        const isSelected = btn.dataset.id === tutorID;
         btn.classList.toggle("bg-red-200", btn.dataset.id === tutorID);
         btn.classList.toggle("border", true);
         btn.classList.toggle("border-red-600", btn.dataset.id === tutorID);
@@ -318,8 +368,10 @@ function seleccionarTutor(tutorID) {
    4. Mostrar estudiantes asignados
    ------------------------------------------------------------ */
 
-function cargarEstudiantesAsignados() {
+function cargarEstudiantesAsignados(filtroNombre = "") {
     const contenedor = document.getElementById("assigned-students");
+    if (!contenedor) return;
+
     contenedor.innerHTML = "";
 
     if (!tutorSeleccionado) {
@@ -327,26 +379,28 @@ function cargarEstudiantesAsignados() {
         return;
     }
 
-    asignaciones[tutorSeleccionado].forEach(est => {
-        const div = document.createElement("div");
-        div.className = `
-            student-item bg-white border rounded-lg p-3 
-            flex justify-between items-center shadow-sm
-        `;
+    (asignaciones[tutorSeleccionado] || [])
+        .filter(e => e.nombre.toLowerCase().includes(filtroNombre.toLowerCase()))
+        .forEach(est => {
+            const div = document.createElement("div");
+            div.className = `
+                student-item bg-white border rounded-lg p-3 
+                flex justify-between items-center shadow-sm
+            `;
 
-        div.innerHTML = `
-            <span>${est.nombre}</span>
-            <button class="remove-btn bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">
-                Quitar
-            </button>
-        `;
+            div.innerHTML = `
+                <span>${est.nombre}</span>
+                <button class="remove-btn bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">
+                    Quitar
+                </button>
+            `;
 
-        div.querySelector(".remove-btn").addEventListener("click", () => {
-            quitarEstudiante(est.id);
+            div.querySelector(".remove-btn").addEventListener("click", () => {
+                quitarEstudiante(est.id);
+            });
+
+            contenedor.appendChild(div);
         });
-
-        contenedor.appendChild(div);
-    });
 }
 
 
@@ -354,42 +408,53 @@ function cargarEstudiantesAsignados() {
    5. Mostrar estudiantes NO asignados
    ------------------------------------------------------------ */
 
-function cargarEstudiantesNoAsignados() {
+function cargarEstudiantesNoAsignados(filtroNombre = "") {
     const contenedor = document.getElementById("unassigned-students");
+    if (!contenedor) return;
+
     contenedor.innerHTML = "";
 
-    estudiantesNoAsignados.forEach(est => {
-        const div = document.createElement("div");
-        div.className = `
-            student-item bg-white border rounded-lg p-3 
-            flex justify-between items-center shadow-sm
-        `;
+    estudiantesNoAsignados
+        .filter(e => e.nombre.toLowerCase().includes(filtroNombre.toLowerCase()))
+        .forEach(est => {
+            const div = document.createElement("div");
+            div.className = `
+                student-item bg-white border rounded-lg p-3 
+                flex justify-between items-center shadow-sm
+            `;
 
-        div.innerHTML = `
-            <span>${est.nombre}</span>
-            <button class="assign-btn bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">
-                + Asignar
-            </button>
-        `;
+            div.innerHTML = `
+                <span>${est.nombre}</span>
+                <button class="assign-btn bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">
+                    + Asignar
+                </button>
+            `;
 
-        div.querySelector(".assign-btn").addEventListener("click", () => {
-            asignarEstudiante(est.id);
+            div.querySelector(".assign-btn").addEventListener("click", () => {
+                asignarEstudiante(est.id);
+            });
+
+            contenedor.appendChild(div);
         });
-
-        contenedor.appendChild(div);
-    });
 }
+
 
 
 /* ------------------------------------------------------------
    6. Asignar un estudiante
    ------------------------------------------------------------ */
 
-function asignarEstudiante(idEstudiante) {
+async function asignarEstudiante(idEstudiante) {
     if (!tutorSeleccionado) return;
 
     const estudiante = estudiantesNoAsignados.find(e => e.id === idEstudiante);
     if (!estudiante) return;
+
+    // OPCIONAL: llamar al backend para guardar la asignación
+    // await apiPost('/admin?action=assignStudent', {
+    //     tutorId: tutorSeleccionado,
+    //     studentId: idEstudiante
+    // });
 
     asignaciones[tutorSeleccionado].push(estudiante);
     estudiantesNoAsignados = estudiantesNoAsignados.filter(e => e.id !== idEstudiante);
@@ -400,15 +465,24 @@ function asignarEstudiante(idEstudiante) {
 }
 
 
+
 /* ------------------------------------------------------------
    7. Quitar un estudiante (volver a "no asignado")
    ------------------------------------------------------------ */
 
-function quitarEstudiante(idEstudiante) {
+/* -------- 7. Quitar un estudiante (volver a no asignado) -------- */
+
+async function quitarEstudiante(idEstudiante) {
     if (!tutorSeleccionado) return;
 
-    const estudiante = asignaciones[tutorSeleccionado].find(e => e.id === idEstudiante);
+    const estudiante = (asignaciones[tutorSeleccionado] || []).find(e => e.id === idEstudiante);
     if (!estudiante) return;
+
+    // OPCIONAL: avisar al backend
+    // await apiPost('/admin?action=unassignStudent', {
+    //     tutorId: tutorSeleccionado,
+    //     studentId: idEstudiante
+    // });
 
     estudiantesNoAsignados.push(estudiante);
     asignaciones[tutorSeleccionado] = asignaciones[tutorSeleccionado].filter(e => e.id !== idEstudiante);
@@ -423,34 +497,58 @@ function quitarEstudiante(idEstudiante) {
    8. Botón "Asignar Aleatoriamente"
    ------------------------------------------------------------ */
 
-function asignarAleatoriamente() {
+async function asignarAleatoriamente() {
+    // Aquí puedes meter lógica de máximo por tutor (tutor.max)
     estudiantesNoAsignados.forEach(est => {
         const tutor = tutores[Math.floor(Math.random() * tutores.length)];
+        asignaciones[tutor.id] = asignaciones[tutor.id] || [];
         asignaciones[tutor.id].push(est);
     });
 
     estudiantesNoAsignados = [];
+
+    // OPCIONAL: avisar al backend con una sola llamada masiva
 
     cargarEstudiantesAsignados();
     cargarEstudiantesNoAsignados();
     cargarTutores();
 }
 
-const btnRandom = document.getElementById("btnAsignarAleatorio");
-if (btnRandom) {
-    btnRandom.addEventListener("click", asignarAleatoriamente);
-}
-
-
 /* ------------------------------------------------------------
-   9. Inicializar
+   9. Busquedas
    ------------------------------------------------------------ */
 
-window.addEventListener("load", () => {
-    cargarTutores();
-    seleccionarTutor(tutores[0].id)
-});
+function initAssignmentSearchEvents() {
+    // Buscar tutor
+    const formTutor = document.getElementById("formBuscarTutor");
+    const inputTutor = document.getElementById("inputBuscarTutor");
+    if (formTutor && inputTutor) {
+        formTutor.addEventListener("submit", (e) => {
+            e.preventDefault();
+            cargarTutores(inputTutor.value);
+        });
+    }
 
+    // Buscar estudiante asignado
+    const formEstAsig = document.getElementById("formBuscarEstudianteAsignado");
+    const inputEstAsig = document.getElementById("inputBuscarEstudianteAsignado");
+    if (formEstAsig && inputEstAsig) {
+        formEstAsig.addEventListener("submit", (e) => {
+            e.preventDefault();
+            cargarEstudiantesAsignados(inputEstAsig.value);
+        });
+    }
+
+    // Buscar estudiante NO asignado
+    const formEstNoAsig = document.getElementById("formBuscarEstudianteNoAsignado");
+    const inputEstNoAsig = document.getElementById("inputBuscarEstudianteNoAsignado");
+    if (formEstNoAsig && inputEstNoAsig) {
+        formEstNoAsig.addEventListener("submit", (e) => {
+            e.preventDefault();
+            cargarEstudiantesNoAsignados(inputEstNoAsig.value);
+        });
+    }
+}
 
 
 
@@ -777,3 +875,147 @@ function formatDate(dateString) {
         day: 'numeric'
     });
 }
+
+// ------------------ Módulo Registro de Auditoría (Admin) ------------------
+function initAuditModule() {
+    const container = document.getElementById('auditLogContainer');
+    if (!container) return;
+
+    const html = `
+        <div class="mb-4">
+            <form id="auditFilterForm" class="flex flex-wrap gap-2 items-end">
+                <div class="w-full sm:w-auto">
+                    <label class="text-sm text-gray-600">Usuario</label>
+                    <input type="text" id="auditUsuario" class="border p-2 rounded w-full" placeholder="Nombre o correo">
+                </div>
+                <div class="w-full sm:w-auto">
+                    <label class="text-sm text-gray-600">Acción</label>
+                    <input type="text" id="auditAccion" class="border p-2 rounded w-full" placeholder="p.ej. login, crear_usuario">
+                </div>
+                <div class="w-full sm:w-auto">
+                    <label class="text-sm text-gray-600">Desde</label>
+                    <input type="datetime-local" id="auditDesde" class="border p-2 rounded w-full">
+                </div>
+                <div class="w-full sm:w-auto">
+                    <label class="text-sm text-gray-600">Hasta</label>
+                    <input type="datetime-local" id="auditHasta" class="border p-2 rounded w-full">
+                </div>
+                <div class="w-full sm:w-auto">
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Filtrar</button>
+                </div>
+                <div class="w-full sm:w-auto">
+                    <button type="button" id="auditClear" class="px-4 py-2 bg-gray-200 rounded">Limpiar</button>
+                </div>
+            </form>
+        </div>
+        <div id="auditTableWrap" class="overflow-x-auto">
+            <p class="text-gray-500 text-center py-4">Use los filtros y presione "Filtrar" para ver registros</p>
+        </div>
+    `;
+
+    container.innerHTML = html;
+
+    const form = document.getElementById('auditFilterForm');
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await handleAuditSearch();
+    });
+
+    document.getElementById('auditClear').addEventListener('click', async () => {
+        document.getElementById('auditUsuario').value = '';
+        document.getElementById('auditAccion').value = '';
+        document.getElementById('auditDesde').value = '';
+        document.getElementById('auditHasta').value = '';
+        await handleAuditSearch();
+    });
+
+    // Cargar últimos registros por defecto
+    handleAuditSearch();
+}
+
+async function handleAuditSearch() {
+    const usuario = document.getElementById('auditUsuario').value.trim();
+    const accion = document.getElementById('auditAccion').value.trim();
+    const desde = document.getElementById('auditDesde').value;
+    const hasta = document.getElementById('auditHasta').value;
+
+    const params = new URLSearchParams();
+    if (usuario) params.append('usuario', usuario);
+    if (accion) params.append('accion', accion);
+    if (desde) params.append('desde', desde.replace('T', ' '));
+    if (hasta) params.append('hasta', hasta.replace('T', ' '));
+    params.append('limit', '200');
+
+    try {
+        const response = await apiGet('/log.php?' + params.toString());
+        const wrap = document.getElementById('auditTableWrap');
+        if (!response || !response.success) {
+            wrap.innerHTML = `<p class="text-red-500 text-center py-4">${response?.message || 'Error al consultar auditoría'}</p>`;
+            return;
+        }
+
+        const logs = response.data || [];
+        renderAuditTable(logs);
+    } catch (error) {
+        const wrap = document.getElementById('auditTableWrap');
+        wrap.innerHTML = `<p class="text-red-500 text-center py-4">Error de conexión al consultar auditoría</p>`;
+        console.error('Error al cargar auditoría:', error);
+    }
+}
+
+function renderAuditTable(logs) {
+    const wrap = document.getElementById('auditTableWrap');
+    if (!logs || logs.length === 0) {
+        wrap.innerHTML = '<p class="text-gray-500 text-center py-4">No se encontraron registros</p>';
+        return;
+    }
+
+    let html = `
+        <div class="overflow-x-auto max-h-96 overflow-y-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50 sticky top-0">
+                    <tr>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Fecha y hora</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Usuario</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Rol</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Acción</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Descripción</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">IP</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+    `;
+
+    logs.forEach(r => {
+        html += `
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-2 text-sm">${formatDateTime(r.fechaHora)}</td>
+                <td class="px-4 py-2 text-sm">${r.usuario || 'N/A'}</td>
+                <td class="px-4 py-2 text-sm">${r.tipoAcceso || 'N/A'}</td>
+                <td class="px-4 py-2 text-sm">${r.accion || ''}</td>
+                <td class="px-4 py-2 text-sm">${r.descripcion || ''}</td>
+                <td class="px-4 py-2 text-sm">${r.ipOrigen || ''}</td>
+            </tr>
+        `;
+    });
+
+    html += `
+                </tbody>
+            </table>
+        </div>
+    `;
+
+    wrap.innerHTML = html;
+}
+
+function formatDateTime(dt) {
+    if (!dt) return 'N/A';
+    try {
+        const d = new Date(dt);
+        return d.toLocaleString('es-PE');
+    } catch (e) {
+        return dt;
+    }
+}
+
+// ------------------ Fin módulo auditoría ------------------
