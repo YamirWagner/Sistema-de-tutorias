@@ -159,9 +159,10 @@
 
 /* ========== BOTONES DE ACCIÓN ========== */
 .header-actions {
-    display: flex;
+    display:none !important;
+    /*display: flex;
     gap: 10px;
-    flex-shrink: 0;
+    flex-shrink: 0;*/
 }
 
 .btn-help,
