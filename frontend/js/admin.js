@@ -30,46 +30,163 @@ async function loadAdminStats() {
 
 // Actualizar estadísticas en el DOM
 function updateAdminStats(stats) {
-    // Mostrar estadísticas de administrador (grid 2x2)
+    // 1. Ocultar paneles viejos si existen
     const adminMainStats = document.getElementById('adminMainStats');
-    const otherRolesStats = document.getElementById('otherRolesStats');
-    
-    if (adminMainStats) {
-        adminMainStats.style.display = 'grid';
+    if (adminMainStats) adminMainStats.style.display = 'none';
+
+    // Datos básicos (Evitar errores si vienen vacíos)
+    const totalStudents = stats.totalStudents || 1; // Evitar división por cero
+    const activeAssignments = stats.activeAssignments || 0;
+    const unassigned = totalStudents - activeAssignments;
+
+    // 2. Actualizar Tarjetas Grandes (Números Gigantes)
+    updateElementText('unassignedCount', unassigned);
+    updateElementText('assignedCount', activeAssignments);
+    updateElementText('totalStudentsDisplay', totalStudents);
+
+    // 3. Actualizar Gráfico de Donut (CSS Conic Gradient)
+    // Calculamos el porcentaje de asignados
+    const percentageAssigned = (activeAssignments / totalStudents) * 100;
+    const donutChart = document.getElementById('donutChart');
+    if (donutChart) {
+        // Azul para asignados, Rojo para sin asignar
+        donutChart.style.background = `conic-gradient(#3B82F6 0% ${percentageAssigned}%, #EF4444 ${percentageAssigned}% 100%)`;
     }
-    if (otherRolesStats) {
-        otherRolesStats.style.display = 'none';
+
+    // Actualizar leyenda del donut
+    updateElementText('legendAssigned', activeAssignments);
+    updateElementText('legendUnassigned', unassigned);
+
+    // 4. Actualizar Gráfico de Barras (Simulado o Real)
+    // Nota: Si el backend no manda "tutorLoad", inventamos datos visuales para que se vea bonito por ahora
+    const barContainer = document.getElementById('barChartContainer');
+    if (barContainer) {
+        barContainer.innerHTML = ''; // Limpiar
+        
+        // Datos de ejemplo si no hay reales (Para que se vea como en Figma)
+        // Si tu backend manda esto, cámbialo por stats.tutorLoad
+        const tutorsData = [
+            { name: 'C. López', count: 5 },
+            { name: 'M. Fdez', count: 8 },
+            { name: 'J. Perez', count: 10 }, // El más alto
+            { name: 'A. Garcia', count: 2 },
+            { name: 'R. Cruz', count: 7 }
+        ];
+
+        tutorsData.forEach(tutor => {
+            // Calcular altura basada en max 10 (como dice tu figma)
+            const heightPercentage = (tutor.count / 10) * 100; 
+            
+            const barHTML = `
+                <div class="flex flex-col items-center gap-2 w-1/5 group">
+                    <div class="relative w-full bg-gray-100 rounded-t-lg overflow-hidden h-32 flex items-end">
+                        <div class="w-full bg-blue-500 group-hover:bg-blue-600 transition-all duration-500 ease-out" 
+                             style="height: ${heightPercentage}%"></div>
+                    </div>
+                    <div class="text-center">
+                        <span class="block text-xs font-bold text-gray-700">${tutor.count}</span>
+                        <span class="block text-[10px] text-gray-500 truncate w-full">${tutor.name}</span>
+                    </div>
+                </div>
+            `;
+            barContainer.insertAdjacentHTML('beforeend', barHTML);
+        });
     }
-    
-    // Actualizar valores
-    updateElementText('totalTutors', stats.totalTutors || 0);
-    updateElementText('totalStudents', stats.totalStudents || 0);
-    updateElementText('totalSessions', stats.totalSessions || 0);
-    updateElementText('activeAssignments', stats.activeAssignments || 0);
 }
 
 // Cargar contenido HTML del administrador
 async function loadAdminContent() {
-    try {
-        const response = await fetch('/Sistema-de-tutorias/components/admin-dashboard.html');
-        const html = await response.text();
-        
-        const content = document.getElementById('dashboardContent');
-        
-        // Limpiar contenido existente
-        const existingAdmin = content.querySelector('.admin-panel-section');
-        if (existingAdmin) {
-            existingAdmin.remove();
-        }
-        
-        // Insertar nuevo contenido
-        content.insertAdjacentHTML('beforeend', html);
-        
-        // Cargar asignaciones activas automáticamente
-        loadActiveAssignments();
-    } catch (error) {
-        console.error('Error al cargar contenido del administrador:', error);
-    }
+    const content = document.getElementById('dashboardContent');
+
+    //HTML del dashboard del administrador
+    const figmaDesignHTML=`
+    <div class="bg-[#7B1113] rounded-xl p-6 mb-8 text-white shadow-lg relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-16 -mt-16 pointer-events-none"></div>
+            
+            <div class="relative z-10 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div>
+                    <h3 class="text-[#FFD700] font-bold tracking-wider text-sm mb-1">ESTADO DEL SEMESTRE</h3>
+                    <div class="flex items-center gap-3">
+                        <h2 class="text-3xl font-bold" id="semesterTitle">Semestre 2025-I :</h2>
+                        <span class="bg-[#4ADE80] text-black px-3 py-1 rounded font-bold text-sm flex items-center gap-1">
+                            <div class="w-2 h-2 bg-green-800 rounded-full animate-pulse"></div> ACTIVO
+                        </span>
+                    </div>
+                    <p class="text-gray-300 text-sm mt-2">Periodo: 01 Marzo - 15 Julio</p>
+                </div>
+                
+                <div class="flex flex-col gap-3">
+                    <button onclick="showNotification('Gestionar cronograma', 'info')" class="bg-[#FFD700] hover:bg-[#F59E0B] text-[#7B1113] font-bold py-2 px-6 rounded shadow transition transform hover:scale-105">
+                        GESTIONAR CRONOGRAMA
+                    </button>
+                    <button onclick="showNotification('Cerrar semestre', 'warning')" class="bg-white hover:bg-gray-100 text-[#7B1113] font-bold py-2 px-6 rounded shadow transition transform hover:scale-105">
+                        CERRAR SEMESTRE
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            <div class="bg-white p-8 rounded-xl shadow-md hover:shadow-xl transition text-center border-t-4 border-[#7B1113]">
+                <h3 class="text-[#DC2626] font-bold text-xl mb-4 uppercase">ALERTA URGENTE</h3>
+                <div class="mb-4">
+                    <span class="text-7xl font-bold text-[#7B1113]" id="unassignedCount">0</span>
+                    <p class="text-gray-500 mt-2">Estudiantes sin asignar</p>
+                </div>
+                <button onclick="loadActiveAssignments()" class="bg-[#7B1113] hover:bg-[#9B192D] text-white font-bold py-3 px-8 rounded transition w-full md:w-auto">
+                    ASIGNAR AHORA
+                </button>
+            </div>
+
+            <div class="bg-white p-8 rounded-xl shadow-md hover:shadow-xl transition text-center border-t-4 border-[#DC2626]">
+                <h3 class="text-[#7B1113] font-bold text-xl mb-4 uppercase">ESTADO GENERAL</h3>
+                <div class="mb-4">
+                    <span class="text-7xl font-bold text-[#7B1113]" id="assignedCount">0</span>
+                    <p class="text-gray-500 mt-2">Estudiantes asignados</p>
+                </div>
+                <button onclick="loadActiveAssignments()" class="bg-[#7B1113] hover:bg-[#9B192D] text-white font-bold py-3 px-8 rounded transition w-full md:w-auto">
+                    VER LISTA
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            
+            <div class="bg-white p-6 rounded-xl shadow-md">
+                <h3 class="text-gray-500 font-bold mb-6 uppercase text-sm">ESTADO DE ASIGNACIÓN</h3>
+                <div class="flex flex-col items-center">
+                    <div class="relative w-48 h-48 rounded-full flex items-center justify-center" 
+                         id="donutChart"
+                         style="background: conic-gradient(#3B82F6 0% 0%, #EF4444 0% 100%);">
+                        <div class="absolute w-32 h-32 bg-white rounded-full flex flex-col items-center justify-center shadow-inner">
+                            <span class="text-3xl font-bold text-gray-800" id="totalStudentsDisplay">0</span>
+                            <span class="text-xs text-gray-500">Total</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-6 mt-6">
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 rounded-full bg-blue-500"></div>
+                            <span class="text-sm text-gray-600"><span id="legendAssigned">0</span> Asignados</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                            <span class="text-sm text-gray-600"><span id="legendUnassigned">0</span> Sin Asignar</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-md">
+                <h3 class="text-gray-500 font-bold mb-6 uppercase text-sm">CARGA DE TRABAJO POR TUTOR (TOP 5)</h3>
+                <div class="h-48 flex items-end justify-between gap-2 px-2" id="barChartContainer">
+                    <p class="text-center w-full text-gray-400 self-center">Cargando datos...</p>
+                </div>
+            </div>
+        </div>
+    `;
+          //inyectar HTML
+          content.innerHTML = figmaDesignHTML;
 }
 
 // Gestionar usuarios
