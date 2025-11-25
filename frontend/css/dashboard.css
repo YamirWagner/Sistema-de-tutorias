@@ -10,17 +10,29 @@ body {
     min-height: 100vh;
 }
 /* Main content */
-.main-content {
-    flex: 1;
-    margin-left: 250px;
+body .main.flex-1{
+    margin-left: 17%;
+    width: 83%;
     padding: 2rem;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+/*Esto centra el contenido si la pamntalla es muy ancha*/
+.dashboard-content-container{
+    max-width: 1400px;
+    margin: 0 auto;
 }
 
-/* Ajuste para el main del panel */
-body main.flex-1 {
-    margin-left: 264px; /* 250px sidebar + 14px padding */
-    width: calc(100% - 264px);
+/*Ajuste para celulares*/
+@media (max-width: 768px) {
+    body .main.flex-1{
+        margin-left: 0;
+        width: 100%;
+        padding: 1rem;
+    }
 }
+/* Ajuste para el main del panel */
+
 
 /* Header del dashboard */
 .dashboard-header {

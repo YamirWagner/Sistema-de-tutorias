@@ -159,7 +159,9 @@
 
 /* ========== BOTONES DE ACCIÓN ========== */
 .header-actions {
-    display:none !important;
+    display: flex !important;
+    gap:10px;
+    align-items:center;
     /*display: flex;
     gap: 10px;
     flex-shrink: 0;*/
@@ -167,7 +169,8 @@
 
 .btn-help,
 .btn-logout {
-    display: flex;
+    display: none !important;
+    /*display: flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
@@ -179,12 +182,22 @@
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    white-space: nowrap;
+    white-space: nowrap;*/
 }
 
 .btn-help {
+    display:flex !important;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    padding:8px 16px;
     background-color: #7B1113;
     color: white;
+    border-radius:8px;
+    font-size:0.85rem;
+    transition:all 0.3s ease;
+    cursor:pointer;
+    box-shadow:0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .btn-help:hover {

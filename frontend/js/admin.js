@@ -95,98 +95,117 @@ function updateAdminStats(stats) {
 }
 
 // Cargar contenido HTML del administrador
+// js/admin.js - Versión Corregida (Color y Centrado)
+
 async function loadAdminContent() {
     const content = document.getElementById('dashboardContent');
-
-    //HTML del dashboard del administrador
-    const figmaDesignHTML=`
-    <div class="bg-[#7B1113] rounded-xl p-6 mb-8 text-white shadow-lg relative overflow-hidden">
-            <div class="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-16 -mt-16 pointer-events-none"></div>
+    
+    // He añadido un div contenedor 'dashboard-content-container' para centrarlo
+    const figmaDesignHTML = `
+    <div class="dashboard-content-container">
+        
+        <div style="background: linear-gradient(135deg, #7B1113 0%, #9B192D 100%) !important; color: white;" 
+             class="rounded-xl p-6 mb-8 shadow-lg relative overflow-hidden">
             
-            <div class="relative z-10 flex flex-col md:flex-row justify-between items-center gap-4">
-                <div>
-                    <h3 class="text-[#FFD700] font-bold tracking-wider text-sm mb-1">ESTADO DEL SEMESTRE</h3>
-                    <div class="flex items-center gap-3">
-                        <h2 class="text-3xl font-bold" id="semesterTitle">Semestre 2025-I :</h2>
-                        <span class="bg-[#4ADE80] text-black px-3 py-1 rounded font-bold text-sm flex items-center gap-1">
+            <div style="background-color: white; opacity: 0.1;" 
+                 class="absolute top-0 right-0 w-64 h-64 rounded-full -mr-16 -mt-16 pointer-events-none">
+            </div>
+            
+            <div class="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="text-left">
+                    <h3 class="font-bold tracking-wider text-sm mb-2" style="color: #FFD700;">ESTADO DEL SEMESTRE</h3>
+                    
+                    <div class="flex items-center gap-4 mb-2">
+                        <h2 class="text-3xl font-bold text-white" id="semesterTitle">Semestre 2025-I :</h2>
+                        <span class="bg-green-400 text-green-900 px-3 py-1 rounded-full font-bold text-xs flex items-center gap-2 shadow-sm">
                             <div class="w-2 h-2 bg-green-800 rounded-full animate-pulse"></div> ACTIVO
                         </span>
                     </div>
-                    <p class="text-gray-300 text-sm mt-2">Periodo: 01 Marzo - 15 Julio</p>
+                    
+                    <p class="text-gray-200 text-sm opacity-90">Periodo: 01 Marzo - 15 Julio</p>
                 </div>
                 
-                <div class="flex flex-col gap-3">
-                    <button onclick="showNotification('Gestionar cronograma', 'info')" class="bg-[#FFD700] hover:bg-[#F59E0B] text-[#7B1113] font-bold py-2 px-6 rounded shadow transition transform hover:scale-105">
+                <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                    <button onclick="showNotification('Gestionar cronograma', 'info')" 
+                            style="background-color: #FFD700; color: #7B1113;"
+                            class="font-bold py-2 px-6 rounded-lg shadow hover:shadow-md transition transform hover:scale-105 text-sm whitespace-nowrap">
                         GESTIONAR CRONOGRAMA
                     </button>
-                    <button onclick="showNotification('Cerrar semestre', 'warning')" class="bg-white hover:bg-gray-100 text-[#7B1113] font-bold py-2 px-6 rounded shadow transition transform hover:scale-105">
+                    
+                    <button onclick="showNotification('Cerrar semestre', 'warning')" 
+                            class="bg-white text-red-900 font-bold py-2 px-6 rounded-lg shadow hover:bg-gray-100 transition transform hover:scale-105 text-sm whitespace-nowrap">
                         CERRAR SEMESTRE
                     </button>
                 </div>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-            <div class="bg-white p-8 rounded-xl shadow-md hover:shadow-xl transition text-center border-t-4 border-[#7B1113]">
-                <h3 class="text-[#DC2626] font-bold text-xl mb-4 uppercase">ALERTA URGENTE</h3>
-                <div class="mb-4">
-                    <span class="text-7xl font-bold text-[#7B1113]" id="unassignedCount">0</span>
-                    <p class="text-gray-500 mt-2">Estudiantes sin asignar</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            
+            <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition text-center border-t-4" style="border-color: #7B1113;">
+                <h3 class="font-bold text-lg mb-2 uppercase" style="color: #DC2626;">ALERTA URGENTE</h3>
+                <div class="py-4">
+                    <span class="text-6xl font-extrabold" style="color: #7B1113;" id="unassignedCount">0</span>
+                    <p class="text-gray-500 text-sm font-medium mt-1">Estudiantes sin asignar</p>
                 </div>
-                <button onclick="loadActiveAssignments()" class="bg-[#7B1113] hover:bg-[#9B192D] text-white font-bold py-3 px-8 rounded transition w-full md:w-auto">
+                <button onclick="loadActiveAssignments()" 
+                        style="background-color: #7B1113;"
+                        class="text-white font-bold py-2 px-8 rounded hover:opacity-90 transition w-full">
                     ASIGNAR AHORA
                 </button>
             </div>
 
-            <div class="bg-white p-8 rounded-xl shadow-md hover:shadow-xl transition text-center border-t-4 border-[#DC2626]">
-                <h3 class="text-[#7B1113] font-bold text-xl mb-4 uppercase">ESTADO GENERAL</h3>
-                <div class="mb-4">
-                    <span class="text-7xl font-bold text-[#7B1113]" id="assignedCount">0</span>
-                    <p class="text-gray-500 mt-2">Estudiantes asignados</p>
+            <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition text-center border-t-4" style="border-color: #DC2626;">
+                <h3 class="font-bold text-lg mb-2 uppercase" style="color: #7B1113;">ESTADO GENERAL</h3>
+                <div class="py-4">
+                    <span class="text-6xl font-extrabold" style="color: #7B1113;" id="assignedCount">0</span>
+                    <p class="text-gray-500 text-sm font-medium mt-1">Estudiantes asignados</p>
                 </div>
-                <button onclick="loadActiveAssignments()" class="bg-[#7B1113] hover:bg-[#9B192D] text-white font-bold py-3 px-8 rounded transition w-full md:w-auto">
+                <button onclick="loadActiveAssignments()" 
+                        style="background-color: #7B1113;"
+                        class="text-white font-bold py-2 px-8 rounded hover:opacity-90 transition w-full">
                     VER LISTA
                 </button>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             
-            <div class="bg-white p-6 rounded-xl shadow-md">
-                <h3 class="text-gray-500 font-bold mb-6 uppercase text-sm">ESTADO DE ASIGNACIÓN</h3>
-                <div class="flex flex-col items-center">
-                    <div class="relative w-48 h-48 rounded-full flex items-center justify-center" 
-                         id="donutChart"
-                         style="background: conic-gradient(#3B82F6 0% 0%, #EF4444 0% 100%);">
-                        <div class="absolute w-32 h-32 bg-white rounded-full flex flex-col items-center justify-center shadow-inner">
-                            <span class="text-3xl font-bold text-gray-800" id="totalStudentsDisplay">0</span>
-                            <span class="text-xs text-gray-500">Total</span>
-                        </div>
+            <div class="bg-white p-6 rounded-xl shadow-md flex flex-col items-center justify-center">
+                <h3 class="text-gray-500 font-bold mb-4 uppercase text-xs tracking-wider w-full text-left">ESTADO DE ASIGNACIÓN</h3>
+                
+                <div class="relative w-48 h-48 rounded-full flex items-center justify-center transition-all duration-1000" 
+                     id="donutChart"
+                     style="background: conic-gradient(#3B82F6 0% 0%, #EF4444 0% 100%);">
+                    <div class="absolute w-32 h-32 bg-white rounded-full flex flex-col items-center justify-center shadow-sm">
+                        <span class="text-3xl font-bold text-gray-800" id="totalStudentsDisplay">0</span>
+                        <span class="text-xs text-gray-400 uppercase">Total</span>
                     </div>
-                    
-                    <div class="flex gap-6 mt-6">
-                        <div class="flex items-center gap-2">
-                            <div class="w-3 h-3 rounded-full bg-blue-500"></div>
-                            <span class="text-sm text-gray-600"><span id="legendAssigned">0</span> Asignados</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <div class="w-3 h-3 rounded-full bg-red-500"></div>
-                            <span class="text-sm text-gray-600"><span id="legendUnassigned">0</span> Sin Asignar</span>
-                        </div>
+                </div>
+                
+                <div class="flex gap-4 mt-6 w-full justify-center">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-blue-500"></span>
+                        <span class="text-xs font-bold text-gray-600"><span id="legendAssigned">0</span> Asignados</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-red-500"></span>
+                        <span class="text-xs font-bold text-gray-600"><span id="legendUnassigned">0</span> Sin Asignar</span>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-white p-6 rounded-xl shadow-md">
-                <h3 class="text-gray-500 font-bold mb-6 uppercase text-sm">CARGA DE TRABAJO POR TUTOR (TOP 5)</h3>
-                <div class="h-48 flex items-end justify-between gap-2 px-2" id="barChartContainer">
-                    <p class="text-center w-full text-gray-400 self-center">Cargando datos...</p>
+            <div class="bg-white p-6 rounded-xl shadow-md flex flex-col">
+                <h3 class="text-gray-500 font-bold mb-4 uppercase text-xs tracking-wider">CARGA DE TRABAJO (TOP 5)</h3>
+                <div class="flex-1 flex items-end justify-between gap-2 px-2 min-h-[200px]" id="barChartContainer">
+                    <p class="w-full text-center text-gray-300 text-sm self-center">Cargando datos...</p>
                 </div>
             </div>
         </div>
+    </div>
     `;
-          //inyectar HTML
-          content.innerHTML = figmaDesignHTML;
+    
+    content.innerHTML = figmaDesignHTML;
 }
 
 // Gestionar usuarios
