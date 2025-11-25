@@ -94,11 +94,28 @@ try {
     }
 
     if ($method === 'GET') {
+        // Requerir token y sólo permitir a administradores consultar la bitácora
+        $token = JWT::getBearerToken();
+        if (!$token) {
+            Response::error('No autorizado', 401);
+        }
+        try {
+            $payload = JWT::decode($token);
+        } catch (Exception $e) {
+            Response::error('No autorizado', 401);
+        }
+
+        $role = $payload['role'] ?? '';
+        if ($role !== 'admin') {
+            Response::error('Acceso restringido', 403);
+        }
+
         // Filtros básicos por query string
         $filters = [
             'idUsuario' => $_GET['idUsuario'] ?? null,
             'tipoAcceso' => $_GET['tipoAcceso'] ?? null,
             'accion' => $_GET['accion'] ?? null,
+            'usuario' => $_GET['usuario'] ?? null,
             'estadoSesion' => $_GET['estadoSesion'] ?? null,
             'desde' => $_GET['desde'] ?? null,
             'hasta' => $_GET['hasta'] ?? null,

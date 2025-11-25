@@ -3,21 +3,22 @@
    ============================================ */
 
 footer {
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    position: relative;
+    display: block ;
+    visibility: visible ;
+    opacity: 1 ;
     background-color: #1F2937;
     color: white;
     padding: 14px 0;
-    margin: 0 !important;
+    margin: 0 ;
     border-top: 3px solid #9B192D;
-    width: 100%;
-    z-index: 1;
+    z-index: 100;
+    position: fixed; 
+    bottom: 0; 
+    right: 0;
+    width: 100%; 
 }
 
 footer .container {
-    max-width: 1400px;
     margin: 0 auto !important;
     padding: 0 20px;
 }

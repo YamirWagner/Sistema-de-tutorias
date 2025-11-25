@@ -4,7 +4,7 @@
 .header-panel {
     position: fixed;
     top: 0;
-    left: 250px;
+    left: 17%;
     right: 0;
     background: linear-gradient(135deg, #EDEDED 0%, #f9fafb 100%);
     border-bottom: 2px solid rgba(155, 25, 45, 0.1);
@@ -420,7 +420,7 @@
 
 /* ========== ESTADO SIDEBAR COLAPSADO ========== */
 body:has(.sidebar-panel.collapsed) .header-panel {
-    left: 70px !important;
+    left: 5%;
 }
 
 @media (max-width: 768px) {

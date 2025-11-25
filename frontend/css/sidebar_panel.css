@@ -6,7 +6,7 @@
     position: fixed;
     left: 0;
     top: 0;
-    width: 250px;
+    width: 17%;
     height: 100vh;
     background: linear-gradient(180deg, #9B192D 0%, #7B1113 100%);
     display: flex;
@@ -19,26 +19,30 @@
 
 /* ========== LOGO ========== */
 .sidebar-logo {
-    padding: 16px;
-    text-align: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 5px;
     flex-shrink: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
 }
 
 .sidebar-logo img {
-    width: 100px;
+    width: 90%;
     height: auto;
     transition: width 0.3s ease;
 }
 
 /* ========== BOTÓN TOGGLE ========== */
 .sidebar-toggle {
+    z-index: 100;
     position: absolute;
     right: -15px;
-    top: 15px;
+    top: 5%;
     width: 30px;
     height: 30px;
-    background-color: #EDEDED;
+    background-color: #EdEDED;
     border: 2px solid #9B192D;
     border-radius: 50%;
     cursor: pointer;
@@ -46,7 +50,6 @@
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
-    z-index: 10;
 }
 
 .sidebar-toggle:hover {
@@ -80,7 +83,7 @@
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 8px 0;
+    padding: 0;
 }
 
 .sidebar-menu {
@@ -90,12 +93,13 @@
 }
 
 .sidebar-menu li {
-    margin: 3px 0;
+    margin: 4px 0;
 }
 
 .sidebar-menu a {
     display: flex;
     align-items: center;
+    justify-content: flex-start;
     padding: 10px 16px;
     color: #EDEDED;
     text-decoration: none;
@@ -137,25 +141,6 @@
     min-width: 18px;
     flex-shrink: 0;
     margin-right: 12px;
-}
-
-/* Estilo para iconos emoji */
-.sidebar-menu a .emoji-icon {
-    font-size: 20px;
-    min-width: 24px;
-    margin-right: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Estilo para enlaces de peligro (cerrar sesión) */
-.sidebar-menu a.danger {
-    margin-top: auto;
-}
-
-.sidebar-menu a.danger:hover {
-    background-color: rgba(220, 38, 38, 0.2);
 }
 
 .sidebar-menu-text {
@@ -244,7 +229,8 @@
 
 /* ========== ESTADO COLAPSADO ========== */
 .sidebar-panel.collapsed {
-    width: 70px;
+    width: 5%;
+
 }
 
 .sidebar-panel.collapsed .sidebar-logo {
@@ -261,6 +247,7 @@
 }
 
 .sidebar-panel.collapsed .sidebar-menu a {
+    display: flex;
     justify-content: center;
     padding: 12px;
 }

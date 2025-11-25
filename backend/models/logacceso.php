@@ -139,7 +139,8 @@ class LogAcceso {
 
         if (!empty($filters['idUsuario'])) { $where[] = 'idUsuario = :idUsuario'; $params[':idUsuario'] = (int)$filters['idUsuario']; }
         if (!empty($filters['tipoAcceso'])) { $where[] = 'tipoAcceso = :tipoAcceso'; $params[':tipoAcceso'] = $filters['tipoAcceso']; }
-        if (!empty($filters['accion'])) { $where[] = 'accion = :accion'; $params[':accion'] = $filters['accion']; }
+        if (!empty($filters['accion'])) { $where[] = 'accion LIKE :accion'; $params[':accion'] = '%' . $filters['accion'] . '%'; }
+        if (!empty($filters['usuario'])) { $where[] = 'usuario LIKE :usuario'; $params[':usuario'] = '%' . $filters['usuario'] . '%'; }
         if (!empty($filters['estadoSesion'])) { $where[] = 'estadoSesion = :estadoSesion'; $params[':estadoSesion'] = $filters['estadoSesion']; }
         if (!empty($filters['desde'])) { $where[] = 'fechaHora >= :desde'; $params[':desde'] = $filters['desde']; }
         if (!empty($filters['hasta'])) { $where[] = 'fechaHora <= :hasta'; $params[':hasta'] = $filters['hasta']; }
