@@ -50,37 +50,37 @@ function updateAdminStats(stats) {
 
 // Cargar contenido HTML del administrador
 async function loadAdminContent() {
+    const content = document.getElementById('dashboardContent');
+    
     try {
+        // 1. Cargar primero el módulo de semestre (Estado del Semestre)
+        await loadSemesterContent();
+        
+        // 2. Cargar el dashboard del administrador
         const response = await fetch('/Sistema-de-tutorias/components/admin-dashboard.html');
         const html = await response.text();
         
-        const content = document.getElementById('dashboardContent');
-        
-        // Limpiar contenido existente
+        // Limpiar contenido existente del admin panel
         const existingAdmin = content.querySelector('.admin-panel-section');
         if (existingAdmin) {
             existingAdmin.remove();
         }
         
-        // Insertar nuevo contenido
+        // Insertar contenido del dashboard después de la sección de semestre
         content.insertAdjacentHTML('beforeend', html);
         
-        // Cargar asignaciones activas automáticamente
+        // Cargar asignaciones activas (resumen)
         loadActiveAssignments();
+        
+        // Inicializar módulo de asignación/reasignación
+        initAssignmentModule();
+        
+        // Inicializar módulo de Registro de Auditoría (admin)
+        initAuditModule();
+        
     } catch (error) {
         console.error('Error al cargar contenido del administrador:', error);
     }
-
-    // Insertar nuevo contenido
-    content.insertAdjacentHTML('beforeend', html);
-
-    // Cargar asignaciones activas (resumen)
-    loadActiveAssignments();
-
-    // Inicializar módulo de asignación/reasignación
-    initAssignmentModule();
-    // Inicializar módulo de Registro de Auditoría (admin)
-    initAuditModule();
 }
 
 // Gestionar usuarios

@@ -1,5 +1,20 @@
 <?php
-// admin.php - Endpoints del Administrador
+/**
+ * admin.php - API del Administrador
+ * Sistema de Tutorías UNSAAC
+ * 
+ * Endpoints disponibles:
+ * - stats: Estadísticas generales
+ * - users: Listar usuarios
+ * - tutors: Listar tutores
+ * - assignments: Asignaciones activas
+ * - reports: Reportes
+ * - createUser: Crear usuario (POST)
+ * - toggleUser: Activar/Desactivar usuario (POST)
+ * - semester_stats: Estadísticas del semestre
+ * - update_semester: Actualizar semestre (POST)
+ * - close_semester: Cerrar semestre (POST)
+ */
 
 require_once '../core/config.php';
 require_once '../core/database.php';
@@ -7,142 +22,143 @@ require_once '../core/response.php';
 require_once '../core/jwt.php';
 require_once '../core/activity.php';
 
+// ============= FUNCIONES HELPER =============
+
+/**
+ * Obtener input JSON del body
+ */
+function getJsonInput(): array {
+    return json_decode(file_get_contents('php://input'), true) ?? [];
+}
+
+/**
+ * Validar método POST
+ */
+function requirePost(): void {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        Response::error('Método no permitido', 405);
+    }
+}
+
+/**
+ * Ejecutar query simple y retornar un valor
+ */
+function fetchColumn(PDO $db, string $query, array $params = []): mixed {
+    $stmt = $db->prepare($query);
+    $stmt->execute($params);
+    return $stmt->fetchColumn();
+}
+
+/**
+ * Ejecutar query y retornar todos los resultados
+ */
+function fetchAll(PDO $db, string $query, array $params = []): array {
+    $stmt = $db->prepare($query);
+    $stmt->execute($params);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+/**
+ * Ejecutar query y retornar un registro
+ */
+function fetchOne(PDO $db, string $query, array $params = []): ?array {
+    $stmt = $db->prepare($query);
+    $stmt->execute($params);
+    return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+}
+
+// ============= LÓGICA PRINCIPAL =============
+
 try {
-    // Verificar autenticación
+    // Autenticación
     $token = JWT::getBearerToken();
-    
     if (!$token) {
         Response::unauthorized('Token no proporcionado');
     }
     
     $payload = JWT::decode($token);
     
-    // Control de actividad (cierre por inactividad + touch)
-    $database = new Database();
-    $db = $database->getConnection();
+    // Conexión a BD
+    $db = (new Database())->getConnection();
+    
+    // Control de actividad
     Activity::enforceAndTouch($db, $payload);
     
-    // Verificar rol de administrador
+    // Verificar rol admin
     if ($payload['role'] !== 'admin') {
         Response::forbidden('Acceso denegado');
     }
     
-    // Obtener acción
     $action = $_GET['action'] ?? '';
     
-    // $db ya inicializado
-    
     switch ($action) {
+        
+        // ============= ESTADÍSTICAS =============
         case 'stats':
-            // Estadísticas generales
-            $stats = [];
-            
-            // Total de sesiones
-            $query = "SELECT COUNT(*) as total FROM sessions";
-            $stmt = $db->query($query);
-            $stats['totalSessions'] = $stmt->fetchColumn();
-            
-            // Sesiones pendientes
-            $query = "SELECT COUNT(*) as total FROM sessions WHERE status = 'pending'";
-            $stmt = $db->query($query);
-            $stats['pendingSessions'] = $stmt->fetchColumn();
-            
-            // Sesiones completadas
-            $query = "SELECT COUNT(*) as total FROM sessions WHERE status = 'completed'";
-            $stmt = $db->query($query);
-            $stats['completedSessions'] = $stmt->fetchColumn();
-            
-            // Total de usuarios
-            $query = "SELECT COUNT(*) as total FROM users WHERE active = 1";
-            $stmt = $db->query($query);
-            $stats['totalUsers'] = $stmt->fetchColumn();
-            
-            // Total de tutores
-            $query = "SELECT COUNT(*) as total FROM users WHERE role = 'tutor' AND active = 1";
-            $stmt = $db->query($query);
-            $stats['totalTutors'] = $stmt->fetchColumn();
-            
-            // Total de estudiantes
-            $query = "SELECT COUNT(*) as total FROM users WHERE role = 'student' AND active = 1";
-            $stmt = $db->query($query);
-            $stats['totalStudents'] = $stmt->fetchColumn();
-            
-            // Asignaciones activas
-            $query = "SELECT COUNT(DISTINCT tutor_id) as total FROM requests WHERE status = 'active'";
-            $stmt = $db->query($query);
-            $stats['activeAssignments'] = $stmt->fetchColumn();
-            
+            $stats = [
+                'totalSessions' => fetchColumn($db, "SELECT COUNT(*) FROM sessions"),
+                'pendingSessions' => fetchColumn($db, "SELECT COUNT(*) FROM sessions WHERE status = 'pending'"),
+                'completedSessions' => fetchColumn($db, "SELECT COUNT(*) FROM sessions WHERE status = 'completed'"),
+                'totalUsers' => fetchColumn($db, "SELECT COUNT(*) FROM users WHERE active = 1"),
+                'totalTutors' => fetchColumn($db, "SELECT COUNT(*) FROM users WHERE role = 'tutor' AND active = 1"),
+                'totalStudents' => fetchColumn($db, "SELECT COUNT(*) FROM users WHERE role = 'student' AND active = 1"),
+                'activeAssignments' => fetchColumn($db, "SELECT COUNT(DISTINCT tutor_id) FROM requests WHERE status = 'active'")
+            ];
             Response::success($stats);
             break;
-            
+        
+        // ============= USUARIOS =============
         case 'users':
-            // Listar usuarios (con filtro opcional por rol)
             $role = $_GET['role'] ?? null;
+            $query = "SELECT id, email, name, role, active, created_at FROM users";
+            $params = [];
             
             if ($role && $role !== 'all') {
-                $query = "SELECT id, email, name, role, active, created_at FROM users WHERE role = :role ORDER BY created_at DESC";
-                $stmt = $db->prepare($query);
-                $stmt->bindParam(':role', $role);
-                $stmt->execute();
-            } else {
-                $query = "SELECT id, email, name, role, active, created_at FROM users ORDER BY created_at DESC";
-                $stmt = $db->query($query);
+                $query .= " WHERE role = :role";
+                $params[':role'] = $role;
             }
+            $query .= " ORDER BY created_at DESC";
             
-            $users = $stmt->fetchAll();
-            Response::success($users);
+            Response::success(fetchAll($db, $query, $params));
             break;
-            
+        
         case 'tutors':
-            // Listar tutores
-            $query = "SELECT id, email, name, created_at FROM users WHERE role = 'tutor' AND active = 1";
-            $stmt = $db->query($query);
-            $tutors = $stmt->fetchAll();
-            
-            Response::success($tutors);
+            Response::success(fetchAll($db, 
+                "SELECT id, email, name, created_at FROM users WHERE role = 'tutor' AND active = 1"
+            ));
             break;
         
+        // ============= ASIGNACIONES =============
         case 'assignments':
-            // Obtener asignaciones activas (tutores con estudiantes)
-            $query = "SELECT 
-                        u.id as tutor_id,
-                        u.email as tutor_email,
-                        u.name as tutor_name,
-                        COUNT(DISTINCT r.student_id) as student_count,
-                        MIN(r.created_at) as created_at
-                      FROM users u
-                      INNER JOIN requests r ON u.id = r.tutor_id
-                      WHERE u.role = 'tutor' AND r.status = 'active'
-                      GROUP BY u.id, u.email, u.name
-                      ORDER BY student_count DESC";
-            $stmt = $db->query($query);
-            $assignments = $stmt->fetchAll();
-            
-            Response::success($assignments);
-            break;
-            
-        case 'reports':
-            // Obtener reportes
-            $query = "SELECT r.*, u.name as tutor_name 
-                      FROM reports r 
-                      JOIN users u ON r.tutor_id = u.id 
-                      ORDER BY r.created_at DESC 
-                      LIMIT 50";
-            $stmt = $db->query($query);
-            $reports = $stmt->fetchAll();
-            
-            Response::success($reports);
+            Response::success(fetchAll($db, "
+                SELECT u.id as tutor_id, u.email as tutor_email, u.name as tutor_name,
+                       COUNT(DISTINCT r.student_id) as student_count, MIN(r.created_at) as created_at
+                FROM users u
+                INNER JOIN requests r ON u.id = r.tutor_id
+                WHERE u.role = 'tutor' AND r.status = 'active'
+                GROUP BY u.id, u.email, u.name
+                ORDER BY student_count DESC
+            "));
             break;
         
+        // ============= REPORTES =============
+        case 'reports':
+            Response::success(fetchAll($db, "
+                SELECT r.*, u.name as tutor_name 
+                FROM reports r 
+                JOIN users u ON r.tutor_id = u.id 
+                ORDER BY r.created_at DESC 
+                LIMIT 50
+            "));
+            break;
+        
+        // ============= CREAR USUARIO =============
         case 'createUser':
-            // Crear nuevo usuario (solo POST)
-            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                Response::error('Método no permitido');
-            }
+            requirePost();
+            $input = getJsonInput();
             
-            $input = json_decode(file_get_contents('php://input'), true);
-            
-            if (!isset($input['email']) || !isset($input['name']) || !isset($input['role'])) {
+            // Validaciones
+            if (empty($input['email']) || empty($input['name']) || empty($input['role'])) {
                 Response::error('Datos incompletos');
             }
             
@@ -151,72 +167,192 @@ try {
                 Response::error('Email inválido');
             }
             
-            $name = trim($input['name']);
-            $role = $input['role'];
-            
-            // Validar rol
             $validRoles = ['admin', 'tutor', 'student', 'verifier'];
-            if (!in_array($role, $validRoles)) {
+            if (!in_array($input['role'], $validRoles)) {
                 Response::error('Rol inválido');
             }
             
-            // Verificar si el email ya existe
-            $query = "SELECT id FROM users WHERE email = :email";
-            $stmt = $db->prepare($query);
-            $stmt->bindParam(':email', $email);
-            $stmt->execute();
-            
-            if ($stmt->fetch()) {
+            // Verificar email único
+            if (fetchColumn($db, "SELECT id FROM users WHERE email = :email", [':email' => $email])) {
                 Response::error('El email ya está registrado');
             }
             
-            // Crear usuario
-            $query = "INSERT INTO users (email, name, role, active, created_at) 
-                      VALUES (:email, :name, :role, 1, NOW())";
-            $stmt = $db->prepare($query);
-            $stmt->bindParam(':email', $email);
-            $stmt->bindParam(':name', $name);
-            $stmt->bindParam(':role', $role);
+            // Insertar
+            $stmt = $db->prepare("INSERT INTO users (email, name, role, active, created_at) VALUES (:email, :name, :role, 1, NOW())");
+            $stmt->execute([
+                ':email' => $email,
+                ':name' => trim($input['name']),
+                ':role' => $input['role']
+            ]);
             
-            if ($stmt->execute()) {
-                Response::success([
-                    'id' => $db->lastInsertId(),
-                    'message' => 'Usuario creado exitosamente'
-                ]);
-            } else {
-                Response::error('Error al crear usuario');
-            }
+            Response::success(['id' => $db->lastInsertId(), 'message' => 'Usuario creado exitosamente']);
             break;
         
+        // ============= TOGGLE USUARIO =============
         case 'toggleUser':
-            // Activar/Desactivar usuario (solo POST)
-            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                Response::error('Método no permitido');
-            }
+            requirePost();
+            $input = getJsonInput();
             
-            $input = json_decode(file_get_contents('php://input'), true);
-            
-            if (!isset($input['userId']) || !isset($input['active'])) {
+            if (!isset($input['userId'], $input['active'])) {
                 Response::error('Datos incompletos');
             }
             
-            $userId = intval($input['userId']);
-            $active = intval($input['active']);
+            $stmt = $db->prepare("UPDATE users SET active = :active WHERE id = :id");
+            $stmt->execute([':active' => (int)$input['active'], ':id' => (int)$input['userId']]);
             
-            $query = "UPDATE users SET active = :active WHERE id = :id";
-            $stmt = $db->prepare($query);
-            $stmt->bindParam(':active', $active);
-            $stmt->bindParam(':id', $userId);
+            Response::success(['message' => 'Estado actualizado']);
+            break;
+        
+        // ============= ESTADÍSTICAS SEMESTRE =============
+        case 'semester_stats':
+            // Obtener semestre activo o más reciente
+            $semester = fetchOne($db, "
+                SELECT id, nombre as name, fechaInicio as startDate, fechaFin as endDate, 
+                       LOWER(estado) as status 
+                FROM semestre 
+                WHERE estado = 'Activo' 
+                LIMIT 1
+            ") ?? fetchOne($db, "
+                SELECT id, nombre as name, fechaInicio as startDate, fechaFin as endDate, 
+                       LOWER(estado) as status 
+                FROM semestre 
+                ORDER BY id DESC 
+                LIMIT 1
+            ");
             
-            if ($stmt->execute()) {
-                Response::success(['message' => 'Estado actualizado exitosamente']);
+            $semesterId = $semester['id'] ?? 0;
+            
+            // Estadísticas
+            $totalStudents = (int)fetchColumn($db, "SELECT COUNT(*) FROM estudiante WHERE estado = 'Activo'");
+            $assignedStudents = (int)fetchColumn($db, 
+                "SELECT COUNT(DISTINCT idEstudiante) FROM asignaciontutor WHERE idSemestre = :id AND estado = 'Activa'",
+                [':id' => $semesterId]
+            );
+            $totalTutors = (int)fetchColumn($db, "SELECT COUNT(*) FROM usuariosistema WHERE rol = 'Tutor' AND estado = 'Activo'");
+            
+            // Sesiones
+            $sessions = fetchOne($db, "
+                SELECT COUNT(*) as total, SUM(CASE WHEN estado = 'Completada' THEN 1 ELSE 0 END) as completed
+                FROM cronograma WHERE idSemestre = :id
+            ", [':id' => $semesterId]) ?? ['total' => 0, 'completed' => 0];
+            
+            // Días restantes
+            $daysRemaining = 0;
+            if (!empty($semester['endDate'])) {
+                $diff = (new DateTime($semester['endDate']))->diff(new DateTime());
+                $daysRemaining = $diff->invert ? $diff->days : 0;
+            }
+            
+            // Carga de trabajo por tutor
+            $tutorWorkload = fetchAll($db, "
+                SELECT u.id,
+                       CONCAT(SUBSTRING(u.nombres, 1, 1), '. ', u.apellidos) as name,
+                       CONCAT(SUBSTRING(u.nombres, 1, 1), '.\\n', SUBSTRING(u.apellidos, 1, 6)) as shortName,
+                       COUNT(a.idEstudiante) as students,
+                       10 as max
+                FROM usuariosistema u
+                LEFT JOIN asignaciontutor a ON u.id = a.idTutor AND a.idSemestre = :id AND a.estado = 'Activa'
+                WHERE u.rol = 'Tutor' AND u.estado = 'Activo'
+                GROUP BY u.id, u.nombres, u.apellidos
+                ORDER BY students DESC
+                LIMIT 10
+            ", [':id' => $semesterId]);
+            
+            // Convertir a int
+            foreach ($tutorWorkload as &$t) {
+                $t['students'] = (int)$t['students'];
+                $t['max'] = (int)$t['max'];
+            }
+            
+            Response::success([
+                'semester' => $semester ?? ['id' => null, 'name' => 'Sin semestre', 'status' => 'inactive'],
+                'stats' => [
+                    'totalStudents' => $totalStudents,
+                    'assignedStudents' => $assignedStudents,
+                    'unassignedStudents' => $totalStudents - $assignedStudents,
+                    'totalTutors' => $totalTutors,
+                    'sessionsScheduled' => (int)$sessions['total'],
+                    'sessionsCompleted' => (int)$sessions['completed'],
+                    'daysRemaining' => $daysRemaining
+                ],
+                'tutorWorkload' => $tutorWorkload
+            ]);
+            break;
+        
+        // ============= ACTUALIZAR SEMESTRE =============
+        case 'update_semester':
+            requirePost();
+            $input = getJsonInput();
+            
+            $id = $input['id'] ?? null;
+            $name = trim($input['name'] ?? '');
+            $startDate = $input['startDate'] ?? null;
+            $endDate = $input['endDate'] ?? null;
+            $status = $input['status'] ?? 'active';
+            
+            if (!$name || !$startDate || !$endDate) {
+                Response::error('Datos incompletos');
+            }
+            
+            $statusMap = ['active' => 'Activo', 'inactive' => 'Inactivo', 'closed' => 'Cerrado'];
+            $dbStatus = $statusMap[$status] ?? 'Activo';
+            
+            $params = [':name' => $name, ':start' => $startDate, ':end' => $endDate, ':status' => $dbStatus];
+            
+            if ($id) {
+                $params[':id'] = $id;
+                $stmt = $db->prepare("UPDATE semestre SET nombre = :name, fechaInicio = :start, fechaFin = :end, estado = :status WHERE id = :id");
             } else {
-                Response::error('Error al actualizar estado');
+                $stmt = $db->prepare("INSERT INTO semestre (nombre, fechaInicio, fechaFin, estado) VALUES (:name, :start, :end, :status)");
+            }
+            
+            $stmt->execute($params);
+            
+            // Si activo, desactivar otros
+            if ($dbStatus === 'Activo') {
+                $newId = $id ?: $db->lastInsertId();
+                $db->prepare("UPDATE semestre SET estado = 'Cerrado' WHERE id != :id AND estado = 'Activo'")
+                   ->execute([':id' => $newId]);
+            }
+            
+            Response::success(['message' => 'Semestre actualizado']);
+            break;
+        
+        // ============= CERRAR SEMESTRE =============
+        case 'close_semester':
+            requirePost();
+            $input = getJsonInput();
+            $semesterId = $input['semesterId'] ?? null;
+            
+            if (!$semesterId) {
+                Response::error('ID de semestre requerido');
+            }
+            
+            $db->beginTransaction();
+            try {
+                // Cerrar semestre
+                $db->prepare("UPDATE semestre SET estado = 'Cerrado' WHERE id = :id")
+                   ->execute([':id' => $semesterId]);
+                
+                // Desactivar asignaciones
+                $db->prepare("UPDATE asignaciontutor SET estado = 'Inactiva' WHERE idSemestre = :id")
+                   ->execute([':id' => $semesterId]);
+                
+                // Cancelar sesiones pendientes
+                $db->prepare("UPDATE cronograma SET estado = 'Cancelada' WHERE idSemestre = :id AND estado = 'Programada'")
+                   ->execute([':id' => $semesterId]);
+                
+                $db->commit();
+                Response::success(['message' => 'Semestre cerrado']);
+                
+            } catch (Exception $e) {
+                $db->rollBack();
+                throw $e;
             }
             break;
-            
+        
         default:
-            Response::error('Acción no válida');
+            Response::error('Acción no válida', 400);
     }
     
 } catch (Exception $e) {

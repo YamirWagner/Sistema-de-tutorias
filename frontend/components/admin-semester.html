@@ -1,0 +1,208 @@
+<!-- Admin Semester Component - Estado del Semestre -->
+<div class="semester-section">
+    
+    <!-- Estado del Semestre - Header Principal -->
+    <div class="semester-header">
+        <div class="semester-info">
+            <h2 class="semester-title">ESTADO DEL SEMESTRE</h2>
+            <div class="semester-status-row">
+                <span class="semester-name" id="semesterName">Semestre 2025-2 :</span>
+                <span class="semester-status-badge active" id="semesterStatusBadge">
+                    <span class="status-dot"></span>
+                    <span id="semesterStatusText">ACTIVO</span>
+                </span>
+            </div>
+            <p class="semester-period" id="semesterPeriod">Periodo: 18 Octubre - 16 Diciembre</p>
+        </div>
+        <div class="semester-actions">
+            <button class="btn-semester-action btn-cronograma" onclick="openScheduleManager()">
+                GESTIONAR CRONOGRAMA
+            </button>
+            <button class="btn-semester-action btn-close-semester" onclick="confirmCloseSemester()">
+                CERRAR SEMESTRE
+            </button>
+        </div>
+    </div>
+
+    <!-- Cards de Alerta y Estado General -->
+    <div class="semester-cards-grid">
+        
+        <!-- Card Alerta Urgente -->
+        <div class="semester-card alert-card">
+            <h3 class="card-title alert-title">ALERTA URGENTE</h3>
+            <div class="card-value">
+                <span class="big-number alert-number" id="unassignedCount">11</span>
+            </div>
+            <p class="card-description">Estudiantes sin asignar</p>
+            <button class="btn-card-action btn-alert" onclick="assignUnassignedStudents()">
+                ASIGNAR AHORA
+            </button>
+        </div>
+
+        <!-- Card Estado General -->
+        <div class="semester-card status-card">
+            <h3 class="card-title status-title">ESTADO GENERAL</h3>
+            <div class="card-value">
+                <span class="big-number status-number" id="assignedCount">48</span>
+            </div>
+            <p class="card-description">Estudiantes asignados</p>
+            <button class="btn-card-action btn-status" onclick="viewAllAssignments()">
+                ASIGNAR AHORA
+            </button>
+        </div>
+
+    </div>
+
+    <!-- Gráficos y Estadísticas -->
+    <div class="semester-stats-grid">
+        
+        <!-- Estado de Asignación - Gráfico Donut -->
+        <div class="semester-stat-card">
+            <h3 class="stat-card-title">ESTADO DE ASIGNACIÓN</h3>
+            <div class="donut-chart-container">
+                <div class="donut-chart" id="assignmentDonutChart">
+                    <svg viewBox="0 0 36 36" class="donut-svg">
+                        <circle class="donut-ring" cx="18" cy="18" r="15.91549430918954" fill="transparent" stroke="#e0e0e0" stroke-width="3"></circle>
+                        <circle class="donut-segment assigned" cx="18" cy="18" r="15.91549430918954" fill="transparent" stroke="#2563eb" stroke-width="3" stroke-dasharray="90.57 9.43" stroke-dashoffset="25"></circle>
+                        <circle class="donut-segment unassigned" cx="18" cy="18" r="15.91549430918954" fill="transparent" stroke="#dc2626" stroke-width="3" stroke-dasharray="9.43 90.57" stroke-dashoffset="-65.57"></circle>
+                    </svg>
+                    <div class="donut-center">
+                        <span class="donut-total" id="totalStudentsDonut">53</span>
+                        <span class="donut-label">Total</span>
+                    </div>
+                </div>
+                <div class="donut-legend">
+                    <div class="legend-item">
+                        <span class="legend-dot assigned"></span>
+                        <span class="legend-text"><span id="assignedLegend">48</span> Asignados</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-dot unassigned"></span>
+                        <span class="legend-text"><span id="unassignedLegend">5</span> Sin Asignar</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Carga de Trabajo por Tutor -->
+        <div class="semester-stat-card">
+            <h3 class="stat-card-title">CARGA DE TRABAJO POR TUTOR (MAX 10)</h3>
+            <div class="workload-chart-container" id="workloadChartContainer">
+                <!-- Las barras se generan dinámicamente -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Tabla de Resumen del Semestre -->
+    <div class="semester-summary-card">
+        <div class="summary-header">
+            <h3 class="stat-card-title">RESUMEN DEL SEMESTRE</h3>
+            <button class="btn-refresh" onclick="refreshSemesterData()">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Actualizar
+            </button>
+        </div>
+        <div class="summary-stats-grid">
+            <div class="summary-stat">
+                <span class="summary-label">Total Tutores</span>
+                <span class="summary-value" id="summaryTotalTutors">5</span>
+            </div>
+            <div class="summary-stat">
+                <span class="summary-label">Total Estudiantes</span>
+                <span class="summary-value" id="summaryTotalStudents">53</span>
+            </div>
+            <div class="summary-stat">
+                <span class="summary-label">Sesiones Programadas</span>
+                <span class="summary-value" id="summarySessionsScheduled">24</span>
+            </div>
+            <div class="summary-stat">
+                <span class="summary-label">Sesiones Completadas</span>
+                <span class="summary-value" id="summarySessionsCompleted">18</span>
+            </div>
+            <div class="summary-stat">
+                <span class="summary-label">Días Restantes</span>
+                <span class="summary-value highlight" id="summaryDaysRemaining">21</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Modal Gestionar Cronograma -->
+<div id="scheduleManagerModal" class="semester-modal hidden">
+    <div class="modal-backdrop" onclick="closeScheduleManager()"></div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Gestionar Cronograma del Semestre</h3>
+            <button class="modal-close" onclick="closeScheduleManager()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="semesterScheduleForm">
+                <div class="form-group">
+                    <label for="semesterNameInput">Nombre del Semestre</label>
+                    <input type="text" id="semesterNameInput" placeholder="Ej: 2025-2" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="semesterStartDate">Fecha de Inicio</label>
+                        <input type="date" id="semesterStartDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="semesterEndDate">Fecha de Fin</label>
+                        <input type="date" id="semesterEndDate" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="semesterStatusSelect">Estado del Semestre</label>
+                    <select id="semesterStatusSelect">
+                        <option value="active">Activo</option>
+                        <option value="inactive">Inactivo</option>
+                        <option value="closed">Cerrado</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-modal-cancel" onclick="closeScheduleManager()">Cancelar</button>
+            <button class="btn-modal-save" onclick="saveSemesterSchedule()">Guardar Cambios</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Confirmar Cierre de Semestre -->
+<div id="closeSemesterModal" class="semester-modal hidden">
+    <div class="modal-backdrop" onclick="cancelCloseSemester()"></div>
+    <div class="modal-content modal-warning">
+        <div class="modal-header">
+            <h3>⚠️ Confirmar Cierre de Semestre</h3>
+            <button class="modal-close" onclick="cancelCloseSemester()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p class="warning-text">
+                ¿Está seguro que desea cerrar el semestre actual?
+            </p>
+            <div class="warning-details">
+                <p>Esta acción realizará lo siguiente:</p>
+                <ul>
+                    <li>Finalizará todas las sesiones pendientes</li>
+                    <li>Generará el reporte final del semestre</li>
+                    <li>Desactivará las asignaciones actuales</li>
+                    <li>El semestre no podrá ser reabierto</li>
+                </ul>
+            </div>
+            <div class="form-group">
+                <label for="closeConfirmInput">Escriba "CERRAR" para confirmar:</label>
+                <input type="text" id="closeConfirmInput" placeholder="CERRAR">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-modal-cancel" onclick="cancelCloseSemester()">Cancelar</button>
+            <button class="btn-modal-danger" onclick="executeSemesterClose()" id="btnExecuteClose" disabled>
+                Cerrar Semestre
+            </button>
+        </div>
+    </div>
+</div>
