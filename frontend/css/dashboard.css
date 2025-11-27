@@ -51,29 +51,6 @@ body {
     color: white;
 }
 
-/* Main content */
-.main-content {
-    flex: 1;
-    margin-left: 250px;
-    padding: 2rem;
-}
-
-/* Ajuste para el main del panel */
-body main.flex-1 {
-    margin-left: 264px; /* 250px sidebar + 14px padding */
-    width: calc(100% - 264px);
-}
-
-/* Header del dashboard */
-.dashboard-header {
-    background: white;
-    padding: 1rem 2rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
 /* Estadísticas */
 .stats-grid {
     display: grid;
@@ -169,10 +146,6 @@ body main.flex-1 {
         height: auto;
     }
     
-    .main-content {
-        margin-left: 0;
-        padding: 1rem;
-    }
     
     .dashboard-container {
         flex-direction: column;

@@ -3,25 +3,22 @@
     
     <!-- Estado del Semestre - Header Principal -->
     <div class="semester-header">
-        <div class="semester-info">
-            <h2 class="semester-title">ESTADO DEL SEMESTRE</h2>
+        <div class="semester-info-admin">
             <div class="semester-status-row">
-                <span class="semester-name" id="semesterName">Semestre 2025-2 :</span>
-                <span class="semester-status-badge active" id="semesterStatusBadge">
-                    <span class="status-dot"></span>
-                    <span id="semesterStatusText">ACTIVO</span>
-                </span>
+                <span class="semester-name" id="semesterName">Semestre 2025-2: </span>
+                <p class="semester-period" id="semesterPeriod">18 Octubre - 16 Diciembre</p>
             </div>
-            <p class="semester-period" id="semesterPeriod">Periodo: 18 Octubre - 16 Diciembre</p>
+            <span class="semester-status-badge active" id="semesterStatusBadge">
+                <span class="status-dot"></span>
+                <span id="semesterStatusText">ACTIVO</span>
+            </span>
         </div>
-        <div class="semester-actions">
-            <button class="btn-semester-action btn-cronograma" onclick="openScheduleManager()">
-                GESTIONAR CRONOGRAMA
-            </button>
-            <button class="btn-semester-action btn-close-semester" onclick="confirmCloseSemester()">
-                CERRAR SEMESTRE
-            </button>
-        </div>
+        <button class="btn-semester-action btn-cronograma" onclick="openScheduleManager()">
+            GESTIONAR CRONOGRAMA
+        </button>
+        <button class="btn-semester-action btn-close-semester" onclick="confirmCloseSemester()">
+            CERRAR SEMESTRE
+        </button>
     </div>
 
     <!-- Cards de Alerta y Estado General -->

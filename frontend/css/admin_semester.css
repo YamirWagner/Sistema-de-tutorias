@@ -5,8 +5,7 @@
 
 /* ============= SECCIÓN PRINCIPAL ============= */
 .semester-section {
-    padding: 1rem;
-    max-width: 1400px;
+    padding-bottom: 1.25rem;
     margin: 0 auto;
 }
 
@@ -14,40 +13,30 @@
 .semester-header {
     background: linear-gradient(135deg, #7c2d12 0%, #991b1b 50%, #7c2d12 100%);
     border-radius: 12px;
-    padding: 1.5rem 2rem;
+    padding: 2%;
     display: flex;
-    justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 1rem;
+    gap: 2%;
     margin-bottom: 1.5rem;
     box-shadow: 0 4px 15px rgba(124, 45, 18, 0.3);
 }
 
-.semester-info {
-    color: white;
-}
-
-.semester-title {
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 0.5rem;
-    opacity: 0.9;
-}
-
-.semester-status-row {
+.semester-info-admin {
+    background-color: white;
+    border-radius: 6px;
+    color:  #374151;
+    width: 48%;
     display: flex;
     align-items: center;
-    gap: 1rem;
-    flex-wrap: wrap;
+    justify-content: space-between;
+    padding: 6px 12px;
+    gap: 3%;
 }
 
 .semester-name {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: white;
+    font-size: 1.25rem;
+    font-weight: 550;
 }
 
 .semester-status-badge {
@@ -60,6 +49,13 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    display: flex;
+    margin-right: 0;
+}
+.semester-status-row{
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
 }
 
 .semester-status-badge.active {
@@ -91,18 +87,12 @@
 }
 
 .semester-period {
-    font-size: 0.85rem;
-    color: rgba(255, 255, 255, 0.8);
-    margin-top: 0.25rem;
-}
-
-.semester-actions {
-    display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
+    font-size: 1rem;
+    color:  #374151;
 }
 
 .btn-semester-action {
+    width: 24%;
     padding: 0.6rem 1.25rem;
     border-radius: 6px;
     font-size: 0.8rem;

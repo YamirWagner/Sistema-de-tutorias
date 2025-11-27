@@ -89,7 +89,7 @@ function updateSemesterUI(data) {
 
 function updateHeader(sem) {
     if (!sem) return;
-    setText('semesterName', `Semestre ${sem.name} :`);
+    setText('semesterName', `Semestre ${sem.name}: `);
     
     const badge = $('semesterStatusBadge');
     const text = $('semesterStatusText');
@@ -99,7 +99,7 @@ function updateHeader(sem) {
     }
     
     if (sem.startDate && sem.endDate) {
-        setText('semesterPeriod', `Periodo: ${fmtDate(sem.startDate)} - ${fmtDate(sem.endDate)}`);
+        setText('semesterPeriod', `${fmtDate(sem.startDate)} - ${fmtDate(sem.endDate)}`);
     }
 }
 
