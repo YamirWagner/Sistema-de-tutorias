@@ -2,6 +2,8 @@
 // SIDEBAR PANEL - Sistema de Tutorías UNSAAC
 // ============================================
 
+console.log('%c🔄 SIDEBAR ACTUALIZADO - 27/Nov/2025 07:30', 'background: #00ff00; color: #000; font-weight: bold; padding: 5px;');
+
 /**
  * Toggle sidebar collapse/expand (Desktop)
  */
@@ -162,44 +164,62 @@ function initializeSidebar() {
 /**
  * Cargar menú dinámico según el rol del usuario
  */
-function loadSidebarMenu() {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const role = user.role || 'student';
+async function loadSidebarMenu() {
+    // Obtener rol del token primero (rápido)
+    const token = localStorage.getItem('token');
+    let role = 'student'; // Rol por defecto
     
-    console.log('👤 Cargando menú para rol:', role);
+    if (token) {
+        try {
+            // Decodificar el token JWT para obtener el rol
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            role = payload.role || 'student';
+            console.log('👤 Rol del usuario:', role);
+        } catch (error) {
+            console.error('❌ Error al decodificar token:', error);
+        }
+    }
     
     const menuContainer = document.getElementById('sidebarMenuItems');
-    if (!menuContainer) return;
+    if (!menuContainer) {
+        console.error('❌ No se encontró el contenedor del menú');
+        return;
+    }
     
     const menus = {
         admin: [
-            { icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6', text: 'Inicio', action: 'goToHome', active: true },
-            { icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', text: 'Semestre', action: 'showSemesterSection' },
-            { icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4', text: 'Asignación', action: 'showAssignmentSection' },
-            { icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', text: 'Asignaciones', action: 'showAssignmentsSection' }, 
-            { icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z', text: 'Panel del tutor', action: 'showTutorPanel' }, 
-            { icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', text: 'Sesiones', action: 'showSessionsSection' },
+            { icon: 'fa-solid fa-house', text: 'Inicio', action: 'goToHome', active: true },
+            { icon: 'fa-solid fa-calendar-days', text: 'Cronograma', action: 'showScheduleSection' },
+            { icon: 'fa-solid fa-users-gear', text: 'Gestión de usuarios', action: 'showUserManagement' },
+            { icon: 'fa-solid fa-clipboard-list', text: 'Asignaciones', action: 'showAssignmentsSection' },
+            { icon: 'fa-solid fa-chart-line', text: 'Reportes', action: 'showReportsSection' },
+            { icon: 'fa-solid fa-magnifying-glass-chart', text: 'Buscar Historial', action: 'showSearchHistory' },
+            { icon: 'fa-solid fa-shield-halved', text: 'Auditoría', action: 'showAuditSection' },
         ],
         tutor: [
-            { icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6', text: 'Panel Principal', action: 'goToHome', active: true },
-            { icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', text: 'Mis Sesiones', action: 'showMySessions' },
-            { icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z', text: 'Mis Estudiantes', action: 'showMyStudents' },
-            { icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', text: 'Reportes', action: 'showReports' },
+            { icon: 'fa-solid fa-house', text: 'Inicio', action: 'goToHome', active: true },
+            { icon: 'fa-solid fa-plus-circle', text: 'Nueva Sesión', action: 'createNewSession' },
+            { icon: 'fa-solid fa-calendar-check', text: 'Agendamientos', action: 'showScheduledSessions' },
+            { icon: 'fa-solid fa-user-graduate', text: 'Mis estudiantes', action: 'showMyStudents' },
         ],
         student: [
-            { icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6', text: 'Panel Principal', action: 'goToHome', active: true },
-            { icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z', text: 'Buscar Tutores', action: 'searchTutors' },
-            { icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', text: 'Mis Sesiones', action: 'showMySessions' },
-            { icon: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253', text: 'Materiales', action: 'showMaterials' },
+            { icon: 'fa-solid fa-house', text: 'Inicio', action: 'goToHome', active: true },
+            { icon: 'fa-solid fa-chalkboard-user', text: 'Mi Tutor', action: 'showMyTutor' },
+            { icon: 'fa-solid fa-clock-rotate-left', text: 'Historial de Sesiones', action: 'showSessionHistory' },
+            { icon: 'fa-solid fa-book-open', text: 'Materiales de Apoyo', action: 'showMaterials' },
+            { icon: 'fa-solid fa-user-circle', text: 'Mi Perfil', action: 'showMyProfile' },
         ],
         verifier: [
-            { icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6', text: 'Panel Principal', action: 'goToHome', active: true },
-            { icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4', text: 'Verificar Sesiones', action: 'verifySessions' },
-            { icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', text: 'Historial', action: 'showHistory' },
+            { icon: 'fa-solid fa-clipboard-check', text: 'Lista de Asistencias', action: 'showAttendanceList', active: true },
+            { icon: 'fa-solid fa-search', text: 'Búsqueda de Tutorías', action: 'searchTutorials' },
+            { icon: 'fa-solid fa-user-clock', text: 'Historial por Estudiante', action: 'showStudentHistory' },
+            { icon: 'fa-solid fa-chalkboard-teacher', text: 'Seguimiento por Tutor', action: 'showTutorTracking' },
         ]
     };
     
     const menuItems = menus[role] || menus.student;
+    
+    console.log(`📋 Cargando ${menuItems.length} opciones para rol: ${role}`);
     
     let menuHTML = '';
     menuItems.forEach((item) => { 
@@ -208,10 +228,7 @@ function loadSidebarMenu() {
         menuHTML += `
             <li>
                 <a href="#" class="${activeClass}" onclick="handleMenuAction('${item.action}'); return false;">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${item.icon}"/>
-                        
-                    </svg>
+                    <i class="${item.icon}"></i>
                     <span class="sidebar-menu-text">${item.text}</span>
                 </a>
             </li>
