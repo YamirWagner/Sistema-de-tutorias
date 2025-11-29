@@ -255,7 +255,7 @@ async function refreshSemesterData() {
 
 async function loadSemesterContent() {
     try {
-        const res = await fetch('/Sistema-de-tutorias/components/admin-semester.html');
+        const res = await fetch('/Sistema-de-tutorias/components/administrador/semestre.html');
         if (!res.ok) throw new Error(res.status);
         const html = await res.text();
         const c = $('dashboardContent');

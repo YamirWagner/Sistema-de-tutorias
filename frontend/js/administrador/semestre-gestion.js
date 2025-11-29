@@ -47,7 +47,7 @@ async function loadCronogramaContent() {
         if (existing) existing.remove();
         
         // Cargar HTML
-        const url = `${window.APP_BASE_PATH}/components/admin-semester-manage.html`;
+        const url = `${window.APP_BASE_PATH}/components/administrador/semestre-gestion.html`;
         const response = await fetch(url);
         
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
