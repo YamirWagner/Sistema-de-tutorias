@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cronograma de Semestre - Sistema de Tutorías</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.1/dist/flowbite.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="/Sistema-de-tutorias/css/panel.css">
+    <link rel="stylesheet" href="/Sistema-de-tutorias/css/header_panel.css">
+    <link rel="stylesheet" href="/Sistema-de-tutorias/css/sidebar_panel.css">
+    <link rel="stylesheet" href="/Sistema-de-tutorias/css/footer_panel.css">
+    <link rel="stylesheet" href="/Sistema-de-tutorias/css/admin_semester_manage.css">
+</head>
+<body class="bg-gray-100">
+    <!-- Header -->
+    <div id="header-container"></div>
+
+    <!-- Sidebar -->
+    <div id="sidebar-container"></div>
+
+    <!-- Contenedor Principal -->
+    <div class="main-wrapper">
+        <main class="flex-1">
+            <!-- Contenido del Cronograma -->
+            <div id="cronogramaContainer"></div>
+        </main>
+        
+        <!-- Footer -->
+        <div id="footer-container"></div>
+    </div>
+
+    <!-- Modales -->
+    <div id="modals-container"></div>
+
+    <script>
+        window.APP_BASE_PATH = '/Sistema-de-tutorias';
+        console.log('📅 Cargando Cronograma de Semestre...');
+    </script>
+    <script src="/Sistema-de-tutorias/js/api.js"></script>
+    <script src="/Sistema-de-tutorias/js/main.js"></script>
+    <script src="/Sistema-de-tutorias/js/header_panel.js"></script>
+    <script src="/Sistema-de-tutorias/js/admin_semester_manage.js"></script>
+    <script src="/Sistema-de-tutorias/js/sidebar_panel.js"></script>
+    
+    <script>
+        // Cargar el cronograma al iniciar
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                // Cargar componente HTML
+                const response = await fetch(window.APP_BASE_PATH + '/components/admin-semester-manage.html');
+                const html = await response.text();
+                document.getElementById('cronogramaContainer').innerHTML = html;
+                
+                // Inicializar módulo
+                await initCronogramaModule();
+            } catch (error) {
+                console.error('Error al cargar semestre:', error);
+                document.getElementById('cronogramaContainer').innerHTML = 
+                    '<div class="p-6 bg-red-50 text-red-700 rounded-lg">Error al cargar la gestión de semestre</div>';
+            }
+        });
+    </script>
+</body>
+</html>

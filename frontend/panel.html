@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="/Sistema-de-tutorias/css/modals.css">
     <link rel="stylesheet" href="/Sistema-de-tutorias/css/dashboard.css">
     <link rel="stylesheet" href="/Sistema-de-tutorias/css/admin_semester.css">
+    <link rel="stylesheet" href="/Sistema-de-tutorias/css/admin_semester_manage.css">
 </head>
 <body class="bg-gray-100">
     <!-- Header Fijo -->
@@ -32,26 +33,6 @@
 
             <!-- Contenido Dinámico según Rol -->
             <div id="dashboardContent">
-                <!-- Estadísticas Principales - Grid 2x2 para Admin -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8" id="adminMainStats">
-                    <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
-                        <h3 class="text-sm font-semibold mb-2 text-gray-600">Total de tutores</h3>
-                        <p class="text-5xl font-bold text-red-700" id="totalTutors">8</p>
-                    </div>
-                    <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
-                        <h3 class="text-sm font-semibold mb-2 text-gray-600">Total de estudiantes</h3>
-                        <p class="text-5xl font-bold text-red-700" id="totalStudents">12</p>
-                    </div>
-                    <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
-                        <h3 class="text-sm font-semibold mb-2 text-gray-600">Sesiones de este mes</h3>
-                        <p class="text-5xl font-bold text-red-700" id="totalSessions">123</p>
-                    </div>
-                    <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
-                        <h3 class="text-sm font-semibold mb-2 text-gray-600">Asignaciones activas</h3>
-                        <p class="text-5xl font-bold text-red-700" id="activeAssignments">8</p>
-                    </div>
-                </div>
-
                 <!-- Estadísticas alternativas para otros roles -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8" id="otherRolesStats" style="display: none;">
                     <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
@@ -129,13 +110,14 @@
     <script src="/Sistema-de-tutorias/js/api.js"></script>
     <script src="/Sistema-de-tutorias/js/main.js"></script>
     <script src="/Sistema-de-tutorias/js/header_panel.js"></script>
-    <script src="/Sistema-de-tutorias/js/sidebar_panel.js"></script>
     <script src="/Sistema-de-tutorias/js/calendar.js"></script>
     <script src="/Sistema-de-tutorias/js/admin.js"></script>
     <script src="/Sistema-de-tutorias/js/admin_semester.js"></script>
+    <script src="/Sistema-de-tutorias/js/admin_semester_manage.js"></script>
     <script src="/Sistema-de-tutorias/js/tutor.js"></script>
     <script src="/Sistema-de-tutorias/js/student.js"></script>
     <script src="/Sistema-de-tutorias/js/verifier.js"></script>
+    <script src="/Sistema-de-tutorias/js/sidebar_panel.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.1/dist/flowbite.min.js"></script>
 </body>
 </html>

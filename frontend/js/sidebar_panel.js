@@ -189,7 +189,7 @@ async function loadSidebarMenu() {
     const menus = {
         admin: [
             { icon: 'fa-solid fa-house', text: 'Inicio', action: 'goToHome', active: true },
-            { icon: 'fa-solid fa-calendar-days', text: 'Cronograma', action: 'showScheduleSection' },
+            { icon: 'fa-solid fa-calendar-days', text: 'Semestre', action: 'showScheduleSection' },
             { icon: 'fa-solid fa-users-gear', text: 'Gestión de usuarios', action: 'showUserManagement' },
             { icon: 'fa-solid fa-clipboard-list', text: 'Asignaciones', action: 'showAssignmentsSection' },
             { icon: 'fa-solid fa-chart-line', text: 'Reportes', action: 'showReportsSection' },
@@ -242,7 +242,10 @@ async function loadSidebarMenu() {
  * Manejar acciones del menú
  */
 function handleMenuAction(action) {
-    console.log('🎯 Acción del menú:', action);
+    console.log('═══════════════════════════════════════');
+    console.log('🎯 Acción del menú recibida:', action);
+    console.log('📝 Tipo:', typeof action);
+    console.log('═══════════════════════════════════════');
     
     // Cerrar sidebar en móvil
     closeSidebarOnNavigation();
@@ -261,6 +264,23 @@ function handleMenuAction(action) {
                 loadSemesterContent();
             }
             document.querySelector('.semester-section')?.scrollIntoView({ behavior: 'smooth' });
+            break;
+        case 'showScheduleSection':
+            // Cargar y mostrar cronograma
+            console.log('🎯 Acción showScheduleSection ejecutada');
+            console.log('🔍 loadCronogramaContent disponible?', typeof loadCronogramaContent);
+            if (typeof loadCronogramaContent === 'function') {
+                console.log('✅ Llamando a loadCronogramaContent()');
+                loadCronogramaContent();
+                setTimeout(() => {
+                    const section = document.querySelector('.cronograma-section');
+                    console.log('📍 Sección encontrada?', section);
+                    section?.scrollIntoView({ behavior: 'smooth' });
+                }, 300);
+            } else {
+                console.error('❌ loadCronogramaContent no está disponible');
+                showNotification('Error: Módulo de cronograma no cargado', 'error');
+            }
             break;
         case 'showAssignmentSection':
             showNotification('Función de asignación en desarrollo', 'info');

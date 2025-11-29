@@ -85,6 +85,10 @@ $routes = [
     'GET|api/calendar' => 'api/calendar.php',
     'POST|api/calendar' => 'api/calendar.php',
 
+    // Rutas de semestre
+    'GET|api/semestre' => 'api/semestre.php',
+    'POST|api/semestre' => 'api/semestre.php',
+
     // Rutas de bitácora (log de acceso/actividad)
     'GET|api/log' => 'api/log.php',
     'POST|api/log' => 'api/log.php',

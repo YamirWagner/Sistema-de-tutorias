@@ -1,0 +1,72 @@
+/* =====================================================
+   ADMIN_SEMESTER_MANAGE - Estilos Optimizados
+   Sistema de Tutorías UNSAAC
+   ===================================================== */
+
+:root {
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.3s ease-out;
+    --shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Contenedor */
+.cronograma-section {
+    animation: fadeIn var(--transition-normal);
+    scroll-margin-top: 80px;
+}
+
+/* Tarjeta principal de semestre */
+.cronograma-section > div:nth-child(2) {
+    background: linear-gradient(135deg, #fef2f2 0%, #fecaca 50%, #fca5a5 100%);
+}
+
+/* Tarjetas */
+.cronograma-section .bg-white {
+    transition: box-shadow var(--transition-normal);
+}
+
+.cronograma-section .bg-white:hover {
+    box-shadow: var(--shadow-hover);
+}
+
+/* Modales */
+#editSemesterModal {
+    animation: slideUp var(--transition-normal);
+    backdrop-filter: blur(2px);
+    z-index: 9999;
+}
+
+/* Tablas */
+#semesterHistoryTable tr {
+    transition: background-color var(--transition-fast);
+}
+
+#semesterHistoryTable button i {
+    transition: transform var(--transition-fast);
+}
+
+#semesterHistoryTable button:hover i {
+    transform: scale(1.15);
+}
+
+/* Badges */
+.px-2.py-1.text-xs.rounded-full {
+    transition: all var(--transition-fast);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .stats-grid { grid-template-columns: 1fr; }
+    .cronograma-section { scroll-margin-top: 60px; }
+}

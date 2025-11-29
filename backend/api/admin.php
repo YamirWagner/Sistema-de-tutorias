@@ -351,6 +351,74 @@ try {
             }
             break;
         
+        // ============= GESTIÓN DE SEMESTRE =============
+        
+        case 'cronograma_events':
+            $semestre = fetchOne($db, "SELECT * FROM semestre WHERE estado = 'Activo' LIMIT 1");
+            
+            if (!$semestre) {
+                Response::error('No hay semestre activo');
+            }
+            
+            $endDate = new DateTime($semestre['fechaFin']);
+            $today = new DateTime();
+            $interval = $today->diff($endDate);
+            $daysRemaining = $interval->invert ? 0 : $interval->days;
+            
+            Response::success([
+                'semester' => [
+                    'id' => (int)$semestre['id'],
+                    'name' => $semestre['nombre'],
+                    'startDate' => $semestre['fechaInicio'],
+                    'endDate' => $semestre['fechaFin'],
+                    'status' => $semestre['estado'],
+                    'daysRemaining' => $daysRemaining
+                ]
+            ]);
+            break;
+        
+        case 'semester_list':
+            $semesters = fetchAll($db, "SELECT * FROM semestre ORDER BY fechaInicio DESC");
+            Response::success($semesters);
+            break;
+        
+        case 'update_semester':
+            requirePost();
+            $input = getJsonInput();
+            
+            $required = ['id', 'nombre', 'fechaInicio', 'fechaFin', 'estado'];
+            foreach ($required as $field) {
+                if (!isset($input[$field])) {
+                    Response::error("Campo requerido: $field");
+                }
+            }
+            
+            if (!in_array($input['estado'], ['Activo', 'Cerrado'])) {
+                Response::error('Estado inválido');
+            }
+            
+            $stmt = $db->prepare("
+                UPDATE semestre 
+                SET nombre = ?, fechaInicio = ?, fechaFin = ?, estado = ? 
+                WHERE id = ?
+            ");
+            
+            $stmt->execute([
+                $input['nombre'],
+                $input['fechaInicio'],
+                $input['fechaFin'],
+                $input['estado'],
+                $input['id']
+            ]);
+            
+            if ($stmt->rowCount() > 0) {
+                logActivity($db, $userId, 'update', 'semestre', $input['id']);
+                Response::success(['message' => 'Semestre actualizado']);
+            } else {
+                Response::error('No se actualizó ningún registro');
+            }
+            break;
+        
         default:
             Response::error('Acción no válida', 400);
     }

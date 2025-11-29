@@ -56,7 +56,12 @@ async function loadAdminContent() {
         // 1. Cargar primero el módulo de semestre (Estado del Semestre)
         await loadSemesterContent();
         
-        // 2. Cargar el dashboard del administrador
+        // 2. Cargar el cronograma académico
+        if (typeof loadCronogramaContent === 'function') {
+            await loadCronogramaContent();
+        }
+        
+        // 3. Cargar el dashboard del administrador
         const response = await fetch('/Sistema-de-tutorias/components/admin-dashboard.html');
         const html = await response.text();
         
