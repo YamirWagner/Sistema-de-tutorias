@@ -104,12 +104,22 @@ class Mailer {
      */
     private function configure() {
         try {
+            // Validar configuración SMTP
+            if (empty(SMTP_HOST) || empty(SMTP_USER) || empty(SMTP_PASS)) {
+                throw new Exception('Configuración SMTP incompleta. Verifica SMTP_HOST, SMTP_USER y SMTP_PASS en .env');
+            }
+            
             // Configuración del servidor
             $this->mail->isSMTP();
             $this->mail->Host = SMTP_HOST;
             $this->mail->SMTPAuth = true;
             $this->mail->Username = SMTP_USER;
             $this->mail->Password = SMTP_PASS;
+            
+            // Debugging SMTP (solo en desarrollo)
+            if (defined('APP_ENV') && APP_ENV === 'development') {
+                $this->mail->SMTPDebug = 0; // 0=off, 1=client, 2=client+server
+            }
             
             // Usar SSL para puerto 465, STARTTLS para 587
             if (SMTP_PORT == 465) {
@@ -127,6 +137,7 @@ class Mailer {
             
         } catch (Exception $e) {
             error_log("Error al configurar mailer: {$e->getMessage()}");
+            throw $e;
         }
     }
     
@@ -202,8 +213,12 @@ class Mailer {
             return true;
 
         } catch (Exception $e) {
-            error_log("Error al enviar correo: {$this->mail->ErrorInfo}");
-            return false;
+            $errorMsg = $this->mail->ErrorInfo ?: $e->getMessage();
+            error_log("[MAILER] Error al enviar código de verificación: " . $errorMsg);
+            error_log("[MAILER] Destinatario: " . $email);
+            error_log("[MAILER] SMTP Host: " . SMTP_HOST . ":" . SMTP_PORT);
+            error_log("[MAILER] SMTP User: " . SMTP_USER);
+            throw new Exception("Error al enviar correo: " . $errorMsg);
         }
     }
 

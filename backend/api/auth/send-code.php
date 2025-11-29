@@ -80,21 +80,34 @@ try {
     $stmt->execute();
     
     // Enviar código por correo (con nombre y metadatos)
-    $mailer = new Mailer();
-    $recipientName = $user['name'] ?? null;
-    $meta = [
-        'ip' => Activity::clientIp(),
-        'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
-        'datetime' => date('d/m/Y H:i:s')
-    ];
-    $sent = $mailer->sendVerificationCode($email, $code, $recipientName, $meta);
-    
-    if (!$sent) {
-        Response::serverError('Error al enviar el correo');
+    try {
+        $mailer = new Mailer();
+        $recipientName = $user['name'] ?? null;
+        $meta = [
+            'ip' => Activity::clientIp(),
+            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
+            'datetime' => date('d/m/Y H:i:s')
+        ];
+        $sent = $mailer->sendVerificationCode($email, $code, $recipientName, $meta);
+        
+        $msg = $closedPrev ? 'Sesión previa cerrada y código enviado' : 'Código enviado exitosamente';
+        Response::success([ 'sessionClosed' => $closedPrev ], $msg);
+        
+    } catch (Exception $mailError) {
+        error_log("[SEND-CODE] Error al enviar código: " . $mailError->getMessage());
+        
+        // Mensaje de error más específico según el tipo de error
+        $errorMsg = $mailError->getMessage();
+        if (strpos($errorMsg, 'suspended') !== false) {
+            Response::serverError('El servidor de correo está suspendido. Contacta al administrador del sistema.');
+        } elseif (strpos($errorMsg, 'authentication') !== false || strpos($errorMsg, 'Invalid login') !== false) {
+            Response::serverError('Error de autenticación del servidor de correo. Verifica las credenciales SMTP.');
+        } elseif (strpos($errorMsg, 'Configuración SMTP incompleta') !== false) {
+            Response::serverError('Configuración de correo incompleta. Contacta al administrador.');
+        } else {
+            Response::serverError('Error al enviar el correo. Verifica la configuración SMTP.');
+        }
     }
-
-    $msg = $closedPrev ? 'Sesión previa cerrada y código enviado' : 'Código enviado exitosamente';
-    Response::success([ 'sessionClosed' => $closedPrev ], $msg);
     
 } catch (Exception $e) {
     error_log("Error en send-code.php: " . $e->getMessage());
