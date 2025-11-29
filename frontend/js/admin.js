@@ -235,38 +235,6 @@ async function loadActiveAssignments() {
     }
 }
 // ------------------- PRUEBA (Para la historia de usuario de las asignaciones)------------------
-/* ------------------------------------------------------------
-   0. DATOS DE PRUEBA (Simulan lo que devolvería el backend)
-   ------------------------------------------------------------ */
-
-// Lista de tutores
-let tutores = [
-    { id: "T001", nombre: "Carlos López", max: 10 },
-    { id: "T002", nombre: "Ana Ruiz", max: 10 },
-    { id: "T003", nombre: "Miguel Torres", max: 10 },
-];
-
-// Estudiantes asignados por tutor
-let asignaciones = {
-    T001: [
-        { id: "E001", nombre: "Juan Perez Mamani" },
-        { id: "E002", nombre: "Luis Quispe" },
-        { id: "E003", nombre: "María Huamán" },
-        { id: "E004", nombre: "Diego Soria" },
-        { id: "E005", nombre: "Lucía Apaza" },
-    ],
-    T002: [
-        { id: "E006", nombre: "Rosa Palomino" }
-    ],
-    T003: []
-};
-
-// Estudiantes sin asignación
-let estudiantesNoAsignados = [
-    { id: "E007", nombre: "Antony Vargas" },
-    { id: "E008", nombre: "Julio Cárdenas" },
-    { id: "E009", nombre: "Fiorella Gutiérrez" }
-];
 
 // ID del tutor actualmente seleccionado
 let tutorSeleccionado = null;
@@ -277,15 +245,19 @@ let tutorSeleccionado = null;
 
 async function initAssignmentModule() {
     try {
-        // TODO: ajustar endpoint según tu backend
+        console.log('[admin] Requesting assignmentData... API_BASE_URL=', window.__API_BASE_URL);
         const response = await apiGet('/admin?action=assignmentData');
+        console.log('[admin] assignmentData response:', response);
 
-        if (response.success) {
+        if (response && response.success) {
             const data = response.data;
 
             tutores = data.tutors || [];
             asignaciones = data.assignments || {};
             estudiantesNoAsignados = data.unassignedStudents || [];
+
+            // Guardar semestre actual para usar al asignar
+            window.CURRENT_SEMESTER_ID = data.semesterId || null;
 
             cargarTutores();
             if (tutores.length > 0) {
@@ -301,7 +273,7 @@ async function initAssignmentModule() {
                 btnRandom.addEventListener("click", asignarAleatoriamente);
             }
         } else {
-            console.error('Error al cargar datos de asignación:', response.message);
+            console.error('Error al cargar datos de asignación:', response?.message || 'sin respuesta');
         }
     } catch (error) {
         console.error('Error al inicializar módulo de asignación:', error);
@@ -320,9 +292,10 @@ function cargarTutores(filtroNombre = "") {
     contenedor.innerHTML = "";
 
     tutores
-        .filter(t => t.nombre.toLowerCase().includes(filtroNombre.toLowerCase()))
+        .filter(t => (t.name || t.nombre || '').toLowerCase().includes(filtroNombre.toLowerCase()))
         .forEach(tutor => {
             const totalAsignados = asignaciones[tutor.id]?.length || 0;
+            const displayName = tutor.nombre || tutor.name || (tutor.nombres ? `${tutor.nombres} ${tutor.apellidos || ''}`.trim() : 'Sin nombre');
 
             const btn = document.createElement("button");
             btn.className = `
@@ -331,10 +304,11 @@ function cargarTutores(filtroNombre = "") {
             `;
             btn.dataset.id = tutor.id;
 
+            const maxCapacity = tutor.max || 10;
             btn.innerHTML = `
-                <strong>${tutor.nombre}</strong><br>
+                <strong>${displayName}</strong><br>
                 <span class="text-sm text-gray-600">
-                    Estudiantes asignados: ${totalAsignados} / ${tutor.max}
+                    Estudiantes asignados: ${totalAsignados} / ${maxCapacity}
                 </span>
             `;
 
@@ -380,8 +354,16 @@ function cargarEstudiantesAsignados(filtroNombre = "") {
     }
 
     (asignaciones[tutorSeleccionado] || [])
-        .filter(e => e.nombre.toLowerCase().includes(filtroNombre.toLowerCase()))
+        .filter(e => {
+            if (!e) return false;
+            const nombre = e.nombre || e.nombreEstudiante || (e.nombres ? `${e.nombres} ${e.apellidos || ''}`.trim() : '');
+            return String(nombre).toLowerCase().includes(String(filtroNombre || '').toLowerCase());
+        })
         .forEach(est => {
+            // Compatibilidad: manejar diferentes shapes de objeto de estudiante
+            const estudianteId = est.idEstudiante || est.id || est.codigo || '';
+            const estudianteNombre = est.nombreEstudiante || est.nombre || (est.nombres ? `${est.nombres} ${est.apellidos || ''}`.trim() : 'Sin nombre');
+            if (!String(estudianteNombre).toLowerCase().includes(String(filtroNombre || '').toLowerCase())) return;
             const div = document.createElement("div");
             div.className = `
                 student-item bg-white border rounded-lg p-3 
@@ -389,14 +371,18 @@ function cargarEstudiantesAsignados(filtroNombre = "") {
             `;
 
             div.innerHTML = `
-                <span>${est.nombre}</span>
-                <button class="remove-btn bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">
+                <span>${estudianteNombre}</span>
+                <button class="remove-btn bg-red-800 text-white px-3 py-1 rounded hover:bg-red-700">
                     Quitar
                 </button>
             `;
+            /* 
+            tutor-btn text-left px-3 py-2 bg-gray-100 rounded-lg 
+                hover:bg-gray-200 transition
+            */
 
             div.querySelector(".remove-btn").addEventListener("click", () => {
-                quitarEstudiante(est.id);
+                quitarEstudiante(estudianteId);
             });
 
             contenedor.appendChild(div);
@@ -415,23 +401,28 @@ function cargarEstudiantesNoAsignados(filtroNombre = "") {
     contenedor.innerHTML = "";
 
     estudiantesNoAsignados
-        .filter(e => e.nombre.toLowerCase().includes(filtroNombre.toLowerCase()))
+        .filter(e => {
+            const nombre = e.nombre || (e.nombres ? `${e.nombres} ${e.apellidos || ''}`.trim() : '');
+            return nombre.toLowerCase().includes(filtroNombre.toLowerCase());
+        })
         .forEach(est => {
+            const estudianteId = est.id || est.codigo || '';
+            const nombre = est.nombre || (est.nombres ? `${est.nombres} ${est.apellidos || ''}`.trim() : 'Sin nombre');
             const div = document.createElement("div");
             div.className = `
-                student-item bg-white border rounded-lg p-3 
+                student-item bg-gray border rounded-lg p-3 
                 flex justify-between items-center shadow-sm
             `;
 
             div.innerHTML = `
-                <span>${est.nombre}</span>
-                <button class="assign-btn bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">
+                <span>${nombre}</span>
+                <button class="assign-btn bg-red-700 text-white px-4 py-1 rounded-lg hover:bg-red-800">
                     + Asignar
                 </button>
             `;
 
             div.querySelector(".assign-btn").addEventListener("click", () => {
-                asignarEstudiante(est.id);
+                asignarEstudiante(estudianteId);
             });
 
             contenedor.appendChild(div);
@@ -445,23 +436,27 @@ function cargarEstudiantesNoAsignados(filtroNombre = "") {
    ------------------------------------------------------------ */
 
 async function asignarEstudiante(idEstudiante) {
-    if (!tutorSeleccionado) return;
+    if (!tutorSeleccionado) return alert('Seleccione un tutor');
 
-    const estudiante = estudiantesNoAsignados.find(e => e.id === idEstudiante);
-    if (!estudiante) return;
+    const semesterId = window.CURRENT_SEMESTER_ID;
+    if (!semesterId) return alert('No hay semestre activo configurado');
 
-    // OPCIONAL: llamar al backend para guardar la asignación
-    // await apiPost('/admin?action=assignStudent', {
-    //     tutorId: tutorSeleccionado,
-    //     studentId: idEstudiante
-    // });
+    try {
+        const resp = await apiPost('/admin?action=assignStudent', {
+            tutorId: tutorSeleccionado,
+            studentId: idEstudiante,
+            semesterId: semesterId
+        });
 
-    asignaciones[tutorSeleccionado].push(estudiante);
-    estudiantesNoAsignados = estudiantesNoAsignados.filter(e => e.id !== idEstudiante);
+        if (!resp) return alert('Error en la petición');
+        if (!resp.success) return alert(resp.message || 'No se pudo asignar estudiante');
 
-    cargarEstudiantesAsignados();
-    cargarEstudiantesNoAsignados();
-    cargarTutores();
+        // Refrescar datos desde el backend
+        await initAssignmentModule();
+    } catch (e) {
+        console.error('Error al asignar estudiante:', e);
+        alert('Error al asignar estudiante');
+    }
 }
 
 
@@ -473,23 +468,26 @@ async function asignarEstudiante(idEstudiante) {
 /* -------- 7. Quitar un estudiante (volver a no asignado) -------- */
 
 async function quitarEstudiante(idEstudiante) {
-    if (!tutorSeleccionado) return;
+    if (!tutorSeleccionado) return alert('Seleccione un tutor');
 
-    const estudiante = (asignaciones[tutorSeleccionado] || []).find(e => e.id === idEstudiante);
-    if (!estudiante) return;
+    const lista = asignaciones[tutorSeleccionado] || [];
+    const asign = lista.find(a => String(a.id) === String(idEstudiante) || String(a.idEstudiante) === String(idEstudiante));
+    if (!asign) return alert('No se encontró la asignación para este estudiante');
 
-    // OPCIONAL: avisar al backend
-    // await apiPost('/admin?action=unassignStudent', {
-    //     tutorId: tutorSeleccionado,
-    //     studentId: idEstudiante
-    // });
+    const asignacionId = asign.id || asign.asignacionId || asign.idAsignacion || null;
+    if (!asignacionId) return alert('ID de asignación no disponible');
 
-    estudiantesNoAsignados.push(estudiante);
-    asignaciones[tutorSeleccionado] = asignaciones[tutorSeleccionado].filter(e => e.id !== idEstudiante);
+    try {
+        const resp = await apiPost('/admin?action=unassignStudent', { asignacionId });
+        if (!resp) return alert('Error en la petición');
+        if (!resp.success) return alert(resp.message || 'No se pudo desasignar estudiante');
 
-    cargarEstudiantesAsignados();
-    cargarEstudiantesNoAsignados();
-    cargarTutores();
+        // Refrescar datos
+        await initAssignmentModule();
+    } catch (e) {
+        console.error('Error al desasignar estudiante:', e);
+        alert('Error al desasignar estudiante');
+    }
 }
 
 
