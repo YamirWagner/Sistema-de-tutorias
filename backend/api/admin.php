@@ -16,11 +16,13 @@
  * - close_semester: Cerrar semestre (POST)
  */
 
-require_once '../core/config.php';
-require_once '../core/database.php';
-require_once '../core/response.php';
-require_once '../core/jwt.php';
-require_once '../core/activity.php';
+require_once __DIR__ . '/../core/config.php';
+require_once __DIR__ . '/../core/database.php';
+require_once __DIR__ . '/../core/response.php';
+require_once __DIR__ . '/../core/jwt.php';
+require_once __DIR__ . '/../core/activity.php';
+require_once __DIR__ . '/../core/mailer.php';
+require_once __DIR__ . '/../models/logacceso.php';
 
 // ============= FUNCIONES HELPER =============
 
@@ -150,6 +152,192 @@ try {
                 ORDER BY r.created_at DESC 
                 LIMIT 50
             "));
+            break;
+
+        // ============= ASSIGNMENT DATA =============
+        case 'assignmentData':
+            // Devuelve tutores, asignaciones por tutor y estudiantes no asignados para el semestre activo
+            $semester = fetchOne($db, "SELECT id, nombre FROM semestre WHERE estado = 'Activo' LIMIT 1");
+            $semId = $semester['id'] ?? null;
+
+            $tutors = fetchAll($db, "SELECT id, CONCAT(nombres, ' ', apellidos) as name, correo FROM usuariosistema WHERE rol = 'Tutor' AND estado = 'Activo'");
+
+            $assignments = [];
+            if ($semId) {
+                $rows = fetchAll($db, "SELECT id, idTutor, idEstudiante, codigoEstudiante, nombreEstudiante, apellidoEstudiante, estado FROM asignaciontutor WHERE idSemestre = :semId AND estado = 'Activa'", [':semId' => $semId]);
+                foreach ($rows as $r) {
+                    $assignments[$r['idTutor']][] = $r;
+                }
+            }
+
+            $unassigned = [];
+            if ($semId) {
+                $unassigned = fetchAll($db, "SELECT id, codigo, nombres, apellidos, correo FROM estudiante WHERE estado = 'Activo' AND id NOT IN (SELECT idEstudiante FROM asignaciontutor WHERE idSemestre = :semId AND estado = 'Activa')", [':semId' => $semId]);
+            } else {
+                $unassigned = fetchAll($db, "SELECT id, codigo, nombres, apellidos, correo FROM estudiante WHERE estado = 'Activo'");
+            }
+
+            Response::success([
+                'semesterId' => $semId,
+                'tutors' => $tutors,
+                'assignments' => $assignments,
+                'unassignedStudents' => $unassigned
+            ]);
+            break;
+
+        // ============= ASIGNAR ESTUDIANTE =============
+        case 'assignStudent':
+            requirePost();
+            $input = getJsonInput();
+            $tutorId = (int)($input['tutorId'] ?? 0);
+            $studentId = (int)($input['studentId'] ?? 0);
+            $semesterId = (int)($input['semesterId'] ?? 0);
+
+            if (!$tutorId || !$studentId || !$semesterId) {
+                Response::error('Datos incompletos');
+            }
+
+            try {
+                $db->beginTransaction();
+
+                // Validar tutor
+                $tutor = fetchOne($db, "SELECT id, nombres, apellidos, correo FROM usuariosistema WHERE id = :id AND estado = 'Activo' AND rol = 'Tutor'", [':id' => $tutorId]);
+                if (!$tutor) {
+                    $db->rollBack();
+                    Response::error('Tutor no válido', 400);
+                }
+
+                // Validar estudiante
+                $student = fetchOne($db, "SELECT id, codigo, nombres, apellidos, correo FROM estudiante WHERE id = :id AND estado = 'Activo'", [':id' => $studentId]);
+                if (!$student) {
+                    $db->rollBack();
+                    Response::error('Estudiante no válido', 400);
+                }
+
+                // Validar semestre activo
+                $sem = fetchOne($db, "SELECT id FROM semestre WHERE id = :id AND estado = 'Activo'", [':id' => $semesterId]);
+                if (!$sem) {
+                    $db->rollBack();
+                    Response::error('Semestre no válido o no activo', 400);
+                }
+
+                // Verificar si ya está asignado en ese semestre
+                $existing = fetchOne($db, "SELECT id FROM asignaciontutor WHERE idEstudiante = :sid AND idSemestre = :sem AND estado = 'Activa'", [':sid' => $studentId, ':sem' => $semesterId]);
+                if ($existing) {
+                    $db->rollBack();
+                    Response::error('Estudiante ya asignado en este semestre', 409);
+                }
+
+                // Insertar asignación
+                $stmt = $db->prepare("INSERT INTO asignaciontutor (idTutor, nombreTutor, apellidoTutor, idEstudiante, codigoEstudiante, nombreEstudiante, apellidoEstudiante, idSemestre, fechaAsignacion, estado) VALUES (:tutorId, :nombreT, :apellidoT, :studentId, :codigoEst, :nombreEst, :apellidoEst, :semesterId, NOW(), 'Activa')");
+                $stmt->execute([
+                    ':tutorId' => $tutorId,
+                    ':nombreT' => $tutor['nombres'],
+                    ':apellidoT' => $tutor['apellidos'],
+                    ':studentId' => $studentId,
+                    ':codigoEst' => $student['codigo'],
+                    ':nombreEst' => $student['nombres'],
+                    ':apellidoEst' => $student['apellidos'],
+                    ':semesterId' => $semesterId
+                ]);
+
+                $newId = (int)$db->lastInsertId();
+
+                // Registrar auditoría
+                try {
+                    $logger = new LogAcceso($db);
+                    $logger->registrar([
+                        'idUsuario' => $payload['user_id'],
+                        'usuario' => $payload['name'] ?? null,
+                        'tipoAcceso' => 'Administrador',
+                        'accion' => 'asignar estudiante',
+                        'descripcion' => "Asignó estudiante id={$studentId} a tutor id={$tutorId} en semestre id={$semesterId}",
+                        'estadoSesion' => 'activa',
+                        'ipOrigen' => Activity::clientIp()
+                    ]);
+                } catch (Exception $e) {
+                    error_log('No se pudo registrar auditoría asignar estudiante: ' . $e->getMessage());
+                }
+
+                // Enviar notificaciones por correo (intentarlo pero no bloquear en caso de fallo)
+                try {
+                    $mailer = new Mailer();
+                    $subject = 'Nueva asignación de tutoría';
+                    $bodyTutor = "<p>Se le ha asignado el estudiante <strong>{$student['nombres']} {$student['apellidos']}</strong> (Código: {$student['codigo']}).</p>";
+                    $bodyStudent = "<p>Se le ha asignado un tutor: <strong>{$tutor['nombres']} {$tutor['apellidos']}</strong>. Revise su panel para más detalles.</p>";
+                    if (!empty($tutor['correo'])) $mailer->send($tutor['correo'], $subject, $bodyTutor);
+                    if (!empty($student['correo'])) $mailer->send($student['correo'], $subject, $bodyStudent);
+                } catch (Exception $e) {
+                    error_log('Error enviando notificaciones asignar estudiante: ' . $e->getMessage());
+                }
+
+                $db->commit();
+                Response::success(['id' => $newId], 'Estudiante asignado');
+
+            } catch (Exception $e) {
+                try { $db->rollBack(); } catch (Exception $x) {}
+                error_log('Error en assignStudent: ' . $e->getMessage());
+                Response::serverError('Error al asignar estudiante');
+            }
+            break;
+
+        // ============= DESASIGNAR ESTUDIANTE =============
+        case 'unassignStudent':
+            requirePost();
+            $input = getJsonInput();
+            $asignacionId = (int)($input['asignacionId'] ?? 0);
+            if (!$asignacionId) Response::error('ID de asignación requerido');
+
+            try {
+                $db->beginTransaction();
+                $row = fetchOne($db, "SELECT * FROM asignaciontutor WHERE id = :id LIMIT 1", [':id' => $asignacionId]);
+                if (!$row || $row['estado'] !== 'Activa') {
+                    $db->rollBack();
+                    Response::error('Asignación no válida', 400);
+                }
+
+                $stmt = $db->prepare("UPDATE asignaciontutor SET estado = 'Inactiva' WHERE id = :id");
+                $stmt->execute([':id' => $asignacionId]);
+
+                try {
+                    $logger = new LogAcceso($db);
+                    $logger->registrar([
+                        'idUsuario' => $payload['user_id'],
+                        'usuario' => $payload['name'] ?? null,
+                        'tipoAcceso' => 'Administrador',
+                        'accion' => 'desasignar estudiante',
+                        'descripcion' => "Desasignó estudiante id={$row['idEstudiante']} del tutor id={$row['idTutor']} (idAsignacion={$asignacionId})",
+                        'estadoSesion' => 'activa',
+                        'ipOrigen' => Activity::clientIp()
+                    ]);
+                } catch (Exception $e) {
+                    error_log('No se pudo registrar auditoría desasignar estudiante: ' . $e->getMessage());
+                }
+
+                // notificación (opcional)
+                try {
+                    $mailer = new Mailer();
+                    $subject = 'Cambio en asignación de tutoría';
+                    $bodyTutor = "<p>Se le ha removido el estudiante con ID <strong>{$row['idEstudiante']}</strong> de sus asignaciones.</p>";
+                    $bodyStudent = "<p>Su asignación de tutor ha sido removida. Consulte su panel para más información.</p>";
+                    // intentar obtener correos
+                    $tmp = fetchOne($db, "SELECT correo FROM usuariosistema WHERE id = :id", [':id' => $row['idTutor']]);
+                    $tutorMail = $tmp['correo'] ?? null;
+                    $tmp2 = fetchOne($db, "SELECT correo FROM estudiante WHERE id = :id", [':id' => $row['idEstudiante']]);
+                    $studentMail = $tmp2['correo'] ?? null;
+                    if (!empty($tutorMail)) $mailer->send($tutorMail, $subject, $bodyTutor);
+                    if (!empty($studentMail)) $mailer->send($studentMail, $subject, $bodyStudent);
+                } catch (Exception $e) {
+                    error_log('Error enviando notificaciones desasignar: ' . $e->getMessage());
+                }
+
+                $db->commit();
+                Response::success(null, 'Asignación desactivada');
+            } catch (Exception $e) {
+                try { $db->rollBack(); } catch (Exception $x) {}
+                error_log('Error en unassignStudent: ' . $e->getMessage());
+                Response::serverError('Error al desasignar estudiante');
+            }
             break;
         
         // ============= CREAR USUARIO =============
@@ -424,11 +612,35 @@ try {
     }
     
 } catch (Exception $e) {
+    // Registrar traza detallada para depuración local
+    try {
+        $debugPath = __DIR__ . '/../../storage/logs/debug_admin.log';
+        $ctx = [
+            'time' => date('c'),
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            'trace' => $e->getTraceAsString(),
+            'get' => $_GET ?? [],
+            'post' => $_POST ?? [],
+            'input' => @file_get_contents('php://input'),
+            'server' => [
+                'REQUEST_URI' => $_SERVER['REQUEST_URI'] ?? null,
+                'REQUEST_METHOD' => $_SERVER['REQUEST_METHOD'] ?? null,
+            ]
+        ];
+        @mkdir(dirname($debugPath), 0777, true);
+        @file_put_contents($debugPath, json_encode($ctx, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . "\n\n", FILE_APPEND);
+    } catch (Exception $x) {
+        // No bloquear si falla el registro
+        error_log('No se pudo escribir debug_admin.log: ' . $x->getMessage());
+    }
+
     error_log("Error en admin.php: " . $e->getMessage());
-    
+
     if ($e->getMessage() === 'Token expirado') {
         Response::unauthorized('Sesión expirada');
     }
-    
+
     Response::serverError('Error en el servidor');
 }
