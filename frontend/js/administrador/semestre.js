@@ -58,7 +58,7 @@ async function loadSemesterData() {
 function loadMockData() {
     const endDate = '2025-12-16';
     const data = {
-        semester: { id: 1, name: '2025-2', status: 'active', startDate: '2025-10-18', endDate },
+        semester: { id: 1, name: '2025-I', status: 'active', startDate: '2025-10-18', endDate },
         stats: {
             totalStudents: 53, assignedStudents: 48, unassignedStudents: 5,
             totalTutors: 5, sessionsScheduled: 24, sessionsCompleted: 18,

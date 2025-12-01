@@ -142,10 +142,14 @@ function updateCurrentSemester() {
             isActive ? 'bg-green-600' : 'bg-gray-600'
         }`;
     }
-    
     const days = info.daysRemaining || 0;
     const daysText = days === 1 ? 'día restante' : 'días restantes';
     setText('currentSemesterDays', `${days} ${daysText}`);
+
+    // Mostrar advertencia si quedan 0 días
+    if (days === 0) {
+        showNotification('El semestre ha concluido', 'warning');
+    }
 }
 
 async function updateSemesterHistory() {

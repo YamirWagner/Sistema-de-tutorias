@@ -62,7 +62,7 @@ async function loadAdminContent() {
         }
         
         // 3. Cargar el dashboard del administrador
-        const response = await fetch('/Sistema-de-tutorias/components/administrador/dashboard.html');
+        const response = await fetch('/frontend/components/administrador/dashboard.html');
         const html = await response.text();
         
         // Limpiar contenido existente del admin panel

@@ -228,7 +228,7 @@ async function initDashboard() {
     }
     
     console.log('--- Modales ---');
-    await loadComponent('modals-container', 'components/modals.html');
+    await loadComponent('modals-container', '../components/administrador/modals.html');
     const modalsCheck = document.getElementById('modals-container');
     console.log('✔️ Modales insertados:', modalsCheck && modalsCheck.innerHTML.length > 0 ? `${modalsCheck.innerHTML.length} chars` : '❌ VACÍO');
     
@@ -318,18 +318,24 @@ function showNotification(message, type = 'info') {
         'warning': 'bg-yellow-100 border-yellow-500 text-yellow-700',
         'info': 'bg-blue-100 border-blue-500 text-blue-700'
     };
-    
+
+    // Calcular la posición vertical basada en notificaciones existentes
+    const existingNotifications = document.querySelectorAll('.notification');
+    const topOffset = 16 + (existingNotifications.length * 80); // 16px base + 80px por notificación
+
     const notification = document.createElement('div');
-    notification.className = `fixed top-4 right-4 ${colors[type]} border-l-4 p-4 rounded shadow-lg z-50`;
+    notification.className = `notification fixed ${colors[type]} border-r-4 p-4 rounded shadow-lg z-50`;
+    notification.style.top = `${topOffset}px`;
+    notification.style.left = '16px';
     notification.innerHTML = `
         <p class="font-bold">${message}</p>
     `;
-    
+
     document.body.appendChild(notification);
-    
+
     setTimeout(() => {
         notification.remove();
-    }, 3000);
+    }, 5000);
 }
 
 // Inicializar cuando el DOM esté listo

@@ -188,13 +188,13 @@ async function loadSidebarMenu() {
     
     const menus = {
         admin: [
-            { icon: 'fa-solid fa-house', text: 'Inicio', action: 'goToHome', active: true },
-            { icon: 'fa-solid fa-calendar-days', text: 'Semestre', action: 'showScheduleSection' },
-            { icon: 'fa-solid fa-users-gear', text: 'Gestión de usuarios', action: 'showUserManagement' },
-            { icon: 'fa-solid fa-clipboard-list', text: 'Asignaciones', action: 'showAssignmentsSection' },
-            { icon: 'fa-solid fa-chart-line', text: 'Reportes', action: 'showReportsSection' },
-            { icon: 'fa-solid fa-magnifying-glass-chart', text: 'Buscar Historial', action: 'showSearchHistory' },
-            { icon: 'fa-solid fa-shield-halved', text: 'Auditoría', action: 'showAuditSection' },
+            { icon: 'fa-solid fa-house', text: '&nbsp;Inicio', action: 'goToHome', active: true },
+            { icon: 'fa-solid fa-calendar-days', text: '&nbsp;Semestre', action: 'showScheduleSection' },
+            { icon: 'fa-solid fa-users-gear', text: '&nbsp;Gestión de usuarios', action: 'showUserManagement' },
+            { icon: 'fa-solid fa-clipboard-list', text: '&nbsp;Asignaciones', action: 'showAssignmentsSection' },
+            { icon: 'fa-solid fa-chart-line', text: '&nbsp;Reportes', action: 'showReportsSection' },
+            { icon: 'fa-solid fa-magnifying-glass-chart', text: '&nbsp;Buscar Historial', action: 'showSearchHistory' },
+            { icon: 'fa-solid fa-shield-halved', text: '&nbsp;Auditoría', action: 'showAuditSection' },
         ],
         tutor: [
             { icon: 'fa-solid fa-house', text: 'Inicio', action: 'goToHome', active: true },

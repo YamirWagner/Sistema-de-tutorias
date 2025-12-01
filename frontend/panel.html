@@ -26,11 +26,6 @@
     <!-- Contenedor Principal (con margen para header y sidebar) -->
     <div class="main-wrapper">
         <!-- Contenido Principal -->
-        <main class="flex-1">
-            <div class="mb-6">
-                <h1 class="text-3xl font-bold text-gray-800" id="welcomeMessage">Panel de Control - Principal</h1>
-            </div>
-
             <!-- Contenido Dinámico según Rol -->
             <div id="dashboardContent">
                 <!-- Estadísticas alternativas para otros roles -->
@@ -70,43 +65,13 @@
             </div>
         </main>
         <!-- Footer -->
-        <div id="footer-container"></div>
+        
     </div>
 
     <!-- Modales -->
     <div id="modals-container"></div>
+    <div id="footer-container"></div>
 
-    <!-- Templates de Administrador -->
-    <div id="admin-templates" style="display: none;"></div>
-
-    <script>
-        window.APP_BASE_PATH = '/Sistema-de-tutorias';
-        
-        // Cargar templates de administrador
-        async function loadAdminTemplates() {
-            try {
-                const response = await fetch('/Sistema-de-tutorias/components/admin-modals.html');
-                const html = await response.text();
-                document.getElementById('admin-templates').innerHTML = html;
-            } catch (error) {
-                console.error('Error al cargar templates:', error);
-            }
-        }
-        
-        // Cargar templates al inicio
-        loadAdminTemplates();
-        
-        // Debug: Verificar carga de página
-        console.clear(); // Limpiar consola para mejor legibilidad
-        console.log('═'.repeat(60));
-        console.log('🏁 SISTEMA DE TUTORÍAS - PANEL PRINCIPAL');
-        console.log('═'.repeat(60));
-        console.log('📍 BASE_PATH:', window.APP_BASE_PATH);
-        console.log('🔑 Token:', localStorage.getItem('token') ? '✅ Presente' : '❌ No encontrado');
-        console.log('📄 Pathname:', window.location.pathname);
-        console.log('⏱️  Timestamp:', new Date().toLocaleTimeString());
-        console.log('═'.repeat(60));
-    </script>
     <script src="/Sistema-de-tutorias/js/api.js"></script>
     <script src="/Sistema-de-tutorias/js/main.js"></script>
     <script src="/Sistema-de-tutorias/js/header_panel.js"></script>
