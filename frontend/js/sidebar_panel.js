@@ -252,11 +252,10 @@ function handleMenuAction(action) {
     
     switch(action) {
         case 'goToHome':
-            // Recargar el dashboard completo con semestre
-            if (typeof loadAdminContent === 'function') {
-                loadAdminContent();
-            }
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            // Redirigir al panel principal (dashboard)
+            console.log('🏠 Redirigiendo a panel principal');
+            const homeBasePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+            window.location.href = `${homeBasePath}/panel`;
             break;
         case 'showSemesterSection':
             // Mostrar/recargar sección de semestre
@@ -266,21 +265,10 @@ function handleMenuAction(action) {
             document.querySelector('.semester-section')?.scrollIntoView({ behavior: 'smooth' });
             break;
         case 'showScheduleSection':
-            // Cargar y mostrar cronograma
-            console.log('🎯 Acción showScheduleSection ejecutada');
-            console.log('🔍 loadCronogramaContent disponible?', typeof loadCronogramaContent);
-            if (typeof loadCronogramaContent === 'function') {
-                console.log('✅ Llamando a loadCronogramaContent()');
-                loadCronogramaContent();
-                setTimeout(() => {
-                    const section = document.querySelector('.cronograma-section');
-                    console.log('📍 Sección encontrada?', section);
-                    section?.scrollIntoView({ behavior: 'smooth' });
-                }, 300);
-            } else {
-                console.error('❌ loadCronogramaContent no está disponible');
-                showNotification('Error: Módulo de cronograma no cargado', 'error');
-            }
+            // Redirigir a la página de gestión de semestre
+            console.log('🎯 Redirigiendo a gestión de semestre');
+            const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+            window.location.href = `${basePath}/semestre`;
             break;
         case 'showAssignmentSection':
             showNotification('Función de asignación en desarrollo', 'info');

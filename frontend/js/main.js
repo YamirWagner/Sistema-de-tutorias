@@ -186,8 +186,8 @@ async function initDashboard() {
     
     // Actualizar información del header (semestre y días restantes)
     if (typeof window.updateHeaderPanelInfo === 'function') {
-        setTimeout(() => {
-            window.updateHeaderPanelInfo();
+        setTimeout(async () => {
+            await window.updateHeaderPanelInfo();
             console.log('✅ Información del header actualizada');
         }, 100);
     }

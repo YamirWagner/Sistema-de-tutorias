@@ -46,6 +46,7 @@ DirectoryIndex frontend/index.html
   RewriteRule ^login/?$ frontend/login.html [L,NC]
   RewriteRule ^verify/?$ frontend/verify.html [L,NC]
   RewriteRule ^panel/?$ frontend/panel.html [L,NC]
+  RewriteRule ^semestre/?$ frontend/semestre.html [L,NC]
   RewriteRule ^panel/semestre/?$ frontend/semestre.html [L,NC]
   RewriteRule ^dashboard/?$ frontend/panel.html [L,NC]
   RewriteRule ^index/?$ frontend/index.html [L,NC]
