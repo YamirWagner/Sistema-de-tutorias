@@ -257,6 +257,14 @@ function handleMenuAction(action) {
             const homeBasePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
             window.location.href = `${homeBasePath}/panel`;
             break;
+        case 'showUserManagement':
+            // Redirigir a la vista de Gestión de Usuarios
+            console.log('👥 Redirigiendo a Gestión de Usuarios');
+            {
+                const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+                window.location.href = `${basePath}/gestion-usuarios`;
+            }
+            break;
         case 'showScheduleSection':
             // Redirigir a la página de gestión de semestre
             console.log('🎯 Redirigiendo a gestión de semestre');
