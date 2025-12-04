@@ -4,10 +4,14 @@
    ===================================================== */
 
 :root {
+    --unsaac-red: #9B192D;
+    --unsaac-red-dark: #7B1113;
+    --unsaac-gray: #EDEDED;
+    --unsaac-green: #10b981;
     --transition-fast: 0.15s ease;
     --transition-normal: 0.3s ease-out;
-    --shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
+    --shadow-hover: 0 4px 12px rgba(155, 25, 45, 0.15);
+    --shadow-lg: 0 10px 25px rgba(155, 25, 45, 0.2);
 }
 
 /* Animaciones */
@@ -24,6 +28,11 @@
 @keyframes pulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+    opacity: 0;
 }
 
 /* Contenedor principal */
@@ -79,7 +88,8 @@
 
 .admin-panel-section input:focus {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    box-shadow: 0 0 0 3px rgba(155, 25, 45, 0.1);
+    border-color: var(--unsaac-red);
 }
 
 /* Botones */
@@ -106,7 +116,7 @@
 #assigned-students > div:hover,
 #unassigned-students > div:hover {
     transform: translateX(4px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(155, 25, 45, 0.15);
 }
 
 /* Tabla de auditoría */

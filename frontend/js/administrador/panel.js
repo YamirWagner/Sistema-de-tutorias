@@ -62,49 +62,48 @@ async function loadAdminDashboard() {
 async function loadAdminStats() {
     console.log('📊 Cargando estadísticas del administrador...');
     try {
-        const response = await apiGet('/admin?action=stats');
+        const response = await apiGet('/admin?action=panel_stats');
         
         if (response && response.success) {
             const stats = response.data;
             console.log('✅ Estadísticas recibidas:', stats);
             updateAdminStats(stats);
         } else {
-            console.warn('⚠️ No se pudieron cargar estadísticas, usando datos de ejemplo');
-            // Datos de ejemplo para visualización
-            const mockStats = {
-                totalStudents: 27,
-                assignedStudents: 14,
-                unassignedStudents: 13,
-                totalTutors: 6,
-                tutorWorkload: [
-                    { name: 'Tutor 1', count: 6 },
-                    { name: 'Tutor 2', count: 2 },
-                    { name: 'Tutor 3', count: 2 },
-                    { name: 'Tutor 4', count: 2 },
-                    { name: 'Tutor 5', count: 1 },
-                    { name: 'Tutor 6', count: 1 }
-                ]
-            };
-            updateAdminStats(mockStats);
+            console.error('❌ Error al cargar estadísticas:', response?.message || 'Sin respuesta del servidor');
+            // Mostrar mensaje de error en la UI
+            showStatsError('No se pudieron cargar las estadísticas del servidor');
         }
     } catch (error) {
         console.error('❌ Error al cargar estadísticas:', error);
-        // Datos de ejemplo para visualización
-        const mockStats = {
-            totalStudents: 27,
-            assignedStudents: 14,
-            unassignedStudents: 13,
-            totalTutors: 6,
-            tutorWorkload: [
-                { name: 'Tutor 1', count: 6 },
-                { name: 'Tutor 2', count: 2 },
-                { name: 'Tutor 3', count: 2 },
-                { name: 'Tutor 4', count: 2 },
-                { name: 'Tutor 5', count: 1 },
-                { name: 'Tutor 6', count: 1 }
-            ]
-        };
-        updateAdminStats(mockStats);
+        showStatsError('Error de conexión con el servidor');
+    }
+}
+
+// Mostrar error al cargar estadísticas
+function showStatsError(message) {
+    console.error('❌ Error en estadísticas:', message);
+    
+    // Mostrar 0 en los contadores con mensaje de error
+    const updateElement = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.innerHTML = `<span class="text-2xl" title="${message}">⚠️</span>`;
+        }
+    };
+    
+    updateElement('unassignedCount', message);
+    updateElement('assignedCount', message);
+    updateElement('totalStudentsChart', message);
+    
+    // Mostrar mensaje en el gráfico de barras
+    const chartContainer = document.getElementById('tutorWorkloadChart');
+    if (chartContainer) {
+        chartContainer.innerHTML = `
+            <div class="flex flex-col items-center justify-center w-full h-full text-gray-500">
+                <i class="fa-solid fa-exclamation-triangle text-4xl mb-2"></i>
+                <p class="text-sm text-center">${message}</p>
+            </div>
+        `;
     }
 }
 
@@ -112,11 +111,44 @@ async function loadAdminStats() {
 function updateAdminStats(stats) {
     console.log('📝 Actualizando estadísticas en el DOM:', stats);
     
-    // Actualizar valores
+    // Validar que stats tenga datos
+    if (!stats || typeof stats !== 'object') {
+        console.error('❌ Datos de estadísticas inválidos');
+        showStatsError('Datos inválidos del servidor');
+        return;
+    }
+    
+    // Actualizar información del semestre
+    if (stats.semesterInfo) {
+        const semesterName = document.getElementById('currentSemesterName');
+        const semesterPeriod = document.getElementById('semesterPeriod');
+        const semesterStatus = document.getElementById('semesterStatus');
+        
+        if (semesterName) semesterName.textContent = stats.semesterInfo.nombre || 'Sin semestre activo';
+        if (semesterPeriod && stats.semesterInfo.fechaInicio && stats.semesterInfo.fechaFin) {
+            const inicio = new Date(stats.semesterInfo.fechaInicio).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
+            const fin = new Date(stats.semesterInfo.fechaFin).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
+            const diasRestantes = stats.semesterInfo.diasRestantes || 0;
+            semesterPeriod.textContent = `Periodo: ${inicio} - ${fin} • ${diasRestantes} días restantes`;
+        }
+        if (semesterStatus) semesterStatus.textContent = stats.semesterInfo.estado || 'ACTIVO';
+    }
+    
+    // Actualizar valores con animación
     const updateElement = (id, value) => {
         const el = document.getElementById(id);
         if (el) {
-            el.textContent = value || 0;
+            // Si es un número, animarlo
+            if (typeof value === 'number') {
+                el.classList.add('opacity-0');
+                setTimeout(() => {
+                    el.textContent = value;
+                    el.classList.remove('opacity-0');
+                    el.classList.add('transition-opacity', 'duration-300');
+                }, 100);
+            } else {
+                el.textContent = value || 0;
+            }
             console.log(`✓ ${id}:`, value);
         } else {
             console.warn(`⚠️ Elemento #${id} no encontrado`);
@@ -124,49 +156,112 @@ function updateAdminStats(stats) {
     };
     
     // Actualizar contadores del nuevo diseño
-    updateElement('unassignedCount', stats.unassignedStudents || (stats.totalStudents - stats.assignedStudents) || 0);
-    updateElement('assignedCount', stats.assignedStudents || 0);
-    updateElement('totalStudentsChart', stats.totalStudents || 0);
+    const unassigned = stats.unassignedStudents ?? (stats.totalStudents - stats.assignedStudents) ?? 0;
+    const assigned = stats.assignedStudents ?? 0;
+    const total = stats.totalStudents ?? 0;
+    
+    updateElement('unassignedCount', unassigned);
+    updateElement('assignedCount', assigned);
+    updateElement('totalStudentsChart', total);
+    
+    // Actualizar leyendas del gráfico
+    updateElement('assignedLegend', assigned);
+    updateElement('unassignedLegend', unassigned);
     
     // Actualizar gráficos si existen los datos
-    if (stats.tutorWorkload) {
+    if (stats.tutorWorkload && Array.isArray(stats.tutorWorkload)) {
         updateAssignmentCharts(stats);
+    } else {
+        console.warn('⚠️ No hay datos de carga de trabajo de tutores');
+        const chartContainer = document.getElementById('tutorWorkloadChart');
+        if (chartContainer) {
+            chartContainer.innerHTML = `
+                <div class="flex flex-col items-center justify-center w-full h-full text-gray-500">
+                    <i class="fa-solid fa-info-circle text-3xl mb-2"></i>
+                    <p class="text-sm">No hay tutores asignados</p>
+                </div>
+            `;
+        }
     }
 }
 
 // Actualizar gráficos de asignación
 function updateAssignmentCharts(stats) {
+    // Validar datos
+    if (!stats || typeof stats !== 'object') {
+        console.error('❌ Datos inválidos para gráficos');
+        return;
+    }
+    
     // Actualizar gráfico circular de estado de asignación
-    const circle = document.getElementById('assignedCircle');
-    if (circle && stats.totalStudents > 0) {
+    const assignedCircle = document.getElementById('assignedCircle');
+    const unassignedCircle = document.getElementById('unassignedCircle');
+    
+    if (assignedCircle && unassignedCircle && stats.totalStudents > 0) {
         const circumference = 2 * Math.PI * 80; // 2πr where r=80
         const assignedPercent = (stats.assignedStudents || 0) / stats.totalStudents;
-        const offset = circumference * (1 - assignedPercent);
-        circle.style.strokeDashoffset = offset;
+        const unassignedPercent = (stats.unassignedStudents || 0) / stats.totalStudents;
+        
+        // Círculo azul para asignados (comienza en -90°)
+        const assignedOffset = circumference * (1 - assignedPercent);
+        assignedCircle.style.strokeDashoffset = assignedOffset;
+        assignedCircle.style.transition = 'stroke-dashoffset 1s ease';
+        
+        // Círculo rojo para sin asignar (comienza donde termina el azul)
+        const unassignedStart = assignedPercent * 360 - 90;
+        unassignedCircle.setAttribute('transform', `rotate(${unassignedStart} 100 100)`);
+        const unassignedOffset = circumference * (1 - unassignedPercent);
+        unassignedCircle.style.strokeDashoffset = unassignedOffset;
+        unassignedCircle.style.transition = 'stroke-dashoffset 1s ease';
+        
+        console.log(`✓ Gráfico circular: ${Math.round(assignedPercent * 100)}% asignados, ${Math.round(unassignedPercent * 100)}% sin asignar`);
     }
     
     // Actualizar gráfico de barras de carga de trabajo
     const chartContainer = document.getElementById('tutorWorkloadChart');
-    if (chartContainer && stats.tutorWorkload) {
-        chartContainer.innerHTML = '';
-        const maxCount = Math.max(...stats.tutorWorkload.map(t => t.count), 10);
-        
-        stats.tutorWorkload.forEach(tutor => {
-            const barWrapper = document.createElement('div');
-            barWrapper.className = 'flex flex-col items-center flex-1';
-            
-            const heightPercent = (tutor.count / maxCount) * 100;
-            const barColor = tutor.count >= 6 ? 'bg-orange-500' : tutor.count >= 2 ? 'bg-green-500' : 'bg-green-400';
-            
-            barWrapper.innerHTML = `
-                <div class="text-sm font-bold mb-1">${tutor.count}</div>
-                <div class="${barColor} w-12 rounded-t transition-all" style="height: ${heightPercent}%"></div>
-                <div class="text-xs text-gray-600 mt-2 text-center">${tutor.name || 'T' + (stats.tutorWorkload.indexOf(tutor) + 1)}</div>
-            `;
-            
-            chartContainer.appendChild(barWrapper);
-        });
+    if (!chartContainer) {
+        console.warn('⚠️ Contenedor de gráfico de barras no encontrado');
+        return;
     }
+    
+    if (!stats.tutorWorkload || !Array.isArray(stats.tutorWorkload) || stats.tutorWorkload.length === 0) {
+        chartContainer.innerHTML = `
+            <div class="flex flex-col items-center justify-center w-full h-full text-gray-500">
+                <i class="fa-solid fa-user-slash text-3xl mb-2"></i>
+                <p class="text-sm">No hay tutores con asignaciones</p>
+            </div>
+        `;
+        return;
+    }
+    
+    chartContainer.innerHTML = '';
+    const maxCount = Math.max(...stats.tutorWorkload.map(t => t.count || 0), 10);
+    
+    stats.tutorWorkload.forEach((tutor, index) => {
+        const barWrapper = document.createElement('div');
+        barWrapper.className = 'flex flex-col items-center flex-1 animate-fade-in';
+        barWrapper.style.animationDelay = `${index * 50}ms`;
+        
+        const count = parseInt(tutor.count) || 0;
+        const heightPercent = maxCount > 0 ? (count / maxCount) * 100 : 0;
+        const barColor = count >= 6 ? 'bg-orange-500' : count >= 2 ? 'bg-green-500' : 'bg-green-400';
+        
+        barWrapper.innerHTML = `
+            <div class="text-sm font-bold mb-1 text-gray-700">${count}</div>
+            <div class="${barColor} w-12 rounded-t transition-all duration-500" 
+                 style="height: ${heightPercent}%"
+                 title="${tutor.name || 'Tutor ' + (index + 1)}: ${count} estudiante(s)">
+            </div>
+            <div class="text-xs text-gray-600 mt-2 text-center max-w-[60px] truncate" 
+                 title="${tutor.name || 'Tutor ' + (index + 1)}">
+                ${tutor.name || 'T' + (index + 1)}
+            </div>
+        `;
+        
+        chartContainer.appendChild(barWrapper);
+    });
+    
+    console.log(`✓ Gráfico de barras actualizado con ${stats.tutorWorkload.length} tutores`);
 }
 
 // Navegar a la sección de asignaciones

@@ -86,14 +86,103 @@ try {
     // Control de actividad
     Activity::enforceAndTouch($db, $payload);
     
-    // Verificar rol admin
-    if ($payload['role'] !== 'admin') {
-        Response::forbidden('Acceso denegado');
+    // Verificar rol admin (aceptar 'admin' o 'Administrador')
+    $userRole = strtolower($payload['role'] ?? '');
+    if ($userRole !== 'admin' && $payload['role'] !== 'Administrador') {
+        Response::forbidden('Acceso denegado - Se requiere rol de administrador');
     }
     
     $action = $_GET['action'] ?? '';
     
     switch ($action) {
+        
+        // ============= ESTADÍSTICAS DEL PANEL =============
+        case 'panel_stats':
+            error_log("📊 Solicitando estadísticas del panel...");
+            
+            // Obtener semestre activo con toda la información
+            $semester = fetchOne($db, "SELECT id, nombre, fechaInicio, fechaFin, estado FROM semestre WHERE estado = 'Activo' LIMIT 1");
+            $semesterId = $semester['id'] ?? 0;
+            
+            // Calcular días restantes
+            $diasRestantes = 0;
+            if ($semester && !empty($semester['fechaFin'])) {
+                $fechaFin = new DateTime($semester['fechaFin']);
+                $hoy = new DateTime();
+                $intervalo = $hoy->diff($fechaFin);
+                $diasRestantes = $intervalo->invert ? 0 : $intervalo->days;
+            }
+            
+            $semesterInfo = $semester ? [
+                'id' => (int)$semester['id'],
+                'nombre' => $semester['nombre'],
+                'fechaInicio' => $semester['fechaInicio'],
+                'fechaFin' => $semester['fechaFin'],
+                'estado' => $semester['estado'],
+                'diasRestantes' => $diasRestantes
+            ] : null;
+            
+            error_log("Semestre activo: " . ($semesterId ? "ID $semesterId - {$semester['nombre']}" : "Ninguno"));
+            
+            // Total de estudiantes activos
+            $totalStudents = (int)fetchColumn($db, "SELECT COUNT(*) FROM estudiante WHERE estado = 'Activo'");
+            error_log("Total estudiantes activos: $totalStudents");
+            
+            // Estudiantes asignados en el semestre activo
+            $assignedStudents = 0;
+            if ($semesterId) {
+                $assignedStudents = (int)fetchColumn($db, 
+                    "SELECT COUNT(DISTINCT idEstudiante) FROM asignaciontutor WHERE idSemestre = :id AND estado = 'Activa'",
+                    [':id' => $semesterId]
+                );
+            }
+            error_log("Estudiantes asignados: $assignedStudents");
+            
+            // Estudiantes sin asignar
+            $unassignedStudents = $totalStudents - $assignedStudents;
+            error_log("Estudiantes sin asignar: $unassignedStudents");
+            
+            // Total de tutores activos
+            $totalTutors = (int)fetchColumn($db, "SELECT COUNT(*) FROM usuariosistema WHERE rol = 'Tutor' AND estado = 'Activo'");
+            error_log("Total tutores activos: $totalTutors");
+            
+            // Carga de trabajo por tutor (top 10)
+            $tutorWorkload = [];
+            if ($semesterId) {
+                $tutorWorkload = fetchAll($db, "
+                    SELECT 
+                        u.id,
+                        CONCAT(u.nombres, ' ', u.apellidos) as name,
+                        COUNT(a.idEstudiante) as count
+                    FROM usuariosistema u
+                    LEFT JOIN asignaciontutor a ON u.id = a.idTutor AND a.idSemestre = :id AND a.estado = 'Activa'
+                    WHERE u.rol = 'Tutor' AND u.estado = 'Activo'
+                    GROUP BY u.id, u.nombres, u.apellidos
+                    ORDER BY count DESC
+                    LIMIT 10
+                ", [':id' => $semesterId]);
+                
+                // Convertir count a int
+                foreach ($tutorWorkload as &$t) {
+                    $t['count'] = (int)$t['count'];
+                }
+                error_log("Tutores con carga de trabajo: " . count($tutorWorkload));
+            }
+            
+            $result = [
+                'semesterInfo' => $semesterInfo,
+                'totalStudents' => $totalStudents,
+                'assignedStudents' => $assignedStudents,
+                'unassignedStudents' => $unassignedStudents,
+                'totalTutors' => $totalTutors,
+                'tutorWorkload' => $tutorWorkload,
+                'semesterId' => $semesterId
+            ];
+            
+            error_log("✅ Enviando estadísticas: " . json_encode($result));
+            Response::success($result);
+            break;
+            break;
         
         // ============= ESTADÍSTICAS =============
         case 'stats':
