@@ -67,7 +67,7 @@ body:has(.sidebar-panel.collapsed) #header-container {
     background-color: #f3f4f6;
     transition: margin-left 0.3s ease, width 0.3s ease;
     width: calc(100% - 17%);
-    bottom: 0;
+    min-height: calc(100vh - 80px);
 }
 
 /* Main cuando sidebar está colapsado */
@@ -78,6 +78,7 @@ body:has(.sidebar-panel.collapsed) .main-wrapper {
 
 main.flex-1 {
     padding: 2%;
+    flex: 1;
 }
 
 /* ========== FOOTER ========== */

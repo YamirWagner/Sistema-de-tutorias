@@ -257,18 +257,11 @@ function handleMenuAction(action) {
             const homeBasePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
             window.location.href = `${homeBasePath}/panel`;
             break;
-        case 'showSemesterSection':
-            // Mostrar/recargar sección de semestre
-            if (typeof loadSemesterContent === 'function') {
-                loadSemesterContent();
-            }
-            document.querySelector('.semester-section')?.scrollIntoView({ behavior: 'smooth' });
-            break;
         case 'showScheduleSection':
             // Redirigir a la página de gestión de semestre
             console.log('🎯 Redirigiendo a gestión de semestre');
-            const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
-            window.location.href = `${basePath}/semestre`;
+            const semesterBasePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+            window.location.href = `${semesterBasePath}/semestre`;
             break;
         case 'showAssignmentSection':
             showNotification('Función de asignación en desarrollo', 'info');

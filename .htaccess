@@ -45,10 +45,9 @@ DirectoryIndex frontend/index.html
   # Páginas principales sin extensión
   RewriteRule ^login/?$ frontend/login.html [L,NC]
   RewriteRule ^verify/?$ frontend/verify.html [L,NC]
-  RewriteRule ^panel/?$ frontend/panel.html [L,NC]
-  RewriteRule ^semestre/?$ frontend/semestre.html [L,NC]
-  RewriteRule ^panel/semestre/?$ frontend/semestre.html [L,NC]
-  RewriteRule ^dashboard/?$ frontend/panel.html [L,NC]
+  RewriteRule ^panel/?$ frontend/panel.html [L,NC,QSA]
+  RewriteRule ^semestre/?$ frontend/panel.html?module=semestre [L,NC,QSA]
+  RewriteRule ^dashboard/?$ frontend/panel.html [L,NC,QSA]
   RewriteRule ^index/?$ frontend/index.html [L,NC]
 
   # Redirigir URLs con .html a versiones sin extensión

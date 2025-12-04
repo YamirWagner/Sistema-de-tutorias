@@ -1,0 +1,213 @@
+<!-- Admin Panel Content - Dashboard Principal del Administrador -->
+<div class="admin-panel-section">
+    
+    <!-- Sección de Asignaciones Principal -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <!-- Alerta Urgente - Estudiantes sin asignar -->
+        <div class="bg-white p-8 rounded-lg shadow-lg border-4 border-red-500">
+            <h3 class="text-red-600 font-bold text-lg mb-4 text-center">ALERTA URGENTE</h3>
+            <div class="text-center">
+                <p class="text-8xl font-bold text-red-600 mb-2" id="unassignedCount">13</p>
+                <p class="text-gray-600 mb-6">Estudiantes sin asignar</p>
+                <button onclick="irAAsignaciones()" 
+                        class="bg-red-600 text-white px-8 py-3 rounded-lg hover:bg-red-700 transition font-bold">
+                    ASIGNAR AHORA
+                </button>
+            </div>
+        </div>
+
+        <!-- Estado General - Estudiantes asignados -->
+        <div class="bg-white p-8 rounded-lg shadow-lg border-2 border-gray-200">
+            <h3 class="text-yellow-600 font-bold text-lg mb-4 text-center">ESTADO GENERAL</h3>
+            <div class="text-center">
+                <p class="text-8xl font-bold text-yellow-600 mb-2" id="assignedCount">14</p>
+                <p class="text-gray-600 mb-6">Estudiantes asignados</p>
+                <button onclick="irAAsignaciones()" 
+                        class="bg-yellow-500 text-white px-8 py-3 rounded-lg hover:bg-yellow-600 transition font-bold">
+                    ASIGNAR AHORA
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos de Estado -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <!-- Estado de Asignación -->
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h3 class="font-bold text-gray-800 mb-4">ESTADO DE ASIGNACIÓN</h3>
+            <div class="flex items-center justify-center">
+                <div class="relative" style="width: 200px; height: 200px;">
+                    <svg viewBox="0 0 200 200">
+                        <circle cx="100" cy="100" r="80" fill="none" stroke="#e5e7eb" stroke-width="25"></circle>
+                        <circle id="assignedCircle" cx="100" cy="100" r="80" fill="none" stroke="#3b82f6" stroke-width="25"
+                                stroke-dasharray="502.4" stroke-dashoffset="302.4" 
+                                transform="rotate(-90 100 100)"></circle>
+                        <circle cx="100" cy="100" r="80" fill="none" stroke="#ef4444" stroke-width="25"
+                                stroke-dasharray="502.4" stroke-dashoffset="50" 
+                                transform="rotate(45 100 100)"></circle>
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                        <p class="text-4xl font-bold text-gray-800" id="totalStudentsChart">27</p>
+                        <p class="text-sm text-gray-600">Total</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Carga de Trabajo por Tutor -->
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h3 class="font-bold text-gray-800 mb-4">CARGA DE TRABAJO POR TUTOR (MAX 10)</h3>
+            <div id="tutorWorkloadChart" class="flex items-end justify-around h-48">
+                <!-- Se llenará dinámicamente con barras -->
+            </div>
+        </div>
+    </div>
+
+    <!-- === ASIGNACIONES === -->
+    <div class="bg-white p-6 rounded-lg shadow-lg mb-6">
+        <h3 class="text-xl font-bold mb-4">Asignación y Re-Asignación de Tutorías</h3>
+        
+        <!-- Botón asignar aleatoriamente -->
+        <div class="mb-6 text-right">
+            <button id="btnAsignarAleatorio"
+                class="px-6 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition shadow-md">
+                <i class="fa-solid fa-shuffle mr-2"></i>
+                Asignar Aleatoriamente
+            </button>
+        </div>
+
+        <!-- DOS COLUMNAS (Tutores | Asignados) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- 1. Seleccionar Tutor -->
+            <div class="bg-gray-50 p-6 rounded-lg">
+                <h3 class="text-lg font-bold mb-4 text-gray-800">
+                    <i class="fa-solid fa-chalkboard-user text-blue-600 mr-2"></i>
+                    Seleccionar Tutor
+                </h3>
+
+                <!-- Búsqueda -->
+                <form id="formBuscarTutor" class="flex gap-2 items-center mb-3">
+                    <input type="text" id="inputBuscarTutor"
+                        placeholder="Buscar tutor por nombre..."
+                        class="border border-gray-300 p-2 rounded-lg w-full focus:ring-2 focus:ring-blue-500">
+                    <button type="submit"
+                        class="bg-red-700 text-white px-4 py-2 rounded-lg hover:bg-red-800 transition">
+                        <i class="fa-solid fa-search"></i>
+                    </button>
+                </form>
+
+                <!-- Lista de tutores -->
+                <div id="tutor-list">
+                    <div class="tutor-items flex flex-col gap-2">
+                        <!-- Se llena dinámicamente -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Asignar Estudiantes -->
+            <div class="bg-gray-50 p-6 rounded-lg">
+                <h3 class="text-lg font-bold mb-4 text-gray-800">
+                    <i class="fa-solid fa-user-check text-green-600 mr-2"></i>
+                    Estudiantes Asignados
+                </h3>
+                
+                <!-- Búsqueda -->
+                <form id="formBuscarEstudianteAsignado" class="flex gap-2 items-center mb-3">
+                    <input type="text" id="inputBuscarEstudianteAsignado"
+                            placeholder="Buscar estudiante..."
+                            class="border border-gray-300 p-2 rounded-lg w-full focus:ring-2 focus:ring-green-500">
+                    <button type="submit"
+                        class="bg-red-700 text-white px-4 py-2 rounded-lg hover:bg-red-800 transition">
+                        <i class="fa-solid fa-search"></i>
+                    </button>
+                </form>
+                
+                <div id="assigned-students" class="space-y-2">
+                    <!-- Se llena dinámicamente -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ESTUDIANTES SIN ASIGNAR -->
+        <div class="bg-gray-50 p-6 rounded-lg mt-6">
+            <h3 class="text-lg font-bold mb-4 text-gray-800">
+                <i class="fa-solid fa-user-xmark text-orange-600 mr-2"></i>
+                Estudiantes Sin Asignar
+            </h3>
+
+            <!-- Búsqueda -->
+            <form id="formBuscarEstudianteNoAsignado" class="flex gap-2 items-center mb-3">
+                <input type="text" id="inputBuscarEstudianteNoAsignado"
+                        placeholder="Buscar estudiante..."
+                        class="border border-gray-300 p-2 rounded-lg w-full focus:ring-2 focus:ring-orange-500">
+                <button type="submit"
+                    class="bg-red-700 text-white px-4 py-2 rounded-lg hover:bg-red-800 transition">
+                    <i class="fa-solid fa-search"></i>
+                </button>
+            </form>
+
+            <div id="unassigned-students"
+                class="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
+                <!-- Se llena dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Registro de Auditoría -->
+    <div class="bg-white p-6 rounded-lg shadow-lg">
+        <h3 class="text-xl font-bold mb-4 text-gray-800">
+            <i class="fa-solid fa-shield-halved text-purple-600 mr-2"></i>
+            Registro de Auditoría
+        </h3>
+        
+        <div id="auditLogContainer" class="overflow-x-auto">
+            <div class="mb-4">
+                <form id="auditFilterForm" class="flex flex-wrap gap-2 items-end">
+                    <div class="w-full sm:w-auto">
+                        <label class="text-sm text-gray-600 font-semibold">Usuario</label>
+                        <input type="text" id="auditUsuario" 
+                               class="border border-gray-300 p-2 rounded w-full focus:ring-2 focus:ring-purple-500" 
+                               placeholder="Nombre o correo">
+                    </div>
+                    <div class="w-full sm:w-auto">
+                        <label class="text-sm text-gray-600 font-semibold">Acción</label>
+                        <input type="text" id="auditAccion" 
+                               class="border border-gray-300 p-2 rounded w-full focus:ring-2 focus:ring-purple-500" 
+                               placeholder="Ej: login, crear_usuario">
+                    </div>
+                    <div class="w-full sm:w-auto">
+                        <label class="text-sm text-gray-600 font-semibold">Desde</label>
+                        <input type="datetime-local" id="auditDesde" 
+                               class="border border-gray-300 p-2 rounded w-full focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div class="w-full sm:w-auto">
+                        <label class="text-sm text-gray-600 font-semibold">Hasta</label>
+                        <input type="datetime-local" id="auditHasta" 
+                               class="border border-gray-300 p-2 rounded w-full focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div class="w-full sm:w-auto">
+                        <button type="submit" 
+                                class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition">
+                            <i class="fa-solid fa-filter mr-1"></i>
+                            Filtrar
+                        </button>
+                    </div>
+                    <div class="w-full sm:w-auto">
+                        <button type="button" id="auditClear" 
+                                class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 transition">
+                            <i class="fa-solid fa-eraser mr-1"></i>
+                            Limpiar
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div id="auditTableWrap" class="overflow-x-auto">
+                <p class="text-gray-500 text-center py-4">
+                    <i class="fa-solid fa-info-circle mr-2"></i>
+                    Use los filtros y presione "Filtrar" para ver registros
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+

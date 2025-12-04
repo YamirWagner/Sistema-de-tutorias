@@ -1,291 +1,333 @@
 // =====================================================
-// ADMIN_SEMESTER.JS - Módulo de Gestión de Semestre
+// ADMIN_SEMESTER_MANAGE.JS - Módulo de Gestión de Semestre
 // Sistema de Tutorías UNSAAC - Optimizado
 // =====================================================
 
 'use strict';
 
-/**
- * Módulo de Semestre
- */
-const SemesterModule = {
-    state: { currentSemester: null, stats: null, tutorWorkload: [], isLoading: false },
-    API: {
-        STATS: '/admin?action=semester_stats',
-        UPDATE: '/admin?action=update_semester',
-        CLOSE: '/admin?action=close_semester'
+const SemesterManageModule = {
+    state: {
+        semesterInfo: null,
+        allSemesters: [],
+        isLoading: false
     }
 };
 
-// ============= CORE =============
+// ============= INICIALIZACIÓN =============
 
-async function initSemesterModule() {
-    if (SemesterModule.state.isLoading) return;
+async function initCronogramaModule() {
+    if (SemesterManageModule.state.isLoading) return;
     
-    console.log('📅 Inicializando módulo de semestre...');
-    SemesterModule.state.isLoading = true;
+    console.log('📅 Inicializando gestión de semestre...');
+    SemesterManageModule.state.isLoading = true;
     
     try {
         await loadSemesterData();
-        setupSemesterListeners();
-        console.log('✅ Módulo de semestre listo');
+        console.log('✅ Módulo listo con datos de BD');
     } catch (e) {
-        console.error('❌ Error:', e);
-        showNotification?.('Error al cargar semestre', 'error');
+        console.warn('⚠️ Error al cargar desde BD, usando datos mock:', e.message);
+        loadMockData();
     } finally {
-        SemesterModule.state.isLoading = false;
+        SemesterManageModule.state.isLoading = false;
     }
 }
+
+async function loadCronogramaContent() {
+    console.log('═══════════════════════════════════════════════════');
+    console.log('🔵 INICIANDO CARGA DE SEMESTRE');
+    console.log('═══════════════════════════════════════════════════');
+    
+    const content = document.getElementById('dashboardContent');
+    console.log('📦 Contenedor dashboardContent:', content ? '✅ Encontrado' : '❌ NO ENCONTRADO');
+    
+    if (!content) {
+        console.error('❌ dashboardContent no encontrado - ABORTANDO');
+        return;
+    }
+    
+    try {
+        // Limpiar TODO el contenido previo (panel, semestre, etc.)
+        console.log('🗑️ Limpiando contenido previo...');
+        console.log('   Contenido actual:', content.innerHTML.length, 'caracteres');
+        content.innerHTML = '';
+        console.log('   ✅ Contenido limpiado');
+        
+        // Construir URL correcta
+        const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+        const url = `${basePath}/components/administrador/semestre.html`;
+        console.log('📡 Cargando desde:', url);
+        
+        const response = await fetch(url);
+        console.log('📥 Respuesta recibida:', response.status, response.statusText);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status} - ${response.statusText}`);
+        }
+        
+        const html = await response.text();
+        console.log('📄 HTML recibido:', html.length, 'caracteres');
+        console.log('📝 Primeros 200 caracteres:', html.substring(0, 200));
+        
+        // Insertar el HTML
+        content.innerHTML = html;
+        console.log('✅ HTML insertado en el DOM');
+        console.log('📦 Contenido final:', content.innerHTML.length, 'caracteres');
+        
+        // Inicializar módulo
+        await initCronogramaModule();
+        
+    } catch (error) {
+        console.error('❌ Error al cargar semestre:', error);
+        content.insertAdjacentHTML('beforeend', 
+            `<div class="p-6 bg-red-50 text-red-700 rounded-lg m-6">
+                <h3 class="font-bold mb-2">Error al cargar el módulo de semestre</h3>
+                <p class="text-sm">${error.message}</p>
+            </div>`
+        );
+    }
+}
+
+// ============= CARGA DE DATOS =============
 
 async function loadSemesterData() {
     try {
-        const res = await apiGet(SemesterModule.API.STATS);
-        if (res?.success && res.data) {
-            Object.assign(SemesterModule.state, {
-                currentSemester: res.data.semester,
-                stats: res.data.stats,
-                tutorWorkload: res.data.tutorWorkload || []
-            });
-            updateSemesterUI(res.data);
+        console.log('🔄 Cargando semestre desde backend...');
+        
+        // Cargar semestre activo
+        const semesterResponse = await apiGet('/semestre?action=current');
+        
+        console.log('📡 Respuesta del servidor:', semesterResponse);
+        
+        if (semesterResponse?.success && semesterResponse.data?.semester) {
+            console.log('✅ Semestre cargado desde BD:', semesterResponse.data.semester);
+            SemesterManageModule.state.semesterInfo = semesterResponse.data.semester;
+            updateUI();
             return;
+        } else {
+            console.warn('⚠️ Respuesta sin datos válidos:', semesterResponse);
         }
-    } catch (e) {
-        console.warn('⚠️ Backend no disponible');
+    } catch (error) {
+        console.error('❌ Error al cargar desde backend:', error);
     }
-    loadMockData();
+    
+    throw new Error('No data');
 }
 
 function loadMockData() {
-    const endDate = '2025-12-16';
-    const data = {
-        semester: { id: 1, name: '2025-I', status: 'active', startDate: '2025-10-18', endDate },
-        stats: {
-            totalStudents: 53, assignedStudents: 48, unassignedStudents: 5,
-            totalTutors: 5, sessionsScheduled: 24, sessionsCompleted: 18,
-            daysRemaining: Math.max(0, Math.ceil((new Date(endDate) - new Date()) / 864e5))
-        },
-        tutorWorkload: [
-            { id: 1, name: 'C. López', shortName: 'C.\nLópez', students: 5, max: 10 },
-            { id: 2, name: 'M. Fdez', shortName: 'M.\nFdez', students: 8, max: 10 },
-            { id: 3, name: 'J. Pérez', shortName: 'J.\nPérez', students: 10, max: 10 },
-            { id: 4, name: 'A. García', shortName: 'A.\nGarcía', students: 0, max: 10 },
-            { id: 5, name: 'R. Cruz', shortName: 'R.\nCruz', students: 7, max: 10 }
-        ]
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const endDate = new Date('2025-07-15');
+    endDate.setHours(0, 0, 0, 0);
+    const diffTime = endDate - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    SemesterManageModule.state.semesterInfo = {
+        id: 2,
+        name: '2025-I',
+        startDate: '2025-03-01',
+        endDate: '2025-07-15',
+        status: 'Activo',
+        daysRemaining: Math.max(0, diffDays)
     };
-    Object.assign(SemesterModule.state, data);
-    updateSemesterUI(data);
-}
-
-// ============= UI UPDATES =============
-
-function updateSemesterUI(data) {
-    if (!data) return;
-    updateHeader(data.semester);
-    updateCards(data.stats);
-    updateDonut(data.stats);
-    updateWorkload(data.tutorWorkload);
-    updateSummary(data.stats);
-}
-
-function updateHeader(sem) {
-    if (!sem) return;
-    setText('semesterName', `Semestre ${sem.name}: `);
     
-    const badge = $('semesterStatusBadge');
-    const text = $('semesterStatusText');
-    if (badge && text) {
-        badge.className = `semester-status-badge ${sem.status}`;
-        text.textContent = { active: 'ACTIVO', inactive: 'INACTIVO', closed: 'CERRADO' }[sem.status] || '?';
+    SemesterManageModule.state.allSemesters = [
+        { id: 2, nombre: '2025-I', fechaInicio: '2025-03-01', fechaFin: '2025-07-15', estado: 'Activo' },
+        { id: 1, nombre: '2024-II', fechaInicio: '2024-08-01', fechaFin: '2024-12-20', estado: 'Cerrado' }
+    ];
+    
+    updateUI();
+}
+
+// ============= UI =============
+
+function updateUI() {
+    updateCurrentSemester();
+    updateSemesterHistory();
+}
+
+function updateCurrentSemester() {
+    const info = SemesterManageModule.state.semesterInfo;
+    if (!info) return;
+    
+    setText('currentSemesterName', info.name || '-');
+    
+    const start = formatDate(info.startDate);
+    const end = formatDate(info.endDate);
+    setText('currentSemesterPeriod', `${start} - ${end}`);
+    
+    const statusEl = document.getElementById('currentSemesterStatus');
+    if (statusEl) {
+        const isActive = info.status === 'Activo';
+        statusEl.textContent = isActive ? 'ACTIVO' : 'CERRADO';
+        statusEl.className = `px-3 py-1 rounded-full text-sm font-semibold text-white inline-block w-fit shadow-sm ${
+            isActive ? 'bg-green-600' : 'bg-gray-600'
+        }`;
     }
-    
-    if (sem.startDate && sem.endDate) {
-        setText('semesterPeriod', `${fmtDate(sem.startDate)} - ${fmtDate(sem.endDate)}`);
+    const days = info.daysRemaining || 0;
+    const daysText = days === 1 ? 'día restante' : 'días restantes';
+    setText('currentSemesterDays', `${days} ${daysText}`);
+
+    // Mostrar advertencia si quedan 0 días
+    if (days === 0) {
+        showNotification('El semestre ha concluido', 'warning');
     }
 }
 
-function updateCards(s) {
-    if (!s) return;
-    setText('unassignedCount', s.unassignedStudents || 0);
-    setText('assignedCount', s.assignedStudents || 0);
-    $('unassignedCount')?.closest('.semester-card')?.classList.toggle('pulse-alert', s.unassignedStudents > 0);
-}
-
-function updateDonut(s) {
-    if (!s) return;
-    const { totalStudents: t = 0, assignedStudents: a = 0, unassignedStudents: u = 0 } = s;
+async function updateSemesterHistory() {
+    const tableBody = document.getElementById('semesterHistoryTable');
+    if (!tableBody) return;
     
-    setText('totalStudentsDonut', t);
-    setText('assignedLegend', a);
-    setText('unassignedLegend', u);
+    let semesters = SemesterManageModule.state.allSemesters;
     
-    if (t > 0) {
-        const aPct = (a / t) * 100, uPct = (u / t) * 100;
-        const aEl = document.querySelector('.donut-segment.assigned');
-        const uEl = document.querySelector('.donut-segment.unassigned');
-        if (aEl) aEl.style.strokeDasharray = `${aPct} ${100 - aPct}`;
-        if (uEl) {
-            uEl.style.strokeDasharray = `${uPct} ${100 - uPct}`;
-            uEl.style.strokeDashoffset = `-${aPct - 25}`;
+    if (!semesters || semesters.length === 0) {
+        try {
+            const response = await apiGet('/semestre?action=list');
+            if (response?.success && response.data) {
+                semesters = response.data;
+                SemesterManageModule.state.allSemesters = semesters;
+            }
+        } catch (error) {
+            console.warn('⚠️ No se pudo cargar historial');
         }
     }
+    
+    renderSemesterTable(tableBody, semesters);
 }
 
-function updateWorkload(tutors) {
-    const c = $('workloadChartContainer');
-    if (!c || !Array.isArray(tutors)) return;
+function renderSemesterTable(tableBody, semesters) {
+    if (!semesters || semesters.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-gray-500">No hay semestres</td></tr>';
+        return;
+    }
     
-    c.innerHTML = tutors.map(t => {
-        const pct = (t.students / (t.max || 10)) * 100;
-        const h = Math.max(pct * 1.3, 4);
-        const cls = pct >= 80 ? 'high' : pct >= 50 ? 'medium' : 'low';
-        return `<div class="workload-bar">
-            <div class="bar-container">
-                <span class="bar-value">${t.students}</span>
-                <div class="bar-fill ${cls}" style="height:${h}px"></div>
-            </div>
-            <span class="bar-label">${t.shortName || t.name}</span>
-        </div>`;
+    tableBody.innerHTML = semesters.map(sem => {
+        const isActive = sem.estado === 'Activo';
+        const badgeClass = isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700';
+        
+        return `
+        <tr class="hover:bg-gray-50">
+            <td class="px-4 py-3 font-medium text-gray-900">${sem.nombre}</td>
+            <td class="px-4 py-3 text-gray-600">${formatDate(sem.fechaInicio)}</td>
+            <td class="px-4 py-3 text-gray-600">${formatDate(sem.fechaFin)}</td>
+            <td class="px-4 py-3">
+                <span class="px-2 py-1 text-xs rounded-full ${badgeClass}">${sem.estado}</span>
+            </td>
+            <td class="px-4 py-3 text-center">
+                ${isActive ? `
+                    <button onclick="editSemester(${sem.id})" 
+                            class="text-blue-600 hover:text-blue-800" 
+                            title="Editar">
+                        <i class="fa-solid fa-edit"></i>
+                    </button>
+                ` : '<span class="text-gray-400">-</span>'}
+            </td>
+        </tr>
+        `;
     }).join('');
 }
 
-function updateSummary(s) {
-    if (!s) return;
-    ['summaryTotalTutors', 'summaryTotalStudents', 'summarySessionsScheduled', 
-     'summarySessionsCompleted', 'summaryDaysRemaining'].forEach((id, i) => {
-        const vals = [s.totalTutors, s.totalStudents, s.sessionsScheduled, s.sessionsCompleted, s.daysRemaining];
-        setText(id, vals[i] ?? 0);
-    });
-}
+// ============= MODALES =============
 
-function setupSemesterListeners() {
-    const input = $('closeConfirmInput'), btn = $('btnExecuteClose');
-    input?.addEventListener('input', () => btn && (btn.disabled = input.value.toUpperCase() !== 'CERRAR'));
-}
-
-// ============= MODALS =============
-
-function openScheduleManager() {
-    const m = $('scheduleManagerModal'), s = SemesterModule.state.currentSemester;
-    if (!m) return;
-    if (s) {
-        setVal('semesterNameInput', s.name);
-        setVal('semesterStartDate', s.startDate);
-        setVal('semesterEndDate', s.endDate);
-        setVal('semesterStatusSelect', s.status);
+function showEditSemesterModal() {
+    const info = SemesterManageModule.state.semesterInfo;
+    if (!info) {
+        showNotification?.('No hay datos del semestre', 'error');
+        return;
     }
-    m.classList.remove('hidden');
+    
+    setValue('semesterId', info.id || '');
+    setValue('semesterName', info.name || '');
+    setValue('semesterStartDate', info.startDate || '');
+    setValue('semesterEndDate', info.endDate || '');
+    setValue('semesterStatus', info.status || 'Activo');
+    
+    showModal('editSemesterModal');
 }
 
-const closeScheduleManager = () => $('scheduleManagerModal')?.classList.add('hidden');
+function closeEditSemesterModal() {
+    hideModal('editSemesterModal');
+}
 
-async function saveSemesterSchedule() {
-    const d = {
-        id: SemesterModule.state.currentSemester?.id,
-        name: getVal('semesterNameInput'),
-        startDate: getVal('semesterStartDate'),
-        endDate: getVal('semesterEndDate'),
-        status: getVal('semesterStatusSelect')
+function editSemester(semesterId) {
+    showEditSemesterModal();
+}
+
+async function saveSemester(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const data = {
+        id: formData.get('semesterId'),
+        nombre: formData.get('nombre'),
+        fechaInicio: formData.get('fechaInicio'),
+        fechaFin: formData.get('fechaFin'),
+        estado: formData.get('estado')
     };
     
-    if (!d.name || !d.startDate || !d.endDate) return showNotification?.('Complete todos los campos', 'warning');
-    if (new Date(d.startDate) >= new Date(d.endDate)) return showNotification?.('Fechas inválidas', 'warning');
+    console.log('💾 Guardando semestre:', data);
     
     try {
-        const res = await apiPost(SemesterModule.API.UPDATE, d);
-        if (res?.success) {
-            showNotification?.('Cronograma actualizado', 'success');
-            closeScheduleManager();
+        const response = await apiPost('/semestre?action=update', data);
+        console.log('📡 Respuesta:', response);
+        
+        if (response?.success) {
+            showNotification?.('Semestre actualizado exitosamente', 'success');
+            closeEditSemesterModal();
             await loadSemesterData();
         } else {
-            showNotification?.(res?.message || 'Error', 'error');
+            console.warn('⚠️ Error:', response);
+            showNotification?.('Error: ' + (response?.message || 'No se pudo actualizar'), 'error');
         }
-    } catch (e) {
-        showNotification?.('Error de conexión', 'error');
+    } catch (error) {
+        console.error('❌ Error al guardar:', error);
+        showNotification?.('Error al guardar cambios', 'error');
     }
 }
 
-function confirmCloseSemester() {
-    const m = $('closeSemesterModal');
-    if (m) {
-        setVal('closeConfirmInput', '');
-        const b = $('btnExecuteClose'); if (b) b.disabled = true;
-        m.classList.remove('hidden');
-    }
+// ============= UTILIDADES =============
+
+function formatDate(dateStr) {
+    if (!dateStr) return '';
+    const date = new Date(dateStr + 'T00:00:00');
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
 }
 
-const cancelCloseSemester = () => $('closeSemesterModal')?.classList.add('hidden');
-
-async function executeSemesterClose() {
-    if (getVal('closeConfirmInput').toUpperCase() !== 'CERRAR') 
-        return showNotification?.('Escriba CERRAR', 'warning');
-    
-    try {
-        const res = await apiPost(SemesterModule.API.CLOSE, { semesterId: SemesterModule.state.currentSemester?.id });
-        if (res?.success) {
-            showNotification?.('Semestre cerrado', 'success');
-            cancelCloseSemester();
-            await loadSemesterData();
-        } else {
-            showNotification?.(res?.message || 'Error', 'error');
-        }
-    } catch (e) {
-        showNotification?.('Error de conexión', 'error');
-    }
+function setText(id, text) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
 }
 
-// ============= ACTIONS =============
-
-function assignUnassignedStudents() {
-    handleMenuAction?.('showAssignmentSection');
-    setTimeout(() => $('unassigned-students')?.scrollIntoView({ behavior: 'smooth' }), 300);
+function setValue(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.value = value;
 }
 
-function viewAllAssignments() {
-    loadActiveAssignments?.();
-    $('assignmentsContainer')?.scrollIntoView({ behavior: 'smooth' });
+function showModal(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('hidden');
 }
 
-async function refreshSemesterData() {
-    const btn = document.querySelector('.btn-refresh');
-    if (btn) { btn.disabled = true; btn.classList.add('refreshing'); }
-    await loadSemesterData();
-    if (btn) { btn.disabled = false; btn.classList.remove('refreshing'); }
-    showNotification?.('Actualizado', 'success');
+function hideModal(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('hidden');
 }
 
-async function loadSemesterContent() {
-    try {
-        const res = await fetch('/Sistema-de-tutorias/components/administrador/semestre.html');
-        if (!res.ok) throw new Error(res.status);
-        const html = await res.text();
-        const c = $('dashboardContent');
-        if (!c) return;
-        c.querySelector('.semester-section')?.remove();
-        c.insertAdjacentHTML('afterbegin', html);
-        await initSemesterModule();
-    } catch (e) {
-        console.error('Error:', e);
-        showNotification?.('Error al cargar', 'error');
-    }
-}
+// ============= EXPORTAR =============
 
-// ============= UTILS =============
+window.initCronogramaModule = initCronogramaModule;
+window.loadCronogramaContent = loadCronogramaContent;
+window.showEditSemesterModal = showEditSemesterModal;
+window.closeEditSemesterModal = closeEditSemesterModal;
+window.editSemester = editSemester;
+window.saveSemester = saveSemester;
 
-const $ = id => document.getElementById(id);
-const setText = (id, v) => { const e = $(id); if (e) e.textContent = v; };
-const getVal = id => $(id)?.value?.trim() || '';
-const setVal = (id, v) => { const e = $(id); if (e) e.value = v || ''; };
-const fmtDate = d => {
-    if (!d) return '';
-    const m = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-    const dt = new Date(d + 'T00:00:00');
-    return `${dt.getDate()} ${m[dt.getMonth()]}`;
-};
-
-// ============= EXPORTS =============
-Object.assign(window, {
-    initSemesterModule, loadSemesterData, loadSemesterContent,
-    openScheduleManager, closeScheduleManager, saveSemesterSchedule,
-    confirmCloseSemester, cancelCloseSemester, executeSemesterClose,
-    assignUnassignedStudents, viewAllAssignments, refreshSemesterData
+// Log de confirmación
+console.log('✅ semestre.js cargado correctamente');
+console.log('📋 Funciones exportadas:', {
+    initCronogramaModule: typeof window.initCronogramaModule,
+    loadCronogramaContent: typeof window.loadCronogramaContent,
+    showEditSemesterModal: typeof window.showEditSemesterModal
 });

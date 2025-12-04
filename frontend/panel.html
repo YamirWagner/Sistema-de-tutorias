@@ -12,9 +12,8 @@
     <link rel="stylesheet" href="/Sistema-de-tutorias/css/sidebar_panel.css">
     <link rel="stylesheet" href="/Sistema-de-tutorias/css/footer_panel.css">
     <link rel="stylesheet" href="/Sistema-de-tutorias/css/modals.css">
-    <link rel="stylesheet" href="/Sistema-de-tutorias/css/dashboard.css">
+    <link rel="stylesheet" href="/Sistema-de-tutorias/css/administrador/panel.css">
     <link rel="stylesheet" href="/Sistema-de-tutorias/css/administrador/semestre.css">
-    <link rel="stylesheet" href="/Sistema-de-tutorias/css/administrador/semestre-gestion.css">
 </head>
 <body class="bg-gray-100">
     <!-- Header Fijo -->
@@ -26,62 +25,29 @@
     <!-- Contenedor Principal (con margen para header y sidebar) -->
     <div class="main-wrapper">
         <!-- Contenido Principal -->
+        <main>
             <!-- Contenido Dinámico según Rol -->
             <div id="dashboardContent">
-                <!-- Estadísticas alternativas para otros roles -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8" id="otherRolesStats" style="display: none;">
-                    <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
-                        <h3 class="text-lg font-semibold mb-2 text-gray-700">Sesiones Totales</h3>
-                        <p class="text-3xl font-bold text-blue-600" id="totalSessionsAlt">0</p>
-                    </div>
-                    <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
-                        <h3 class="text-lg font-semibold mb-2 text-gray-700">Sesiones Pendientes</h3>
-                        <p class="text-3xl font-bold text-yellow-600" id="pendingSessions">0</p>
-                    </div>
-                    <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
-                        <h3 class="text-lg font-semibold mb-2 text-gray-700">Sesiones Completadas</h3>
-                        <p class="text-3xl font-bold text-green-600" id="completedSessions">0</p>
-                    </div>
-                </div>
-
-                <!-- Estadísticas Adicionales para Administrador (solo visible para admin) -->
-                <div id="adminExtraStats" class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8" style="display: none;">
-
-                <!-- Calendario y Actividades Recientes -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                    <div class="bg-white p-6 rounded-lg shadow">
-                        <h3 class="text-xl font-bold mb-4 text-gray-800">Próximas Sesiones</h3>
-                        <div id="upcomingSessions">
-                            <p class="text-gray-500">No hay sesiones programadas</p>
-                        </div>
-                    </div>
-                    <div class="bg-white p-6 rounded-lg shadow">
-                        <h3 class="text-xl font-bold mb-4 text-gray-800">Actividad Reciente</h3>
-                        <div id="recentActivity">
-                            <p class="text-gray-500">No hay actividad reciente</p>
-                        </div>
-                    </div>
-                </div>
+                <!-- El contenido se cargará dinámicamente aquí -->
             </div>
         </main>
-        <!-- Footer -->
         
+        <!-- Footer dentro del main-wrapper -->
+        <div id="footer-container"></div>
     </div>
 
     <!-- Modales -->
     <div id="modals-container"></div>
-    <div id="footer-container"></div>
 
     <script src="/Sistema-de-tutorias/js/api.js"></script>
     <script src="/Sistema-de-tutorias/js/main.js"></script>
     <script src="/Sistema-de-tutorias/js/header_panel.js"></script>
     <script src="/Sistema-de-tutorias/js/calendar.js"></script>
-    <script src="/Sistema-de-tutorias/js/administrador/dashboard.js"></script>
+    <script src="/Sistema-de-tutorias/js/administrador/panel.js"></script>
     <script src="/Sistema-de-tutorias/js/administrador/semestre.js"></script>
-    <script src="/Sistema-de-tutorias/js/administrador/semestre-gestion.js"></script>
-    <script src="/Sistema-de-tutorias/js/tutor.js"></script>
-    <script src="/Sistema-de-tutorias/js/student.js"></script>
-    <script src="/Sistema-de-tutorias/js/verifier.js"></script>
+    <script src="/Sistema-de-tutorias/js/tutor/tutor.js"></script>
+    <script src="/Sistema-de-tutorias/js/estudiante/student.js"></script>
+    <script src="/Sistema-de-tutorias/js/verificador/verifier.js"></script>
     <script src="/Sistema-de-tutorias/js/sidebar_panel.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.1/dist/flowbite.min.js"></script>
 </body>

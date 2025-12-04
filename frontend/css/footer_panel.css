@@ -2,20 +2,23 @@
    FOOTER PANEL - Sistema de Tutorías UNSAAC
    ============================================ */
 
+#footer-container {
+    margin-top: auto;
+    width: 100%;
+}
+
 footer {
-    display: block ;
-    visibility: visible ;
-    opacity: 1 ;
+    display: block;
+    visibility: visible;
+    opacity: 1;
     background-color: #1F2937;
     color: white;
     padding: 14px 0;
-    margin: 0 ;
+    margin: 0;
     border-top: 3px solid #9B192D;
-    z-index: 100;
-    position: fixed; 
-    bottom: 0; 
-    right: 0;
-    width: 100%; 
+    z-index: 10;
+    position: relative;
+    width: 100%;
 }
 
 footer .container {

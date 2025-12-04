@@ -58,24 +58,35 @@ function checkAuth() {
     const path = window.location.pathname;
     const basePath = window.APP_BASE_PATH || '';
     
+    console.log('🔐 Verificando autenticación...');
+    console.log('   Token:', token ? '✅ Presente' : '❌ No hay token');
+    console.log('   Ruta actual:', path);
+    
     // Detectar página actual (funciona con URLs limpias y .html)
     const isPanel = path.includes('panel') || path.includes('dashboard');
+    const isSemestre = path.includes('semestre');
     const isLogin = path.includes('login');
     const isVerify = path.includes('verify');
     const isIndex = path.endsWith('/') || path.includes('index');
     
-    // Si no hay token y está en panel, redirigir a login
-    if (!token && isPanel) {
+    // Páginas protegidas que requieren autenticación
+    const isProtectedPage = isPanel || isSemestre;
+    
+    // Si no hay token y está en una página protegida, redirigir a login
+    if (!token && isProtectedPage) {
+        console.warn('⚠️ Sin token en página protegida - Redirigiendo a login');
         window.location.href = basePath + '/login';
         return false;
     }
     
     // Si hay token y está en login/verify/index, redirigir a panel
     if (token && (isLogin || isVerify || isIndex)) {
+        console.log('✅ Token presente en página pública - Redirigiendo a panel');
         window.location.href = basePath + '/panel';
         return false;
     }
     
+    console.log('✅ Autenticación verificada correctamente');
     return true;
 }
 
@@ -227,10 +238,37 @@ async function initDashboard() {
         console.error('⚠️ PROBLEMA: Footer NO se cargó correctamente');
     }
     
+    // Obtener datos del usuario ANTES de cargar modales
+    const user = getUserFromToken();
+    const userRole = user ? normalizeRole(user.role) : null;
+    const userRoleName = user ? getRoleName(user.role) : null;
+    
+    console.log('👤 Usuario:', user);
+    console.log('🎭 Rol normalizado:', userRole);
+    console.log('🎭 Nombre del rol:', userRoleName);
+    
     console.log('--- Modales ---');
-    await loadComponent('modals-container', '../components/administrador/modals.html');
+    // Cargar modales generales primero (incluye helpModal)
+    await loadComponent('modals-container', 'components/modals.html');
     const modalsCheck = document.getElementById('modals-container');
-    console.log('✔️ Modales insertados:', modalsCheck && modalsCheck.innerHTML.length > 0 ? `${modalsCheck.innerHTML.length} chars` : '❌ VACÍO');
+    console.log('✔️ Modales generales insertados:', modalsCheck && modalsCheck.innerHTML.length > 0 ? `${modalsCheck.innerHTML.length} chars` : '❌ VACÍO');
+    
+    // Luego cargar modales específicos del rol
+    if (userRole === 'admin') {
+        const adminModalsPath = 'components/administrador/modals.html';
+        try {
+            const response = await fetch(adminModalsPath);
+            if (response.ok) {
+                const html = await response.text();
+                modalsCheck.insertAdjacentHTML('beforeend', html);
+                console.log('✔️ Modales de administrador agregados');
+            }
+        } catch (error) {
+            console.log('⚠️ No se pudieron cargar modales de administrador:', error);
+        }
+    }
+    
+    console.log('✔️ Total de modales:', modalsCheck && modalsCheck.innerHTML.length > 0 ? `${modalsCheck.innerHTML.length} chars` : '❌ VACÍO');
     
     console.log('\n✅ Todos los componentes procesados');
     
@@ -241,15 +279,13 @@ async function initDashboard() {
         }
     }, 100);
     
-    // Obtener datos del usuario
-    const user = getUserFromToken();
+    // Actualizar información del usuario en el contenido principal
     if (user) {
-        // Actualizar información en el contenido principal
         const welcomeMsg = document.getElementById('welcomeMessage');
         const userRoleEl = document.getElementById('userRole');
         
         if (welcomeMsg) welcomeMsg.textContent = `Bienvenido, ${user.name || user.email}`;
-        if (userRoleEl) userRoleEl.textContent = `Rol: ${getRoleName(user.role)}`;
+        if (userRoleEl) userRoleEl.textContent = `Rol: ${userRoleName}`;
         
         // Actualizar información en el header y sidebar (después de que se carguen)
         setTimeout(() => {
@@ -258,12 +294,64 @@ async function initDashboard() {
             const sidebarUserRole = document.getElementById('sidebarUserRole');
             
             if (headerUserName) headerUserName.textContent = user.name || user.email;
-            if (headerUserRole) headerUserRole.textContent = getRoleName(user.role);
-            if (sidebarUserRole) sidebarUserRole.textContent = getRoleName(user.role);
+            if (headerUserRole) headerUserRole.textContent = userRoleName;
+            if (sidebarUserRole) sidebarUserRole.textContent = userRoleName;
         }, 200);
         
-        // Cargar contenido según el rol
-        loadDashboardByRole(user.role);
+        // Detectar si hay un módulo específico en la URL (ej: ?module=semestre)
+        const urlParams = new URLSearchParams(window.location.search);
+        const moduleParam = urlParams.get('module');
+        const currentPath = window.location.pathname;
+        
+        // Detectar si estamos en una ruta de módulo específico
+        const isSemestrePath = currentPath.includes('semestre');
+        
+        console.log('🔍 Verificando parámetro module:', moduleParam);
+        console.log('🔍 URL completa:', window.location.href);
+        console.log('🔍 Search params:', window.location.search);
+        console.log('🔍 Ruta actual:', currentPath);
+        console.log('🔍 ¿Es ruta semestre?:', isSemestrePath);
+        
+        // Si está en /semestre O tiene module=semestre, cargar semestre
+        if (moduleParam === 'semestre' || isSemestrePath) {
+            // Cargar módulo de semestre
+            console.log('🎯 Detectado semestre - NO cargar dashboard por defecto');
+            console.log('⏳ Esperando a que todos los scripts se carguen...');
+            
+            // Función para intentar cargar el módulo
+            const tryLoadSemestre = () => {
+                console.log('🚀 Intentando cargar módulo de semestre');
+                console.log('📋 Verificando función loadCronogramaContent:', typeof loadCronogramaContent);
+                
+                if (typeof loadCronogramaContent === 'function') {
+                    console.log('✅ loadCronogramaContent encontrada, ejecutando...');
+                    try {
+                        loadCronogramaContent();
+                    } catch (error) {
+                        console.error('❌ Error al ejecutar loadCronogramaContent:', error);
+                    }
+                } else {
+                    console.error('❌ loadCronogramaContent no está disponible');
+                    console.log('Funciones window disponibles:', Object.keys(window).filter(k => k.toLowerCase().includes('load')));
+                    
+                    // Reintentar después de más tiempo (solo una vez más)
+                    if (!tryLoadSemestre.retried) {
+                        console.log('🔄 Reintentando en 1 segundo...');
+                        tryLoadSemestre.retried = true;
+                        setTimeout(tryLoadSemestre, 1000);
+                    } else {
+                        console.error('❌ No se pudo cargar el módulo de semestre después de reintentar');
+                    }
+                }
+            };
+            
+            // Primer intento después de 500ms
+            setTimeout(tryLoadSemestre, 500);
+        } else {
+            // No hay módulo específico, cargar dashboard por defecto según el rol
+            console.log('📊 Sin módulo específico, cargando dashboard por defecto');
+            loadDashboardByRole(user.role);
+        }
     }
     
     // Configurar botón de logout
@@ -277,19 +365,44 @@ async function initDashboard() {
 function getRoleName(role) {
     const roles = {
         'admin': 'Administrador',
+        'Administrador': 'Administrador',
         'tutor': 'Tutor',
+        'Tutor': 'Tutor',
         'student': 'Estudiante',
-        'verifier': 'Verificador'
+        'Estudiante': 'Estudiante',
+        'verifier': 'Verificador',
+        'Verificador': 'Verificador'
     };
     return roles[role] || role;
 }
 
+// Normalizar rol para compatibilidad
+function normalizeRole(role) {
+    const roleMap = {
+        'Administrador': 'admin',
+        'admin': 'admin',
+        'Tutor': 'tutor',
+        'tutor': 'tutor',
+        'Estudiante': 'student',
+        'student': 'student',
+        'Verificador': 'verifier',
+        'verifier': 'verifier'
+    };
+    return roleMap[role] || role.toLowerCase();
+}
+
 // Cargar dashboard según rol
 function loadDashboardByRole(role) {
-    switch(role) {
+    const normalizedRole = normalizeRole(role);
+    console.log('📋 Cargando dashboard para rol:', role, '→', normalizedRole);
+    
+    switch(normalizedRole) {
         case 'admin':
-            if (typeof loadAdminDashboard === 'function') {
-                loadAdminDashboard();
+            if (typeof loadAdminPanelContent === 'function') {
+                console.log('✅ Cargando panel del administrador');
+                loadAdminPanelContent();
+            } else {
+                console.error('❌ loadAdminPanelContent no está disponible');
             }
             break;
         case 'tutor':
@@ -307,6 +420,8 @@ function loadDashboardByRole(role) {
                 loadVerifierDashboard();
             }
             break;
+        default:
+            console.warn('⚠️ Rol desconocido:', role);
     }
 }
 
@@ -342,13 +457,19 @@ function showNotification(message, type = 'info') {
 document.addEventListener('DOMContentLoaded', () => {
     const path = window.location.pathname;
     
-    // Detectar si estamos en panel (funciona con URLs limpias y .html)
-    if (path.includes('panel') || path.includes('dashboard')) {
-        console.log('Inicializando panel...');
-        console.log('Token:', localStorage.getItem('token'));
-        console.log('User:', localStorage.getItem('user'));
+    console.log('🚀 DOM Cargado - Inicializando aplicación...');
+    console.log('📍 Ruta actual:', path);
+    
+    // Detectar si estamos en una página que requiere el panel (funciona con URLs limpias y .html)
+    const isPanelPage = path.includes('panel') || path.includes('dashboard') || path.includes('semestre');
+    
+    if (isPanelPage) {
+        console.log('✅ Detectada página de panel/módulo - Inicializando dashboard...');
+        console.log('   Token:', localStorage.getItem('token') ? '✅ Presente' : '❌ Ausente');
+        console.log('   User:', localStorage.getItem('user') ? '✅ Presente' : '❌ Ausente');
         initDashboard();
     } else {
+        console.log('📄 Página pública - Verificando autenticación...');
         checkAuth();
     }
 });

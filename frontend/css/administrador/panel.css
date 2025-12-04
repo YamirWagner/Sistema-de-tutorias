@@ -1,0 +1,218 @@
+/* =====================================================
+   ADMIN_PANEL - Estilos del Panel del Administrador
+   Sistema de Tutorías UNSAAC
+   ===================================================== */
+
+:root {
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.3s ease-out;
+    --shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Contenedor principal */
+.admin-panel-section {
+    animation: fadeIn var(--transition-normal);
+    padding: 1.5rem;
+}
+
+/* Tarjetas de estadísticas */
+.admin-panel-section .bg-gradient-to-br {
+    transition: all var(--transition-normal);
+    cursor: default;
+}
+
+.admin-panel-section .bg-gradient-to-br:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+/* Tarjetas normales */
+.admin-panel-section .bg-white {
+    transition: box-shadow var(--transition-normal);
+}
+
+.admin-panel-section .bg-white:hover {
+    box-shadow: var(--shadow-hover);
+}
+
+/* Botones de acceso rápido */
+.admin-panel-section button.group {
+    transition: all var(--transition-fast);
+}
+
+.admin-panel-section button.group:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Iconos en accesos rápidos */
+.admin-panel-section button.group i {
+    transition: transform var(--transition-fast);
+}
+
+.admin-panel-section button.group:hover i {
+    transform: scale(1.1);
+}
+
+/* Formularios de búsqueda */
+.admin-panel-section input[type="text"],
+.admin-panel-section input[type="datetime-local"] {
+    transition: all var(--transition-fast);
+}
+
+.admin-panel-section input:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Botones */
+.admin-panel-section button {
+    transition: all var(--transition-fast);
+}
+
+.admin-panel-section button:hover {
+    transform: scale(1.02);
+}
+
+.admin-panel-section button:active {
+    transform: scale(0.98);
+}
+
+/* Lista de tutores y estudiantes */
+#tutor-list .tutor-items > div,
+#assigned-students > div,
+#unassigned-students > div {
+    transition: all var(--transition-fast);
+}
+
+#tutor-list .tutor-items > div:hover,
+#assigned-students > div:hover,
+#unassigned-students > div:hover {
+    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Tabla de auditoría */
+#auditTableWrap table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#auditTableWrap th {
+    background-color: #f9fafb;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: #374151;
+    border-bottom: 2px solid #e5e7eb;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+#auditTableWrap td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    color: #4b5563;
+}
+
+#auditTableWrap tr {
+    transition: background-color var(--transition-fast);
+}
+
+#auditTableWrap tbody tr:hover {
+    background-color: #f9fafb;
+}
+
+/* Loading spinner */
+.fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .admin-panel-section {
+        padding: 1rem;
+    }
+    
+    .admin-panel-section .grid {
+        gap: 1rem;
+    }
+    
+    #auditFilterForm {
+        flex-direction: column;
+    }
+    
+    #auditFilterForm > div {
+        width: 100% !important;
+    }
+}
+
+/* Badges y etiquetas */
+.badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.badge-success {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.badge-warning {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.badge-danger {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.badge-info {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+/* Tooltips y hints */
+.hint {
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-style: italic;
+}
+
+/* Cards con hover effect */
+.card-hover {
+    transition: all var(--transition-normal);
+    cursor: pointer;
+}
+
+.card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
