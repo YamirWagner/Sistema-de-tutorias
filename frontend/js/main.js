@@ -66,12 +66,13 @@ function checkAuth() {
     const isPanel = path.includes('panel') || path.includes('dashboard');
     const isSemestre = path.includes('semestre');
     const isGestionUsuarios = path.includes('gestion-usuarios');
+    const isAsignaciones = path.includes('asignaciones');
     const isLogin = path.includes('login');
     const isVerify = path.includes('verify');
     const isIndex = path.endsWith('/') || path.includes('index');
     
     // Páginas protegidas que requieren autenticación
-    const isProtectedPage = isPanel || isSemestre || isGestionUsuarios;
+    const isProtectedPage = isPanel || isSemestre || isGestionUsuarios || isAsignaciones;
     
     // Si no hay token y está en una página protegida, redirigir a login
     if (!token && isProtectedPage) {
@@ -319,6 +320,11 @@ async function initDashboard() {
                 paths: ['/gestion-usuarios', '/Sistema-de-tutorias/gestion-usuarios'],
                 param: 'gestion-usuarios',
                 loadFn: 'loadGestionUsuariosContent'
+            },
+            'asignaciones': {
+                paths: ['/asignaciones', '/Sistema-de-tutorias/asignaciones'],
+                param: 'asignaciones',
+                loadFn: 'loadAsignacionesContent'
             }
         };
         
@@ -480,7 +486,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('📍 Ruta actual:', path);
     
     // Detectar si estamos en una página que requiere el panel (funciona con URLs limpias y .html)
-    const isPanelPage = path.includes('panel') || path.includes('dashboard') || path.includes('semestre') || path.includes('gestion-usuarios');
+    const isPanelPage = path.includes('panel') || path.includes('dashboard') || path.includes('semestre') || path.includes('gestion-usuarios') || path.includes('asignaciones');
     
     if (isPanelPage) {
         console.log('✅ Detectada página de panel/módulo - Inicializando dashboard...');

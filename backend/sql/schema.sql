@@ -66,12 +66,7 @@ CREATE TABLE IF NOT EXISTS semestre (
 CREATE TABLE IF NOT EXISTS asignaciontutor (
     id INT AUTO_INCREMENT PRIMARY KEY,
     idTutor INT NOT NULL,
-    nombreTutor VARCHAR(100) NOT NULL,
-    apellidoTutor VARCHAR(100) NOT NULL,
     idEstudiante INT NOT NULL,
-    codigoEstudiante VARCHAR(10) NOT NULL,
-    nombreEstudiante VARCHAR(100) NOT NULL,
-    apellidoEstudiante VARCHAR(100) NOT NULL,
     idSemestre INT NOT NULL,
     fechaAsignacion DATE NOT NULL,
     estado ENUM('Activa', 'Inactiva') DEFAULT 'Activa',
@@ -83,7 +78,8 @@ CREATE TABLE IF NOT EXISTS asignaciontutor (
     INDEX idx_tutor (idTutor),
     INDEX idx_estudiante (idEstudiante),
     INDEX idx_semestre (idSemestre),
-    INDEX idx_estado (estado)
+    INDEX idx_estado (estado),
+    UNIQUE KEY unique_asignacion (idTutor, idEstudiante, idSemestre)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
@@ -243,17 +239,17 @@ INSERT INTO semestre (nombre, fechaInicio, fechaFin, estado) VALUES
 ('2025-I', '2025-03-01', '2025-07-15', 'Activo');
 
 -- Insertar AsignacionTutor
-INSERT INTO asignaciontutor (idTutor, nombreTutor, apellidoTutor, idEstudiante, codigoEstudiante, nombreEstudiante, apellidoEstudiante, idSemestre, fechaAsignacion) VALUES
-(2, 'Luis', 'Paredes', 1, '231861', 'Diana Azumi', 'Accostupa', 2, '2025-03-05'),
-(3, 'María', 'Choque', 2, '204792', 'Andree', 'Achahuanco', 2, '2025-03-05'),
-(4, 'José', 'Huillca', 3, '231862', 'Eduardo Sebastian', 'Achahui', 2, '2025-03-06'),
-(7, 'Rosa', 'Suca', 4, '221443', 'Andre Alfredo', 'Calderon', 2, '2025-03-06'),
-(5, 'Walter', 'Huamán', 5, '232317', 'Erick Sebastian', 'Chuchon', 2, '2025-03-07'),
-(2, 'Luis', 'Paredes', 6, '231866', 'Fidel Enrique', 'Colque', 2, '2025-03-07'),
-(6, 'Diego', 'Vargas', 7, '210924', 'Ibeth Janela', 'Cusi', 2, '2025-03-07'),
-(3, 'María', 'Choque', 8, '230601', 'Gisel Dayana', 'Farfan', 2, '2025-03-07'),
-(4, 'José', 'Huillca', 9, '231442', 'Yamir Wagner', 'Florez', 2, '2025-03-07'),
-(7, 'Rosa', 'Suca', 10, '225452', 'Marco Abel', 'Gallegos', 2, '2025-03-07');
+INSERT INTO asignaciontutor (idTutor, idEstudiante, idSemestre, fechaAsignacion) VALUES
+(2, 1, 2, '2025-03-05'),
+(3, 2, 2, '2025-03-05'),
+(4, 3, 2, '2025-03-06'),
+(7, 4, 2, '2025-03-06'),
+(5, 5, 2, '2025-03-07'),
+(2, 6, 2, '2025-03-07'),
+(6, 7, 2, '2025-03-07'),
+(3, 8, 2, '2025-03-07'),
+(4, 9, 2, '2025-03-07'),
+(7, 10, 2, '2025-03-07');
 
 -- Insertar Cronograma
 INSERT INTO cronograma (idSemestre, fecha, horaInicio, horaFin, ambiente, descripcion, estado) VALUES

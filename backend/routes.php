@@ -89,6 +89,10 @@ $routes = [
     'GET|api/semestre' => 'api/semestre.php',
     'POST|api/semestre' => 'api/semestre.php',
 
+    // Rutas de asignaciones
+    'GET|api/asignaciones' => 'api/asignaciones.php',
+    'POST|api/asignaciones' => 'api/asignaciones.php',
+
     // Rutas de bitácora (log de acceso/actividad)
     'GET|api/log' => 'api/log.php',
     'POST|api/log' => 'api/log.php',

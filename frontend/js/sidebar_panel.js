@@ -289,11 +289,10 @@ function handleMenuAction(action) {
             window.location.href = `${semesterBasePath}/semestre`;
             break;
         case 'showAssignmentSection':
-            showNotification('Función de asignación en desarrollo', 'info');
-            break;
         case 'showAssignmentsSection':
-            loadActiveAssignments();
-            document.querySelector('#assignmentsContainer')?.scrollIntoView({ behavior: 'smooth' });
+            console.log('🎯 Cargando módulo de asignaciones');
+            const assignBasePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+            window.location.href = `${assignBasePath}/asignaciones`;
             break;
         case 'showTutorPanel':
             showNotification('Panel de tutor en desarrollo', 'info');

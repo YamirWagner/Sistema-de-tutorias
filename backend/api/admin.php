@@ -317,16 +317,11 @@ try {
                     Response::error('Estudiante ya asignado en este semestre', 409);
                 }
 
-                // Insertar asignación
-                $stmt = $db->prepare("INSERT INTO asignaciontutor (idTutor, nombreTutor, apellidoTutor, idEstudiante, codigoEstudiante, nombreEstudiante, apellidoEstudiante, idSemestre, fechaAsignacion, estado) VALUES (:tutorId, :nombreT, :apellidoT, :studentId, :codigoEst, :nombreEst, :apellidoEst, :semesterId, NOW(), 'Activa')");
+                // Insertar asignación (solo con IDs - la tabla ya está normalizada)
+                $stmt = $db->prepare("INSERT INTO asignaciontutor (idTutor, idEstudiante, idSemestre, fechaAsignacion, estado) VALUES (:tutorId, :studentId, :semesterId, NOW(), 'Activa')");
                 $stmt->execute([
                     ':tutorId' => $tutorId,
-                    ':nombreT' => $tutor['nombres'],
-                    ':apellidoT' => $tutor['apellidos'],
                     ':studentId' => $studentId,
-                    ':codigoEst' => $student['codigo'],
-                    ':nombreEst' => $student['nombres'],
-                    ':apellidoEst' => $student['apellidos'],
                     ':semesterId' => $semesterId
                 ]);
 

@@ -45,6 +45,7 @@ DirectoryIndex frontend/index.html
   # Módulos que se cargan dentro del panel
   RewriteRule ^semestre/?$ frontend/panel.html?module=semestre [L,NC,QSA]
   RewriteRule ^gestion-usuarios/?$ frontend/panel.html?module=gestion-usuarios [L,NC,QSA]
+  RewriteRule ^asignaciones/?$ frontend/panel.html?module=asignaciones [L,NC,QSA]
 
   # ============================================
   # RECURSOS ESTÁTICOS

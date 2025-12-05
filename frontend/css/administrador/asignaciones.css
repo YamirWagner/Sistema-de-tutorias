@@ -1,0 +1,62 @@
+/* Estilos para el módulo de asignaciones */
+
+.tutor-btn {
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.tutor-btn:hover {
+    background-color: #f9fafb !important;
+}
+
+.tutor-btn.bg-red-200 {
+    background-color: #fecaca !important;
+}
+
+.student-item {
+    transition: all 0.15s ease;
+}
+
+.assign-btn, .remove-btn {
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+.assign-btn:hover, .remove-btn:hover {
+    transform: scale(1.03);
+}
+
+/* Scrollbar personalizada */
+#tutor-list::-webkit-scrollbar,
+#assigned-students::-webkit-scrollbar,
+#unassigned-students::-webkit-scrollbar,
+#listaTutoresModal::-webkit-scrollbar {
+    width: 6px;
+}
+
+#tutor-list::-webkit-scrollbar-track,
+#assigned-students::-webkit-scrollbar-track,
+#unassigned-students::-webkit-scrollbar-track,
+#listaTutoresModal::-webkit-scrollbar-track {
+    background: #e5e7eb;
+    border-radius: 3px;
+}
+
+#tutor-list::-webkit-scrollbar-thumb,
+#assigned-students::-webkit-scrollbar-thumb,
+#unassigned-students::-webkit-scrollbar-thumb,
+#listaTutoresModal::-webkit-scrollbar-thumb {
+    background: #9ca3af;
+    border-radius: 3px;
+}
+
+#tutor-list::-webkit-scrollbar-thumb:hover,
+#assigned-students::-webkit-scrollbar-thumb:hover,
+#unassigned-students::-webkit-scrollbar-thumb:hover,
+#listaTutoresModal::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+}
+#assigned-students::-webkit-scrollbar-thumb:hover,
+#unassigned-students::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+}
