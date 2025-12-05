@@ -1,66 +1,173 @@
-<section class="gestion-usuarios" style="padding: 20px;">
-	<h2 style="margin-bottom: 20px; color: #333; font-size: 24px;">Gestión de Usuarios</h2>
-	<div class="toolbar">
-		<button id="btnOpenAssign" class="btn primary">Asignar/Reasignar</button>
-		<button id="btnOpenReport" class="btn">Reporte Tutorías</button>
+<section class="gestion-usuarios">
+	<!-- Contenedor de notificaciones -->
+	<div id="notificationsContainer"></div>
+	
+	<div class="toolbar-top">
+		<input type="text" id="searchUser" class="search-input" placeholder="Buscar por nombre, código o email...">
+		<select id="filterRole" class="filter-select">
+			<option value="Todos">Todos los Roles</option>
+			<option value="Administrador">Administrador</option>
+			<option value="Tutor">Tutor</option>
+			<option value="Verificador">Verificador</option>
+			<option value="Estudiante">Estudiante</option>
+		</select>
+		<button id="btnOpenRegister" class="btn-register">+ Registrar Usuario</button>
 	</div>
 
-	<!-- Modal Asignación/Reasignación -->
-	<div id="assignModal" class="modal hidden">
-		<div class="modal-content">
+	<div class="table-container">
+		<table class="users-table">
+			<thead>
+				<tr>
+					<th>NOMBRE COMPLETO</th>
+					<th>CÓDIGO / EMAIL</th>
+					<th>ROL</th>
+					<th>ESTADO</th>
+					<th>ACCIONES</th>
+				</tr>
+			</thead>
+			<tbody id="usersTableBody">
+				<tr>
+					<td colspan="5" style="text-align: center; padding: 40px; color: #999;">
+						<i class="fa-solid fa-spinner fa-spin" style="font-size: 24px;"></i>
+						<p style="margin-top: 10px;">Cargando usuarios...</p>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</section>
+
+<!-- Modales de Gestión de Usuarios (Fuera de la sección para evitar problemas de z-index) -->
+
+<!-- Modal Registro de Usuario -->
+<div id="registerModal" class="modal hidden">
+	<div class="modal-content">
 			<div class="modal-header">
-				<h3>Asignar / Reasignar Tutorías</h3>
-				<button class="close" id="closeAssign">×</button>
+				<h3>Registrar Nuevo Usuario</h3>
+				<button class="close" id="closeRegister">×</button>
 			</div>
 			<div class="modal-body">
-				<div class="field">
-					<label for="selectTutor">Tutor destino</label>
-					<select id="selectTutor"></select>
-				</div>
-				<div class="grid">
-					<div class="col">
-						<label>Estudiantes activos</label>
-						<input id="searchStudent" type="text" placeholder="Buscar por nombre o código" />
-						<ul id="studentsList" class="list"></ul>
+				<form id="registerForm">
+					<div class="form-grid">
+						<div class="field">
+							<label for="inputRol">Rol <span class="required">*</span></label>
+							<select id="inputRol" required>
+								<option value="">Seleccione un rol</option>
+								<option value="Administrador">Administrador</option>
+								<option value="Tutor">Tutor</option>
+								<option value="Verificador">Verificador</option>
+								<option value="Estudiante">Estudiante</option>
+							</select>
+						</div>
+						
+						<div class="field">
+							<label for="inputDNI">DNI <span class="required" id="dniRequired">*</span></label>
+							<input type="text" id="inputDNI" maxlength="8" pattern="[0-9]{8}" placeholder="12345678">
+						</div>
+						
+						<div class="field">
+							<label for="inputNombres">Nombres <span class="required">*</span></label>
+							<input type="text" id="inputNombres" required>
+						</div>
+						
+						<div class="field">
+							<label for="inputApellidos">Apellidos <span class="required">*</span></label>
+							<input type="text" id="inputApellidos" required>
+						</div>
+						
+						<div class="field">
+							<label for="inputCorreo">Correo Electrónico <span class="required">*</span></label>
+							<input type="email" id="inputCorreo" required placeholder="usuario@unsaac.edu.pe">
+						</div>
+						
+						<!-- Campos específicos para Estudiante -->
+						<div class="field student-field hidden" id="fieldCodigo">
+							<label for="inputCodigo">Código <span class="required">*</span></label>
+							<input type="text" id="inputCodigo" placeholder="231441">
+						</div>
+						
+						<div class="field student-field hidden" id="fieldSemestre">
+							<label for="inputSemestre">Semestre Actual <span class="required">*</span></label>
+							<input type="text" id="inputSemestre" placeholder="2024-II">
+						</div>
+						
+						<!-- Campo específico para Tutor/Verificador -->
+						<div class="field system-field hidden" id="fieldEspecialidad">
+							<label for="inputEspecialidad">Especialidad</label>
+							<input type="text" id="inputEspecialidad" placeholder="Opcional">
+						</div>
 					</div>
-					<div class="col">
-						<label>Seleccionados</label>
-						<ul id="selectedList" class="list"></ul>
-					</div>
-				</div>
+				</form>
 			</div>
 			<div class="modal-footer">
-				<button id="btnAssign" class="btn primary">Asignar</button>
-				<button id="btnReassign" class="btn warn">Reasignar</button>
+				<button type="button" id="btnCancelRegister" class="btn">Cancelar</button>
+				<button type="button" id="btnSaveUser" class="btn primary">Registrar Usuario</button>
 			</div>
 		</div>
 	</div>
+</div>
 
-	<!-- Modal Reporte -->
-	<div id="reportModal" class="modal hidden">
+<!-- Modal Edición de Usuario -->
+<div id="editModal" class="modal hidden">
 		<div class="modal-content">
 			<div class="modal-header">
-				<h3>Reporte de Tutorías</h3>
-				<button class="close" id="closeReport">×</button>
+				<h3>Editar Usuario</h3>
+				<button class="close" id="closeEdit">×</button>
 			</div>
 			<div class="modal-body">
-				<table class="report-table">
-					<thead>
-						<tr>
-							<th>Estudiante</th>
-							<th>Código</th>
-							<th>Tutor</th>
-							<th>Fecha</th>
-							<th>Hora</th>
-							<th>Ambiente</th>
-						</tr>
-					</thead>
-					<tbody id="reportBody"></tbody>
-				</table>
+				<form id="editForm">
+					<input type="hidden" id="editUserId">
+					<input type="hidden" id="editUserType">
+					
+					<div class="form-grid">
+						<div class="field">
+							<label for="editRol">Rol</label>
+							<input type="text" id="editRol" disabled style="background: #f3f4f6; cursor: not-allowed;">
+						</div>
+						
+						<div class="field" id="editFieldDNI">
+							<label for="editDNI">DNI</label>
+							<input type="text" id="editDNI" maxlength="8" pattern="[0-9]{8}" placeholder="12345678">
+						</div>
+						
+						<div class="field">
+							<label for="editNombres">Nombres <span class="required">*</span></label>
+							<input type="text" id="editNombres" required>
+						</div>
+						
+						<div class="field">
+							<label for="editApellidos">Apellidos <span class="required">*</span></label>
+							<input type="text" id="editApellidos" required>
+						</div>
+						
+						<div class="field">
+							<label for="editCorreo">Correo Electrónico <span class="required">*</span></label>
+							<input type="email" id="editCorreo" required placeholder="usuario@unsaac.edu.pe">
+						</div>
+						
+						<!-- Campos específicos para Estudiante -->
+						<div class="field edit-student-field hidden" id="editFieldCodigo">
+							<label for="editCodigo">Código</label>
+							<input type="text" id="editCodigo" disabled style="background: #f3f4f6; cursor: not-allowed;">
+						</div>
+						
+						<div class="field edit-student-field hidden" id="editFieldSemestre">
+							<label for="editSemestre">Semestre Actual <span class="required">*</span></label>
+							<input type="text" id="editSemestre" placeholder="2024-II">
+						</div>
+						
+						<!-- Campo específico para Tutor/Verificador -->
+						<div class="field edit-system-field hidden" id="editFieldEspecialidad">
+							<label for="editEspecialidad">Especialidad</label>
+							<input type="text" id="editEspecialidad" placeholder="Opcional">
+						</div>
+					</div>
+				</form>
 			</div>
 			<div class="modal-footer">
-				<button id="btnPrintReport" class="btn">Imprimir</button>
+				<button type="button" id="btnCancelEdit" class="btn">Cancelar</button>
 			</div>
 		</div>
 	</div>
+</div>
 </section>

@@ -326,7 +326,7 @@ async function manageUsers(role = 'all') {
         const response = await apiGet(endpoint);
         
         if (response.success) {
-            renderUsersTable(response.data);
+            renderUsersTableLegacy(response.data);
         } else {
             showNotification('Error al cargar usuarios', 'error');
         }
@@ -336,8 +336,8 @@ async function manageUsers(role = 'all') {
     }
 }
 
-// Renderizar tabla de usuarios usando template
-function renderUsersTable(users) {
+// Renderizar tabla de usuarios usando template (LEGACY - para asignaciones)
+function renderUsersTableLegacy(users) {
     const container = document.getElementById('usersTableContainer');
     
     if (!users || users.length === 0) {

@@ -1,13 +1,9 @@
 'use strict';
 
-console.log('%c✅ SCRIPT GESTION USUARIOS CARGADO', 'background: #4ade80; color: #000; font-weight: bold; padding: 5px;');
-
 const GestionUsuariosModule = {
     state: {
-        tutors: [],
-        students: [],
-        selectedIds: new Set(),
-        fromTutorId: null,
+        users: [],
+        filteredUsers: [],
         isLoading: false
     }
 };
@@ -15,79 +11,75 @@ const GestionUsuariosModule = {
 // ============= INICIALIZACIÓN =============
 
 async function initGestionUsuariosModule() {
-    console.log('🚀 Inicializando módulo Gestión de Usuarios...');
-    
     if (GestionUsuariosModule.state.isLoading) {
-        console.log('⏳ Ya está cargando...');
         return;
     }
     
     GestionUsuariosModule.state.isLoading = true;
     
-    const btnOpenAssign = document.getElementById('btnOpenAssign');
-    if (!btnOpenAssign) {
-        console.error('❌ Botones no encontrados en el DOM');
+    const btnOpenRegister = document.getElementById('btnOpenRegister');
+    if (!btnOpenRegister) {
         GestionUsuariosModule.state.isLoading = false;
         return;
     }
     
-    console.log('✅ Elementos encontrados, configurando eventos...');
-    
     try {
         setupEventListeners();
-        console.log('✅ Módulo Gestión de Usuarios inicializado correctamente');
+        await loadUsers();
     } catch (e) {
-        console.error('❌ Error al inicializar:', e);
+        console.error('Error al inicializar:', e);
     } finally {
         GestionUsuariosModule.state.isLoading = false;
     }
 }
 
 async function loadGestionUsuariosContent() {
-    console.log('📦 loadGestionUsuariosContent iniciado');
     const content = document.getElementById('dashboardContent');
     if (!content) {
-        console.error('❌ dashboardContent no encontrado');
         return;
     }
     
     try {
         content.innerHTML = '<div class="loading-message" style="text-align:center;padding:40px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:32px;color:#a42727;"></i><p style="margin-top:16px;color:#666;">Cargando módulo...</p></div>';
         
-        // Cargar CSS si no existe
         const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
         const cssPath = `${basePath}/css/administrador/gestionUsuarios.css`;
         
         if (!document.querySelector(`link[href*="gestionUsuarios.css"]`)) {
-            console.log('📎 Cargando CSS:', cssPath);
             const cssLink = document.createElement('link');
             cssLink.rel = 'stylesheet';
             cssLink.href = cssPath;
             document.head.appendChild(cssLink);
         }
         
-        // Cargar HTML
-        const url = `${basePath}/components/administrador/gestionUsuarios.html`;
-        console.log('🌐 Cargando HTML desde:', url);
+        const url = `${basePath}/components/administrador/gestionUsuarios.html?v=${Date.now()}`;
         
-        const response = await fetch(url);
+        const response = await fetch(url, { cache: 'no-store' });
         
         if (!response.ok) {
             throw new Error(`Error al cargar: ${response.status}`);
         }
         
         const htmlText = await response.text();
-        console.log('📄 HTML recibido:', htmlText.length, 'caracteres');
         content.innerHTML = htmlText;
         
-        // Esperar procesamiento del DOM
         await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
         
-        console.log('✅ HTML insertado, inicializando módulo...');
+        const registerModal = document.getElementById('registerModal');
+        const editModal = document.getElementById('editModal');
+        
+        if (registerModal && registerModal.parentElement.id === 'dashboardContent') {
+            document.body.appendChild(registerModal);
+        }
+        
+        if (editModal && editModal.parentElement.id === 'dashboardContent') {
+            document.body.appendChild(editModal);
+        }
+        
         await initGestionUsuariosModule();
         
     } catch (error) {
-        console.error('❌ Error al cargar módulo:', error);
+        console.error('Error al cargar módulo:', error);
         content.innerHTML = `
             <div style="text-align:center;padding:40px;">
                 <h3 style="color:#ef4444;margin-bottom:12px;">Error al cargar el módulo</h3>
@@ -99,213 +91,303 @@ async function loadGestionUsuariosContent() {
 // ============= CONFIGURACIÓN DE EVENTOS =============
 
 function setupEventListeners() {
-    const btnOpenAssign = document.getElementById('btnOpenAssign');
-    const btnOpenReport = document.getElementById('btnOpenReport');
-    const assignModal = document.getElementById('assignModal');
-    const reportModal = document.getElementById('reportModal');
-    const closeAssign = document.getElementById('closeAssign');
-    const closeReport = document.getElementById('closeReport');
-    const selectTutor = document.getElementById('selectTutor');
-    const searchStudent = document.getElementById('searchStudent');
-    const studentsList = document.getElementById('studentsList');
-    const selectedList = document.getElementById('selectedList');
-    const btnAssign = document.getElementById('btnAssign');
-    const btnReassign = document.getElementById('btnReassign');
-    const reportBody = document.getElementById('reportBody');
-    const btnPrintReport = document.getElementById('btnPrintReport');
+    const btnOpenRegister = document.getElementById('btnOpenRegister');
+    const closeRegister = document.getElementById('closeRegister');
+    const btnCancelRegister = document.getElementById('btnCancelRegister');
+    const btnSaveUser = document.getElementById('btnSaveUser');
+    const registerModal = document.getElementById('registerModal');
+    const searchUser = document.getElementById('searchUser');
+    const filterRole = document.getElementById('filterRole');
+    const inputRol = document.getElementById('inputRol');
+    
+    const closeEdit = document.getElementById('closeEdit');
+    const btnCancelEdit = document.getElementById('btnCancelEdit');
+    const btnSaveEdit = document.getElementById('btnSaveEdit');
+    const editModal = document.getElementById('editModal');
 
-    if (btnOpenAssign) {
-        btnOpenAssign.onclick = async () => {
-            await loadLists();
-            showModal(assignModal);
+    if (btnOpenRegister) {
+        btnOpenRegister.onclick = () => {
+            resetRegisterForm();
+            showModal(registerModal);
         };
     }
 
-    if (closeAssign) closeAssign.onclick = () => hideModal(assignModal);
-    if (closeReport) closeReport.onclick = () => hideModal(reportModal);
+    if (closeRegister) closeRegister.onclick = () => hideModal(registerModal);
+    if (btnCancelRegister) btnCancelRegister.onclick = () => hideModal(registerModal);
+    if (btnSaveUser) btnSaveUser.onclick = () => saveNewUser();
+    
+    if (closeEdit) closeEdit.onclick = () => hideModal(editModal);
+    if (btnCancelEdit) btnCancelEdit.onclick = () => hideModal(editModal);
+    if (btnSaveEdit) btnSaveEdit.onclick = () => saveEditUser();
 
-    if (btnOpenReport) {
-        btnOpenReport.onclick = async () => {
-            await loadReport();
-            showModal(reportModal);
-        };
+    if (searchUser) {
+        searchUser.oninput = () => applyFilters();
     }
 
-    if (btnPrintReport) {
-        btnPrintReport.onclick = () => printReport();
+    if (filterRole) {
+        filterRole.onchange = () => applyFilters();
     }
 
-    if (studentsList) {
-        studentsList.onclick = (e) => {
-            if (e.target.classList.contains('add')) {
-                const id = e.target.dataset.id;
-                if (id) {
-                    GestionUsuariosModule.state.selectedIds.add(Number(id));
-                    renderSelected();
+    if (inputRol) {
+        inputRol.onchange = () => {
+            const selectedRole = inputRol.value;
+            const studentFields = document.querySelectorAll('.student-field');
+            const systemFields = document.querySelectorAll('.system-field');
+            const dniField = document.getElementById('inputDNI');
+            const dniRequired = document.getElementById('dniRequired');
+
+            if (selectedRole === 'Estudiante') {
+                studentFields.forEach(f => f.classList.remove('hidden'));
+                systemFields.forEach(f => f.classList.add('hidden'));
+                if (dniRequired) dniRequired.style.display = 'none';
+                if (dniField) dniField.removeAttribute('required');
+            } else if (selectedRole) {
+                studentFields.forEach(f => f.classList.add('hidden'));
+                if (selectedRole === 'Tutor' || selectedRole === 'Verificador') {
+                    systemFields.forEach(f => f.classList.remove('hidden'));
+                } else {
+                    systemFields.forEach(f => f.classList.add('hidden'));
                 }
+                if (dniRequired) dniRequired.style.display = 'inline';
+                if (dniField) dniField.setAttribute('required', 'required');
+            } else {
+                studentFields.forEach(f => f.classList.add('hidden'));
+                systemFields.forEach(f => f.classList.add('hidden'));
             }
         };
     }
-
-    if (selectedList) {
-        selectedList.onclick = (e) => {
-            if (e.target.classList.contains('remove')) {
-                const id = e.target.dataset.id;
-                if (id) {
-                    GestionUsuariosModule.state.selectedIds.delete(Number(id));
-                    renderSelected();
-                }
-            }
-        };
-    }
-
-    if (searchStudent) {
-        searchStudent.oninput = () => {
-            const q = searchStudent.value.trim().toLowerCase();
-            const filtered = GestionUsuariosModule.state.students.filter(s => {
-                return (s.nombres + ' ' + s.apellidos).toLowerCase().includes(q) || 
-                       String(s.codigo).toLowerCase().includes(q);
-            });
-            renderStudents(filtered);
-        };
-    }
-
-    if (btnAssign) btnAssign.onclick = () => doAssign(false);
-    if (btnReassign) btnReassign.onclick = () => doAssign(true);
 }
 
 // ============= FUNCIONES DE UI =============
 
 function showModal(modal) {
-    if (modal) modal.classList.remove('hidden');
+    if (!modal) return;
+    
+    modal.style.display = 'flex';
+    modal.classList.remove('hidden');
+    
+    setTimeout(() => {
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                hideModal(modal);
+            }
+        };
+    }, 100);
 }
 
 function hideModal(modal) {
-    if (modal) modal.classList.add('hidden');
+    if (modal) {
+        modal.style.display = 'none';
+        modal.classList.add('hidden');
+        modal.onclick = null;
+    }
+}
+
+function showNotification(message, type = 'success') {
+    const container = document.getElementById('notificationsContainer');
+    if (!container) {
+        console.error('Contenedor de notificaciones no encontrado');
+        return;
+    }
+    
+    const icons = {
+        'success': 'fa-circle-check',
+        'error': 'fa-circle-xmark',
+        'warning': 'fa-triangle-exclamation',
+        'info': 'fa-circle-info'
+    };
+    
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `
+        <div class="notification-content">
+            <i class="fa-solid ${icons[type] || icons.info}"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    container.appendChild(notification);
+    
+    setTimeout(() => notification.classList.add('show'), 10);
+    
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 400);
+    }, 4000);
+    
+    notification.style.cursor = 'pointer';
+    notification.onclick = () => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 400);
+    };
+}
+
+function resetRegisterForm() {
+    const form = document.getElementById('registerForm');
+    if (form) form.reset();
+    
+    document.querySelectorAll('.student-field').forEach(f => f.classList.add('hidden'));
+    document.querySelectorAll('.system-field').forEach(f => f.classList.add('hidden'));
 }
 
 // ============= CARGA DE DATOS =============
 
-async function loadLists() {
+async function loadUsers(role = null, estado = null, search = null) {
     try {
         const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
-        const response = await fetch(`${basePath}/backend/api/gestionUsuarios.php?action=list`);
+        let url = `${basePath}/backend/api/gestionUsuarios.php?action=list`;
+        
+        if (role) url += `&role=${encodeURIComponent(role)}`;
+        if (estado) url += `&estado=${encodeURIComponent(estado)}`;
+        if (search) url += `&search=${encodeURIComponent(search)}`;
+        
+        const response = await fetch(url);
         const data = await response.json();
         
         if (!response.ok || data.status === 'error') {
-            throw new Error(data.message || 'Error al cargar listas');
+            throw new Error(data.message || 'Error al cargar usuarios');
         }
         
         const result = data.data || data;
-        GestionUsuariosModule.state.tutors = result.tutors || [];
-        GestionUsuariosModule.state.students = result.students || [];
+        GestionUsuariosModule.state.users = result.users || [];
+        GestionUsuariosModule.state.filteredUsers = GestionUsuariosModule.state.users;
         
-        renderTutorSelect();
-        renderStudents(GestionUsuariosModule.state.students);
+        renderUsersTable();
     } catch (error) {
-        console.error('Error al cargar listas:', error);
-        alert('Error al cargar listas: ' + error.message);
+        console.error('Error al cargar usuarios:', error);
+        showNotification('Error al cargar usuarios: ' + error.message, 'error');
     }
 }
 
-async function loadReport() {
-    try {
-        const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
-        const response = await fetch(`${basePath}/backend/api/gestionUsuarios.php?action=report`);
-        const data = await response.json();
+function applyFilters() {
+    const searchUser = document.getElementById('searchUser');
+    const filterRole = document.getElementById('filterRole');
+    
+    const searchTerm = searchUser?.value.toLowerCase().trim() || '';
+    const roleFilter = filterRole?.value || 'Todos';
+    
+    GestionUsuariosModule.state.filteredUsers = GestionUsuariosModule.state.users.filter(user => {
+        const matchRole = roleFilter === 'Todos' || user.rol === roleFilter;
+        const matchSearch = !searchTerm || 
+            user.nombres.toLowerCase().includes(searchTerm) ||
+            user.apellidos.toLowerCase().includes(searchTerm) ||
+            user.correo.toLowerCase().includes(searchTerm) ||
+            (user.codigo && user.codigo.toLowerCase().includes(searchTerm)) ||
+            (user.dni && user.dni.includes(searchTerm));
         
-        if (!response.ok || data.status === 'error') {
-            throw new Error(data.message || 'Error al cargar reporte');
-        }
-        
-        const result = data.data || data;
-        const items = result.items || [];
-        
-        const reportBody = document.getElementById('reportBody');
-        if (reportBody) {
-            reportBody.innerHTML = items.map(r => `
-                <tr>
-                    <td>${r.estudiante || ''}</td>
-                    <td>${r.codigo || ''}</td>
-                    <td>${r.tutor || ''}</td>
-                    <td>${r.fecha || ''}</td>
-                    <td>${r.hora || ''}</td>
-                    <td>${r.ambiente || ''}</td>
-                </tr>
-            `).join('');
-        }
-    } catch (error) {
-        console.error('Error al cargar reporte:', error);
-        alert('Error al cargar reporte: ' + error.message);
-    }
+        return matchRole && matchSearch;
+    });
+    
+    renderUsersTable();
 }
 
 // ============= RENDERIZADO =============
 
-function renderTutorSelect() {
-    const selectTutor = document.getElementById('selectTutor');
-    if (!selectTutor) return;
+function renderUsersTable() {
+    const tbody = document.getElementById('usersTableBody');
+    if (!tbody) return;
     
-    selectTutor.innerHTML = '<option value="">Seleccione un tutor activo</option>' +
-        GestionUsuariosModule.state.tutors.map(t => 
-            `<option value="${t.id}">${t.apellidos}, ${t.nombres}</option>`
-        ).join('');
+    if (GestionUsuariosModule.state.filteredUsers.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 40px; color: #999;">
+                    <i class="fa-solid fa-users-slash" style="font-size: 32px;"></i>
+                    <p style="margin-top: 10px;">No se encontraron usuarios</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = GestionUsuariosModule.state.filteredUsers.map(user => {
+        const roleClass = getRoleClass(user.rol);
+        const isActive = user.estado === 'Activo';
+        const statusClass = isActive ? 'active' : 'inactive';
+        const statusText = isActive ? 'Activo' : 'Inactivo';
+        const displayInfo = user.codigo || user.correo;
+        const fullName = `${user.nombres} ${user.apellidos}`;
+        
+        return `
+            <tr>
+                <td>
+                    <span class="user-name">${fullName}</span>
+                </td>
+                <td>
+                    <span class="user-code">${displayInfo}</span>
+                </td>
+                <td>
+                    <span class="role-badge ${roleClass}">${user.rol}</span>
+                </td>
+                <td>
+                    <span class="status-badge ${statusClass}">${statusText}</span>
+                </td>
+                <td>
+                    <div class="actions">
+                        <button class="btn-action btn-edit" onclick="window.openEditModal(${user.id}, '${user.userType}')">Editar</button>
+                        ${isActive ? 
+                            `<button class="btn-deactivate" onclick="window.toggleUserStatus(${user.id}, '${user.userType}', false)">Desactivar</button>` :
+                            `<button class="btn-activate" onclick="window.toggleUserStatus(${user.id}, '${user.userType}', true)">Activar</button>`
+                        }
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
 }
 
-function renderStudents(list) {
-    const studentsList = document.getElementById('studentsList');
-    if (!studentsList) return;
-    
-    studentsList.innerHTML = '';
-    list.forEach(s => {
-        const li = document.createElement('li');
-        li.innerHTML = `
-            <span>${s.apellidos}, ${s.nombres} <small style="color:#6b7280">(${s.codigo})</small></span>
-            <button class="add" data-id="${s.id}">Agregar</button>
-        `;
-        studentsList.appendChild(li);
-    });
-}
-
-function renderSelected() {
-    const selectedList = document.getElementById('selectedList');
-    if (!selectedList) return;
-    
-    selectedList.innerHTML = '';
-    const selected = GestionUsuariosModule.state.students.filter(s => 
-        GestionUsuariosModule.state.selectedIds.has(Number(s.id))
-    );
-    
-    selected.forEach(s => {
-        const li = document.createElement('li');
-        li.innerHTML = `
-            <span>${s.apellidos}, ${s.nombres} <small style="color:#6b7280">(${s.codigo})</small></span>
-            <button class="remove" data-id="${s.id}">Quitar</button>
-        `;
-        selectedList.appendChild(li);
-    });
+function getRoleClass(rol) {
+    const roleMap = {
+        'Administrador': 'admin',
+        'Tutor': 'tutor',
+        'Verificador': 'verifier',
+        'Estudiante': 'student'
+    };
+    return roleMap[rol] || 'student';
 }
 
 // ============= ACCIONES =============
 
-async function doAssign(isReassign) {
-    const selectTutor = document.getElementById('selectTutor');
-    const tutorId = Number(selectTutor?.value);
-    const studentIds = Array.from(GestionUsuariosModule.state.selectedIds);
-    
-    if (!tutorId) {
-        alert('Seleccione un tutor activo');
+async function saveNewUser() {
+    const form = document.getElementById('registerForm');
+    if (!form.checkValidity()) {
+        form.reportValidity();
         return;
     }
     
-    if (studentIds.length === 0) {
-        alert('Seleccione al menos un estudiante');
-        return;
-    }
+    const rol = document.getElementById('inputRol').value;
+    const dni = document.getElementById('inputDNI').value.trim();
+    const nombres = document.getElementById('inputNombres').value.trim();
+    const apellidos = document.getElementById('inputApellidos').value.trim();
+    const correo = document.getElementById('inputCorreo').value.trim();
     
-    const payload = isReassign
-        ? { action: 'reassign', toTutorId: tutorId, fromTutorId: GestionUsuariosModule.state.fromTutorId || 0, studentIds }
-        : { action: 'assign', tutorId, studentIds };
+    const payload = {
+        action: 'register',
+        rol,
+        dni,
+        nombres,
+        apellidos,
+        correo
+    };
+    
+    if (rol === 'Estudiante') {
+        payload.codigo = document.getElementById('inputCodigo').value.trim();
+        payload.semestre = document.getElementById('inputSemestre').value.trim();
+        
+        if (!payload.codigo || !payload.semestre) {
+            showNotification('Para estudiantes, el código y semestre son obligatorios', 'error');
+            return;
+        }
+    } else {
+        if (!dni) {
+            showNotification('El DNI es obligatorio para usuarios del sistema', 'error');
+            return;
+        }
+        
+        const especialidad = document.getElementById('inputEspecialidad').value.trim();
+        if (especialidad) {
+            payload.especialidad = especialidad;
+        }
+    }
     
     try {
         const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
@@ -318,40 +400,164 @@ async function doAssign(isReassign) {
         const data = await response.json();
         
         if (!response.ok || data.status === 'error') {
-            throw new Error(data.message || 'Error al guardar');
+            throw new Error(data.message || 'Error al registrar usuario');
         }
         
-        alert('Operación exitosa');
-        GestionUsuariosModule.state.selectedIds.clear();
-        renderSelected();
-        hideModal(document.getElementById('assignModal'));
+        showNotification('Usuario registrado exitosamente', 'success');
+        hideModal(document.getElementById('registerModal'));
+        await loadUsers();
     } catch (error) {
-        console.error('Error al asignar:', error);
-        alert('Error: ' + error.message);
+        console.error('Error al registrar usuario:', error);
+        showNotification('Error: ' + error.message, 'error');
     }
 }
 
-function printReport() {
-    const w = window.open('', 'PRINT', 'height=600,width=800');
-    const html = `<!doctype html><html><head><title>Reporte de Tutorías</title>
-        <style>
-            body{font-family:Arial,sans-serif;padding:16px}
-            table{width:100%;border-collapse:collapse}
-            th,td{border-bottom:1px solid #ddd;padding:8px 10px;text-align:left}
-            h2{margin:0 0 12px}
-        </style>
-    </head><body>
-        <h2>Reporte de Tutorías</h2>
-        <table>${document.querySelector('.report-table').innerHTML}</table>
-    </body></html>`;
-    w.document.write(html);
-    w.document.close();
-    w.focus();
-    w.print();
-    w.close();
+async function toggleUserStatus(userId, userType, activate) {
+    const action = activate ? 'activate' : 'deactivate';
+    
+    try {
+        const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+        const response = await fetch(`${basePath}/backend/api/gestionUsuarios.php`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action, userId, userType })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok || data.status === 'error') {
+            throw new Error(data.message || 'Error al actualizar estado');
+        }
+        
+        showNotification(activate ? 'Usuario activado correctamente' : 'Usuario desactivado correctamente', 'success');
+        await loadUsers();
+    } catch (error) {
+        console.error('Error al cambiar estado:', error);
+        showNotification('Error: ' + error.message, 'error');
+    }
+}
+
+// ============= EDICIÓN DE USUARIOS =============
+
+async function openEditModal(userId, userType) {
+    try {
+        const user = GestionUsuariosModule.state.users.find(u => 
+            u.id === userId && u.userType === userType
+        );
+        
+        if (!user) {
+            showNotification('Usuario no encontrado', 'error');
+            return;
+        }
+        
+        document.getElementById('editUserId').value = user.id;
+        document.getElementById('editUserType').value = user.userType;
+        document.getElementById('editRol').value = user.rol;
+        document.getElementById('editNombres').value = user.nombres;
+        document.getElementById('editApellidos').value = user.apellidos;
+        document.getElementById('editCorreo').value = user.correo;
+        
+        const isStudent = user.rol === 'Estudiante';
+        const isTutorOrVerifier = user.rol === 'Tutor' || user.rol === 'Verificador';
+        
+        document.querySelectorAll('.edit-student-field').forEach(f => 
+            f.classList.toggle('hidden', !isStudent)
+        );
+        document.querySelectorAll('.edit-system-field').forEach(f => 
+            f.classList.toggle('hidden', !isTutorOrVerifier)
+        );
+        
+        const dniField = document.getElementById('editFieldDNI');
+        if (dniField) {
+            dniField.classList.toggle('hidden', isStudent);
+        }
+        
+        if (isStudent) {
+            document.getElementById('editCodigo').value = user.codigo || '';
+            document.getElementById('editSemestre').value = user.semestre || '';
+        } else {
+            document.getElementById('editDNI').value = user.dni || '';
+            if (isTutorOrVerifier) {
+                document.getElementById('editEspecialidad').value = user.especialidad || '';
+            }
+        }
+        
+        showModal(document.getElementById('editModal'));
+    } catch (error) {
+        console.error('Error al abrir modal de edición:', error);
+        showNotification('Error al cargar datos del usuario', 'error');
+    }
+}
+
+async function saveEditUser() {
+    const form = document.getElementById('editForm');
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    const userId = document.getElementById('editUserId').value;
+    const userType = document.getElementById('editUserType').value;
+    const rol = document.getElementById('editRol').value;
+    const nombres = document.getElementById('editNombres').value.trim();
+    const apellidos = document.getElementById('editApellidos').value.trim();
+    const correo = document.getElementById('editCorreo').value.trim();
+    
+    const payload = {
+        action: 'update',
+        userId,
+        userType,
+        nombres,
+        apellidos,
+        correo
+    };
+    
+    if (rol === 'Estudiante') {
+        payload.semestre = document.getElementById('editSemestre').value.trim();
+        if (!payload.semestre) {
+            showNotification('El semestre es obligatorio', 'error');
+            return;
+        }
+    } else {
+        const dni = document.getElementById('editDNI').value.trim();
+        if (dni) {
+            payload.dni = dni;
+        }
+        
+        if (rol === 'Tutor' || rol === 'Verificador') {
+            const especialidad = document.getElementById('editEspecialidad').value.trim();
+            if (especialidad) {
+                payload.especialidad = especialidad;
+            }
+        }
+    }
+    
+    try {
+        const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+        const response = await fetch(`${basePath}/backend/api/gestionUsuarios.php`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok || data.status === 'error') {
+            throw new Error(data.message || 'Error al actualizar usuario');
+        }
+        
+        showNotification('Usuario actualizado correctamente', 'success');
+        hideModal(document.getElementById('editModal'));
+        await loadUsers();
+    } catch (error) {
+        console.error('Error al actualizar usuario:', error);
+        showNotification('Error: ' + error.message, 'error');
+    }
 }
 
 // ============= EXPORTAR A WINDOW =============
 
 window.loadGestionUsuariosContent = loadGestionUsuariosContent;
 window.initGestionUsuariosModule = initGestionUsuariosModule;
+window.toggleUserStatus = toggleUserStatus;
+window.openEditModal = openEditModal;

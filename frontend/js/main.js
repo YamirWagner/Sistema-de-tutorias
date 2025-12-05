@@ -299,88 +299,73 @@ async function initDashboard() {
             if (sidebarUserRole) sidebarUserRole.textContent = userRoleName;
         }, 200);
         
-        // Detectar si hay un módulo específico en la URL (ej: ?module=semestre)
+        // ============= DETECCIÓN DE MÓDULOS =============
+        const currentPath = window.location.pathname;
         const urlParams = new URLSearchParams(window.location.search);
         const moduleParam = urlParams.get('module');
-        const currentPath = window.location.pathname;
         
-        // Detectar si estamos en una ruta de módulo específico
-        const isSemestrePath = currentPath.includes('semestre');
+        console.log('🔍 Detectando módulo...');
+        console.log('   Path:', currentPath);
+        console.log('   Module param:', moduleParam);
         
-        console.log('🔍 Verificando parámetro module:', moduleParam);
-        console.log('🔍 URL completa:', window.location.href);
-        console.log('🔍 Search params:', window.location.search);
-        console.log('🔍 Ruta actual:', currentPath);
+        // Configuración de módulos
+        const modulesConfig = {
+            'semestre': {
+                paths: ['/semestre', '/Sistema-de-tutorias/semestre'],
+                param: 'semestre',
+                loadFn: 'loadCronogramaContent'
+            },
+            'gestion-usuarios': {
+                paths: ['/gestion-usuarios', '/Sistema-de-tutorias/gestion-usuarios'],
+                param: 'gestion-usuarios',
+                loadFn: 'loadGestionUsuariosContent'
+            }
+        };
         
-        // Si está en /semestre O tiene module=semestre, cargar semestre
-        if (moduleParam === 'semestre' || isSemestrePath) {
-            // Cargar módulo de semestre
-            console.log('🎯 Detectado semestre - NO cargar dashboard por defecto');
-            console.log('⏳ Esperando a que todos los scripts se carguen...');
+        // Buscar módulo coincidente
+        let moduleToLoad = null;
+        
+        for (const [moduleName, config] of Object.entries(modulesConfig)) {
+            const matchPath = config.paths.some(p => currentPath.includes(p));
+            const matchParam = moduleParam === config.param;
             
-            // Función para intentar cargar el módulo
-            const tryLoadSemestre = () => {
-                console.log('🚀 Intentando cargar módulo de semestre');
-                console.log('📋 Verificando función loadCronogramaContent:', typeof loadCronogramaContent);
+            if (matchPath || matchParam) {
+                moduleToLoad = { name: moduleName, config };
+                console.log(`✅ Módulo detectado: ${moduleName}`);
+                break;
+            }
+        }
+        
+        if (moduleToLoad) {
+            // Cargar módulo específico
+            console.log(`⏳ Cargando módulo: ${moduleToLoad.name}`);
+            
+            const tryLoadModule = () => {
+                const loadFn = window[moduleToLoad.config.loadFn];
                 
-                if (typeof loadCronogramaContent === 'function') {
-                    console.log('✅ loadCronogramaContent encontrada, ejecutando...');
+                console.log(`📋 Verificando función ${moduleToLoad.config.loadFn}:`, typeof loadFn);
+                
+                if (typeof loadFn === 'function') {
+                    console.log(`✅ ${moduleToLoad.config.loadFn} encontrada, ejecutando...`);
                     try {
-                        loadCronogramaContent();
+                        loadFn();
                     } catch (error) {
-                        console.error('❌ Error al ejecutar loadCronogramaContent:', error);
+                        console.error(`❌ Error al ejecutar ${moduleToLoad.config.loadFn}:`, error);
                     }
                 } else {
-                    console.error('❌ loadCronogramaContent no está disponible');
-                    console.log('Funciones window disponibles:', Object.keys(window).filter(k => k.toLowerCase().includes('load')));
+                    console.error(`❌ ${moduleToLoad.config.loadFn} no está disponible`);
                     
-                    // Reintentar después de más tiempo (solo una vez más)
-                    if (!tryLoadSemestre.retried) {
+                    if (!tryLoadModule.retried) {
                         console.log('🔄 Reintentando en 1 segundo...');
-                        tryLoadSemestre.retried = true;
-                        setTimeout(tryLoadSemestre, 1000);
+                        tryLoadModule.retried = true;
+                        setTimeout(tryLoadModule, 1000);
                     } else {
-                        console.error('❌ No se pudo cargar el módulo de semestre después de reintentar');
+                        console.error(`❌ No se pudo cargar el módulo ${moduleToLoad.name} después de reintentar`);
                     }
                 }
             };
             
-            // Primer intento después de 500ms
-            setTimeout(tryLoadSemestre, 500);
-        } else if (moduleParam === 'gestion-usuarios') {
-            // Cargar módulo de Gestión de Usuarios
-            console.log('🎯 Detectado gestion-usuarios - NO cargar dashboard por defecto');
-            console.log('⏳ Esperando a que todos los scripts se carguen...');
-            
-            // Función para intentar cargar el módulo
-            const tryLoadGestionUsuarios = () => {
-                console.log('🚀 Intentando cargar módulo de Gestión de Usuarios');
-                console.log('📋 Verificando función loadGestionUsuariosContent:', typeof loadGestionUsuariosContent);
-                
-                if (typeof loadGestionUsuariosContent === 'function') {
-                    console.log('✅ loadGestionUsuariosContent encontrada, ejecutando...');
-                    try {
-                        loadGestionUsuariosContent();
-                    } catch (error) {
-                        console.error('❌ Error al ejecutar loadGestionUsuariosContent:', error);
-                    }
-                } else {
-                    console.error('❌ loadGestionUsuariosContent no está disponible');
-                    console.log('Funciones window disponibles:', Object.keys(window).filter(k => k.toLowerCase().includes('load')));
-                    
-                    // Reintentar después de más tiempo (solo una vez más)
-                    if (!tryLoadGestionUsuarios.retried) {
-                        console.log('🔄 Reintentando en 1 segundo...');
-                        tryLoadGestionUsuarios.retried = true;
-                        setTimeout(tryLoadGestionUsuarios, 1000);
-                    } else {
-                        console.error('❌ No se pudo cargar el módulo de gestión de usuarios después de reintentar');
-                    }
-                }
-            };
-            
-            // Primer intento después de 500ms
-            setTimeout(tryLoadGestionUsuarios, 500);
+            setTimeout(tryLoadModule, 500);
         } else {
             // No hay módulo específico, cargar dashboard por defecto según el rol
             console.log('📊 Sin módulo específico, cargando dashboard por defecto');

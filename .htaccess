@@ -13,6 +13,7 @@ DirectoryIndex frontend/index.html
   # Bloquear acceso directo a archivos PHP del backend
   RewriteCond %{REQUEST_URI} backend/.*\.php$
   RewriteCond %{REQUEST_URI} !backend/routes\.php$
+  RewriteCond %{REQUEST_URI} !backend/api/gestionUsuarios\.php$
   RewriteRule .* - [F,L]
   
   # Todas las rutas /api/* van al enrutador routes.php
@@ -42,8 +43,8 @@ DirectoryIndex frontend/index.html
   RewriteRule ^index/?$ frontend/index.html [L,NC]
   
   # Módulos que se cargan dentro del panel
-  RewriteRule ^semestre/?$ /Sistema-de-tutorias/panel?module=semestre [R=302,L,QSA]
-  RewriteRule ^gestion-usuarios/?$ /Sistema-de-tutorias/panel?module=gestion-usuarios [R=302,L,QSA]
+  RewriteRule ^semestre/?$ frontend/panel.html?module=semestre [L,NC,QSA]
+  RewriteRule ^gestion-usuarios/?$ frontend/panel.html?module=gestion-usuarios [L,NC,QSA]
 
   # ============================================
   # RECURSOS ESTÁTICOS
