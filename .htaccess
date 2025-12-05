@@ -27,9 +27,29 @@ DirectoryIndex frontend/index.html
   # FRONTEND - Rutas limpias sin .html
   # ============================================
   
-  # Recursos estáticos (CSS, JS, imágenes, componentes) - Reescribir rutas
-  # IMPORTANTE: Estas reglas deben ir ANTES de cualquier otra regla
-  # La bandera [L] hace que sean las ÚLTIMAS reglas aplicadas
+  # ============================================
+  # PÁGINAS Y MÓDULOS - DEBEN IR PRIMERO
+  # ============================================
+  
+  # Raíz del sitio
+  RewriteRule ^$ frontend/index.html [L]
+
+  # Páginas principales sin extensión
+  RewriteRule ^login/?$ frontend/login.html [L,NC]
+  RewriteRule ^verify/?$ frontend/verify.html [L,NC]
+  RewriteRule ^panel/?$ frontend/panel.html [L,NC,QSA]
+  RewriteRule ^dashboard/?$ frontend/panel.html [L,NC,QSA]
+  RewriteRule ^index/?$ frontend/index.html [L,NC]
+  
+  # Módulos que se cargan dentro del panel
+  RewriteRule ^semestre/?$ /Sistema-de-tutorias/panel?module=semestre [R=302,L,QSA]
+  RewriteRule ^gestion-usuarios/?$ /Sistema-de-tutorias/panel?module=gestion-usuarios [R=302,L,QSA]
+
+  # ============================================
+  # RECURSOS ESTÁTICOS
+  # ============================================
+  
+  # Recursos estáticos (CSS, JS, imágenes, componentes)
   RewriteRule ^js/(.*)$ frontend/js/$1 [L,NC,END]
   RewriteRule ^css/(.*)$ frontend/css/$1 [L,NC,END]
   RewriteRule ^assets/(.*)$ frontend/assets/$1 [L,NC,END]
@@ -38,17 +58,6 @@ DirectoryIndex frontend/index.html
   # Permitir acceso directo a archivos estáticos existentes
   RewriteCond %{REQUEST_FILENAME} -f
   RewriteRule ^ - [L]
-
-  # Raíz del sitio
-  RewriteRule ^$ frontend/index.html [L]
-
-  # Páginas principales sin extensión
-  RewriteRule ^login/?$ frontend/login.html [L,NC]
-  RewriteRule ^verify/?$ frontend/verify.html [L,NC]
-  RewriteRule ^panel/?$ frontend/panel.html [L,NC,QSA]
-  RewriteRule ^semestre/?$ frontend/panel.html?module=semestre [L,NC,QSA]
-  RewriteRule ^dashboard/?$ frontend/panel.html [L,NC,QSA]
-  RewriteRule ^index/?$ frontend/index.html [L,NC]
 
   # Redirigir URLs con .html a versiones sin extensión
   # EXCEPTO para componentes, js, css y assets

@@ -1,0 +1,66 @@
+<section class="gestion-usuarios" style="padding: 20px;">
+	<h2 style="margin-bottom: 20px; color: #333; font-size: 24px;">Gestión de Usuarios</h2>
+	<div class="toolbar">
+		<button id="btnOpenAssign" class="btn primary">Asignar/Reasignar</button>
+		<button id="btnOpenReport" class="btn">Reporte Tutorías</button>
+	</div>
+
+	<!-- Modal Asignación/Reasignación -->
+	<div id="assignModal" class="modal hidden">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h3>Asignar / Reasignar Tutorías</h3>
+				<button class="close" id="closeAssign">×</button>
+			</div>
+			<div class="modal-body">
+				<div class="field">
+					<label for="selectTutor">Tutor destino</label>
+					<select id="selectTutor"></select>
+				</div>
+				<div class="grid">
+					<div class="col">
+						<label>Estudiantes activos</label>
+						<input id="searchStudent" type="text" placeholder="Buscar por nombre o código" />
+						<ul id="studentsList" class="list"></ul>
+					</div>
+					<div class="col">
+						<label>Seleccionados</label>
+						<ul id="selectedList" class="list"></ul>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button id="btnAssign" class="btn primary">Asignar</button>
+				<button id="btnReassign" class="btn warn">Reasignar</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Modal Reporte -->
+	<div id="reportModal" class="modal hidden">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h3>Reporte de Tutorías</h3>
+				<button class="close" id="closeReport">×</button>
+			</div>
+			<div class="modal-body">
+				<table class="report-table">
+					<thead>
+						<tr>
+							<th>Estudiante</th>
+							<th>Código</th>
+							<th>Tutor</th>
+							<th>Fecha</th>
+							<th>Hora</th>
+							<th>Ambiente</th>
+						</tr>
+					</thead>
+					<tbody id="reportBody"></tbody>
+				</table>
+			</div>
+			<div class="modal-footer">
+				<button id="btnPrintReport" class="btn">Imprimir</button>
+			</div>
+		</div>
+	</div>
+</section>

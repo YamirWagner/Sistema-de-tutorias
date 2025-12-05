@@ -65,12 +65,13 @@ function checkAuth() {
     // Detectar página actual (funciona con URLs limpias y .html)
     const isPanel = path.includes('panel') || path.includes('dashboard');
     const isSemestre = path.includes('semestre');
+    const isGestionUsuarios = path.includes('gestion-usuarios');
     const isLogin = path.includes('login');
     const isVerify = path.includes('verify');
     const isIndex = path.endsWith('/') || path.includes('index');
     
     // Páginas protegidas que requieren autenticación
-    const isProtectedPage = isPanel || isSemestre;
+    const isProtectedPage = isPanel || isSemestre || isGestionUsuarios;
     
     // Si no hay token y está en una página protegida, redirigir a login
     if (!token && isProtectedPage) {
@@ -310,7 +311,6 @@ async function initDashboard() {
         console.log('🔍 URL completa:', window.location.href);
         console.log('🔍 Search params:', window.location.search);
         console.log('🔍 Ruta actual:', currentPath);
-        console.log('🔍 ¿Es ruta semestre?:', isSemestrePath);
         
         // Si está en /semestre O tiene module=semestre, cargar semestre
         if (moduleParam === 'semestre' || isSemestrePath) {
@@ -347,6 +347,40 @@ async function initDashboard() {
             
             // Primer intento después de 500ms
             setTimeout(tryLoadSemestre, 500);
+        } else if (moduleParam === 'gestion-usuarios') {
+            // Cargar módulo de Gestión de Usuarios
+            console.log('🎯 Detectado gestion-usuarios - NO cargar dashboard por defecto');
+            console.log('⏳ Esperando a que todos los scripts se carguen...');
+            
+            // Función para intentar cargar el módulo
+            const tryLoadGestionUsuarios = () => {
+                console.log('🚀 Intentando cargar módulo de Gestión de Usuarios');
+                console.log('📋 Verificando función loadGestionUsuariosContent:', typeof loadGestionUsuariosContent);
+                
+                if (typeof loadGestionUsuariosContent === 'function') {
+                    console.log('✅ loadGestionUsuariosContent encontrada, ejecutando...');
+                    try {
+                        loadGestionUsuariosContent();
+                    } catch (error) {
+                        console.error('❌ Error al ejecutar loadGestionUsuariosContent:', error);
+                    }
+                } else {
+                    console.error('❌ loadGestionUsuariosContent no está disponible');
+                    console.log('Funciones window disponibles:', Object.keys(window).filter(k => k.toLowerCase().includes('load')));
+                    
+                    // Reintentar después de más tiempo (solo una vez más)
+                    if (!tryLoadGestionUsuarios.retried) {
+                        console.log('🔄 Reintentando en 1 segundo...');
+                        tryLoadGestionUsuarios.retried = true;
+                        setTimeout(tryLoadGestionUsuarios, 1000);
+                    } else {
+                        console.error('❌ No se pudo cargar el módulo de gestión de usuarios después de reintentar');
+                    }
+                }
+            };
+            
+            // Primer intento después de 500ms
+            setTimeout(tryLoadGestionUsuarios, 500);
         } else {
             // No hay módulo específico, cargar dashboard por defecto según el rol
             console.log('📊 Sin módulo específico, cargando dashboard por defecto');
@@ -461,7 +495,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('📍 Ruta actual:', path);
     
     // Detectar si estamos en una página que requiere el panel (funciona con URLs limpias y .html)
-    const isPanelPage = path.includes('panel') || path.includes('dashboard') || path.includes('semestre');
+    const isPanelPage = path.includes('panel') || path.includes('dashboard') || path.includes('semestre') || path.includes('gestion-usuarios');
     
     if (isPanelPage) {
         console.log('✅ Detectada página de panel/módulo - Inicializando dashboard...');
