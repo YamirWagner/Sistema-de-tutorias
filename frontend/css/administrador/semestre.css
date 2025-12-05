@@ -232,144 +232,166 @@
 }
 
 /* ============= MODAL ============= */
-.modal {
-    display: none !important;
-    position: fixed !important;
-    inset: 0 !important;
-    background-color: rgba(0, 0, 0, 0.5) !important;
-    z-index: 9999 !important;
-    align-items: center !important;
-    justify-content: center !important;
-    padding: 16px !important;
-    backdrop-filter: blur(4px) !important;
+.semester-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 999999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    backdrop-filter: blur(4px);
 }
 
-.modal-content {
-    background: white !important;
-    border-radius: 12px !important;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1) !important;
-    max-width: 28rem !important;
-    width: 100% !important;
-    max-height: 90vh !important;
-    overflow-y: auto !important;
+.semester-modal-content {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+    max-width: 28rem;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
-.modal-body {
-    padding: 24px !important;
+.semester-modal-body {
+    padding: 24px;
 }
 
-.modal-header {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    margin-bottom: 24px !important;
+.semester-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e5e7eb;
 }
 
-.modal-header h3 {
-    font-size: 1.25rem !important;
-    font-weight: 700 !important;
-    color: #1f2937 !important;
-    margin: 0 !important;
+.semester-modal-header h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0;
 }
 
-.btn-close {
-    color: #6b7280 !important;
-    background: none !important;
-    border: none !important;
-    cursor: pointer !important;
-    font-size: 1.25rem !important;
-    padding: 4px !important;
-    transition: color 0.2s !important;
+.semester-btn-close {
+    color: #6b7280;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.5rem;
+    padding: 4px 8px;
+    transition: all 0.2s;
+    line-height: 1;
+    border-radius: 6px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.btn-close:hover {
-    color: #1f2937 !important;
+.semester-btn-close:hover {
+    color: #1f2937;
+    background: #f3f4f6;
+}
+
+.semester-btn-close:active {
+    transform: scale(0.95);
 }
 
 /* ============= FORMULARIO ============= */
 #editSemesterForm {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 16px !important;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
-.form-group {
-    display: flex !important;
-    flex-direction: column !important;
+.semester-form-group {
+    display: flex;
+    flex-direction: column;
 }
 
-.form-group label {
-    display: block !important;
-    font-size: 0.875rem !important;
-    font-weight: 600 !important;
-    color: #374151 !important;
-    margin-bottom: 8px !important;
+.semester-form-group label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 8px;
 }
 
 .required {
-    color: #ef4444 !important;
+    color: #ef4444;
 }
 
-.form-input {
-    width: 100% !important;
-    border: 1px solid #d1d5db !important;
-    border-radius: 8px !important;
-    padding: 10px 16px !important;
-    font-size: 0.95rem !important;
-    transition: all 0.2s !important;
-    outline: none !important;
+.semester-form-input {
+    width: 100%;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+    outline: none;
+    background: white;
 }
 
-.form-input:focus {
-    border-color: #fbbf24 !important;
-    box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.1) !important;
+.semester-form-input:focus {
+    border-color: #fbbf24;
+    box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.1);
 }
 
-.form-row {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
-    gap: 16px !important;
+.semester-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
 }
 
-.modal-footer {
-    display: flex !important;
-    justify-content: flex-end !important;
-    gap: 12px !important;
-    padding-top: 16px !important;
+.semester-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding-top: 16px;
+    margin-top: 8px;
+    border-top: 1px solid #e5e7eb;
 }
 
-.btn-cancel {
-    padding: 10px 24px !important;
-    background: #f3f4f6 !important;
-    color: #374151 !important;
-    border-radius: 8px !important;
-    border: none !important;
-    cursor: pointer !important;
-    font-weight: 500 !important;
-    font-size: 0.95rem !important;
-    transition: all 0.2s !important;
+.semester-btn-cancel {
+    padding: 10px 24px;
+    background: #f3f4f6;
+    color: #374151;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: all 0.2s;
 }
 
-.btn-cancel:hover {
-    background: #e5e7eb !important;
+.semester-btn-cancel:hover {
+    background: #e5e7eb;
 }
 
-.btn-save {
-    padding: 10px 24px !important;
-    background: #b91c1c !important;
-    color: white !important;
-    border-radius: 8px !important;
-    border: none !important;
-    cursor: pointer !important;
-    font-weight: 500 !important;
-    font-size: 0.95rem !important;
-    box-shadow: 0 2px 6px rgba(185, 28, 28, 0.3) !important;
-    transition: all 0.2s !important;
+.semester-btn-save {
+    padding: 10px 24px;
+    background: #b91c1c;
+    color: white;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.95rem;
+    box-shadow: 0 2px 6px rgba(185, 28, 28, 0.3);
+    transition: all 0.2s;
 }
 
-.btn-save:hover {
-    background: #991b1b !important;
-    box-shadow: 0 4px 8px rgba(185, 28, 28, 0.4) !important;
+.semester-btn-save:hover {
+    background: #991b1b;
+    box-shadow: 0 4px 8px rgba(185, 28, 28, 0.4);
 }
 
 /* ============= MENSAJES ============= */
@@ -416,7 +438,11 @@
         font-size: 2.5rem !important;
     }
     
-    .form-row {
+    .semester-form-row {
         grid-template-columns: 1fr !important;
+    }
+    
+    .semester-modal-content {
+        max-width: 95vw !important;
     }
 }

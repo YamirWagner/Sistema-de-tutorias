@@ -39,6 +39,9 @@ async function loadGestionUsuariosContent() {
         return;
     }
     
+    // Limpiar modales anteriores si existen
+    cleanupGestionUsuariosModals();
+    
     try {
         content.innerHTML = '<div class="loading-message" style="text-align:center;padding:40px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:32px;color:#a42727;"></i><p style="margin-top:16px;color:#666;">Cargando módulo...</p></div>';
         
@@ -70,10 +73,12 @@ async function loadGestionUsuariosContent() {
         
         if (registerModal && registerModal.parentElement.id === 'dashboardContent') {
             document.body.appendChild(registerModal);
+            registerModal.setAttribute('data-gestion-usuarios-modal', 'true');
         }
         
         if (editModal && editModal.parentElement.id === 'dashboardContent') {
             document.body.appendChild(editModal);
+            editModal.setAttribute('data-gestion-usuarios-modal', 'true');
         }
         
         await initGestionUsuariosModule();
@@ -555,9 +560,21 @@ async function saveEditUser() {
     }
 }
 
+// ============= LIMPIEZA DE MODALES =============
+
+function cleanupGestionUsuariosModals() {
+    // Eliminar modales anteriores del body
+    const oldModals = document.querySelectorAll('[data-gestion-usuarios-modal="true"]');
+    oldModals.forEach(modal => {
+        hideModal(modal);
+        modal.remove();
+    });
+}
+
 // ============= EXPORTAR A WINDOW =============
 
 window.loadGestionUsuariosContent = loadGestionUsuariosContent;
 window.initGestionUsuariosModule = initGestionUsuariosModule;
 window.toggleUserStatus = toggleUserStatus;
 window.openEditModal = openEditModal;
+window.cleanupGestionUsuariosModals = cleanupGestionUsuariosModals;

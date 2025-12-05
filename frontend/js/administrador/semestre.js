@@ -38,6 +38,9 @@ async function loadCronogramaContent() {
         return;
     }
     
+    // Limpiar modales anteriores si existen
+    cleanupSemestreModals();
+    
     try {
         content.innerHTML = '<div class="loading-message"><i class="fa-solid fa-spinner fa-spin"></i><p>Cargando módulo...</p></div>';
         
@@ -66,6 +69,18 @@ async function loadCronogramaContent() {
         
         // Esperar procesamiento del DOM
         await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        
+        // Mover modal al body y marcar
+        const modal = document.getElementById('editSemesterModal');
+        if (modal && modal.parentElement.id === 'dashboardContent') {
+            document.body.appendChild(modal);
+            modal.setAttribute('data-semestre-modal', 'true');
+            // Asegurar que esté oculto inicialmente
+            modal.style.setProperty('display', 'none', 'important');
+        }
+        
+        // Configurar event listeners del modal
+        setupModalEventListeners();
         
         // Verificar template
         const template = document.getElementById('semesterCardTemplate');
@@ -227,7 +242,7 @@ function showCreateSemesterModal() {
     setValue('semesterEndDate', '');
     setValue('semesterStatus', 'Programado');
     setText('modalTitle', 'Crear Nuevo Semestre');
-    showModal('editSemesterModal');
+    showSemesterModal('editSemesterModal');
 }
 
 function editSemester(id) {
@@ -241,7 +256,7 @@ function editSemester(id) {
     setValue('semesterStatus', sem.estado);
     setText('modalTitle', 'Editar Semestre');
     
-    showModal('editSemesterModal');
+    showSemesterModal('editSemesterModal');
 }
 
 async function activateSemester(id) {
@@ -324,7 +339,38 @@ async function saveSemester(e) {
 
 // ============= UTILIDADES =============
 
-// Fallback para notificaciones si no está disponible globalmente
+function setupModalEventListeners() {
+    setTimeout(() => {
+        const modal = document.getElementById('editSemesterModal');
+        const btnClose = document.getElementById('btnCloseSemesterModal');
+        const btnCancel = document.getElementById('btnCancelSemesterModal');
+        
+        if (btnClose) {
+            btnClose.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                closeEditSemesterModal();
+            });
+        }
+        
+        if (btnCancel) {
+            btnCancel.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                closeEditSemesterModal();
+            });
+        }
+        
+        if (modal) {
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closeEditSemesterModal();
+                }
+            });
+        }
+    }, 100);
+}
+
 function showNotification(message, type = 'info') {
     if (window.showNotification && typeof window.showNotification === 'function') {
         window.showNotification(message, type);
@@ -337,7 +383,6 @@ function calculateDaysRemaining(endDateStr) {
     const end = new Date(endDateStr + 'T00:00:00');
     const today = new Date();
     today.setHours(0,0,0,0);
-    
     const diffTime = end - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return Math.max(0, diffDays);
@@ -353,7 +398,10 @@ function formatDateLong(dateStr) {
 function closeEditSemesterModal() {
     const modal = document.getElementById('editSemesterModal');
     if (modal) {
-        modal.style.display = 'none';
+        modal.style.setProperty('display', 'none', 'important');
+        modal.style.visibility = 'hidden';
+        modal.style.opacity = '0';
+        modal.style.pointerEvents = 'none';
     }
 }
 
@@ -364,14 +412,22 @@ function setText(id, text) {
 
 function setValue(id, value) {
     const el = document.getElementById(id);
-    if (el) el.value = value;
+    if (el) el.value = value || '';
 }
 
-function showModal(id) {
-    const el = document.getElementById(id);
-    if (el) {
-        el.style.display = 'flex';
+function showSemesterModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) {
+        modal.style.setProperty('display', 'flex', 'important');
+        modal.style.visibility = 'visible';
+        modal.style.opacity = '1';
+        modal.style.pointerEvents = 'auto';
     }
+}
+
+function cleanupSemestreModals() {
+    const oldModals = document.querySelectorAll('[data-semestre-modal="true"]');
+    oldModals.forEach(modal => modal.remove());
 }
 
 // Exportar
@@ -384,3 +440,4 @@ window.saveSemester = saveSemester;
 window.editSemester = editSemester;
 window.activateSemester = activateSemester;
 window.finalizeSemester = finalizeSemester;
+window.cleanupSemestreModals = cleanupSemestreModals;

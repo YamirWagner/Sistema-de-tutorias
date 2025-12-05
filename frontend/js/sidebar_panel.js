@@ -105,6 +105,14 @@ function closeSidebarOnNavigation() {
         sidebar.classList.remove('mobile-open');
         body.classList.remove('sidebar-mobile-open');
     }
+    
+    // Limpiar modales de gestión de usuarios y semestre al navegar
+    if (typeof window.cleanupGestionUsuariosModals === 'function') {
+        window.cleanupGestionUsuariosModals();
+    }
+    if (typeof window.cleanupSemestreModals === 'function') {
+        window.cleanupSemestreModals();
+    }
 }
 
 // Auto-cerrar sidebar en resize a desktop
@@ -147,7 +155,16 @@ function initializeSidebar() {
     console.log(`📍 ${sidebarLinks.length} enlaces encontrados`);
     
     sidebarLinks.forEach(link => {
-        link.addEventListener('click', closeSidebarOnNavigation);
+        link.addEventListener('click', () => {
+            closeSidebarOnNavigation();
+            // Limpiar modales al navegar
+            if (typeof window.cleanupGestionUsuariosModals === 'function') {
+                window.cleanupGestionUsuariosModals();
+            }
+            if (typeof window.cleanupSemestreModals === 'function') {
+                window.cleanupSemestreModals();
+            }
+        });
     });
     
     // Verificar botón toggle móvil

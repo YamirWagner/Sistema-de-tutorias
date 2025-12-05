@@ -1,7 +1,6 @@
-<!-- Admin Semestre - Gestión de Semestre Activo -->
 <div class="cronograma-section" style="background: #f9fafb; padding: 24px; min-height: 100vh;">
     <div class="header-actions" style="display: flex; justify-content: flex-end; margin-bottom: 24px;">
-        <button onclick="showCreateSemesterModal()" class="btn-create-semester" style="padding: 12px 28px; background: linear-gradient(135deg, #fbbf24, #f59e0b); color: white; font-weight: 700; font-size: 0.95rem; border-radius: 10px; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4); transition: all 0.3s ease;">
+        <button onclick="showCreateSemesterModal()" class="btn-create-semester">
             + Crear Nuevo Semestre
         </button>
     </div>
@@ -35,22 +34,22 @@
 </div>
 
 <!-- Modal: Crear/Editar Semestre -->
-<div id="editSemesterModal" class="modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; padding: 16px;">
-    <div class="modal-content" style="background: white; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); max-width: 28rem; width: 100%; max-height: 90vh; overflow-y: auto;">
-        <div class="modal-body" style="padding: 24px;">
-            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                <h3 id="modalTitle" style="font-size: 1.25rem; font-weight: 700; color: #1f2937; margin: 0;">Crear Nuevo Semestre</h3>
-                <button type="button" onclick="closeEditSemesterModal()" class="btn-close" style="color: #6b7280; background: none; border: none; cursor: pointer; font-size: 1.25rem; padding: 4px;">
+<div id="editSemesterModal" class="semester-modal" style="display: none !important;">
+    <div class="semester-modal-content" onclick="event.stopPropagation()">
+        <div class="semester-modal-body">
+            <div class="semester-modal-header">
+                <h3 id="modalTitle">Crear Nuevo Semestre</h3>
+                <button type="button" id="btnCloseSemesterModal" class="semester-btn-close">
                     <i class="fa-solid fa-times"></i>
                 </button>
             </div>
 
-            <form id="editSemesterForm" onsubmit="saveSemester(event)" style="display: flex; flex-direction: column; gap: 16px;">
+            <form id="editSemesterForm" onsubmit="saveSemester(event)">
                 <input type="hidden" id="semesterId" name="semesterId">
 
-                <div class="form-group" style="display: flex; flex-direction: column;">
-                    <label for="semesterName" style="display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 8px;">
-                        Nombre del Semestre <span class="required" style="color: #ef4444;">*</span>
+                <div class="semester-form-group">
+                    <label for="semesterName">
+                        Nombre del Semestre <span class="required">*</span>
                     </label>
                     <input type="text" 
                            id="semesterName" 
@@ -58,53 +57,53 @@
                            required
                            maxlength="10"
                            placeholder="Ej: 2025-I"
-                           class="form-input" style="width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 10px 16px; font-size: 0.95rem;">
+                           class="semester-form-input">
                 </div>
 
-                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                    <div class="form-group" style="display: flex; flex-direction: column;">
-                        <label for="semesterStartDate" style="display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 8px;">
-                            Fecha de Inicio <span class="required" style="color: #ef4444;">*</span>
+                <div class="semester-form-row">
+                    <div class="semester-form-group">
+                        <label for="semesterStartDate">
+                            Fecha de Inicio <span class="required">*</span>
                         </label>
                         <input type="date" 
                                id="semesterStartDate" 
                                name="fechaInicio" 
                                required
-                               class="form-input" style="width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 10px 16px; font-size: 0.95rem;">
+                               class="semester-form-input">
                     </div>
-                    <div class="form-group" style="display: flex; flex-direction: column;">
-                        <label for="semesterEndDate" style="display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 8px;">
-                            Fecha de Fin <span class="required" style="color: #ef4444;">*</span>
+                    <div class="semester-form-group">
+                        <label for="semesterEndDate">
+                            Fecha de Fin <span class="required">*</span>
                         </label>
                         <input type="date" 
                                id="semesterEndDate" 
                                name="fechaFin" 
                                required
-                               class="form-input" style="width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 10px 16px; font-size: 0.95rem;">
+                               class="semester-form-input">
                     </div>
                 </div>
                 
-                <div class="form-group" style="display: flex; flex-direction: column;">
-                    <label for="semesterStatus" style="display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 8px;">
-                        Estado <span class="required" style="color: #ef4444;">*</span>
+                <div class="semester-form-group">
+                    <label for="semesterStatus">
+                        Estado <span class="required">*</span>
                     </label>
                     <select id="semesterStatus" 
                             name="estado" 
                             required
-                            class="form-input" style="width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 10px 16px; font-size: 0.95rem; background: white;">
+                            class="semester-form-input">
                         <option value="Programado">Programado</option>
                         <option value="Activo">Activo</option>
                         <option value="Finalizado">Finalizado</option>
                     </select>
                 </div>
 
-                <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 12px; padding-top: 16px;">
+                <div class="semester-modal-footer">
                     <button type="button" 
-                            onclick="closeEditSemesterModal()"
-                            class="btn-cancel" style="padding: 10px 24px; background: #f3f4f6; color: #374151; border-radius: 8px; border: none; cursor: pointer; font-weight: 500; font-size: 0.95rem;">
+                            id="btnCancelSemesterModal"
+                            class="semester-btn-cancel">
                         Cancelar
                     </button>
-                    <button type="submit" class="btn-save" style="padding: 10px 24px; background: #b91c1c; color: white; border-radius: 8px; border: none; cursor: pointer; font-weight: 500; font-size: 0.95rem; box-shadow: 0 2px 6px rgba(185, 28, 28, 0.3);">
+                    <button type="submit" class="semester-btn-save">
                         Guardar
                     </button>
                 </div>
