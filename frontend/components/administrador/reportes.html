@@ -1,0 +1,281 @@
+<!-- ================================================
+     REPORTES - Sistema de Tutorías UNSAAC
+     ================================================ -->
+
+<div class="reports-container">
+    <h1 class="page-title">
+        <i class="fa-solid fa-chart-line"></i>
+        Reportes y Constancias
+    </h1>
+
+    <!-- Sección 1: Lista de Tutorados por Tutor -->
+    <section class="report-section">
+        <div class="section-header">
+            <div class="section-title">
+                <i class="fa-solid fa-users"></i>
+                <h2>Lista de Tutorados por Tutor</h2>
+            </div>
+            <p class="section-description">
+                Genera un documento PDF con la lista de todos los estudiantes asignados a un tutor específico para un semestre.
+            </p>
+        </div>
+
+        <div class="report-controls">
+            <div class="form-group">
+                <label>
+                    <i class="fa-solid fa-calendar"></i>
+                    Seleccionar Semestre
+                </label>
+                <select id="semester-tutor-list" class="form-select">
+                    <option value="">Cargando semestres...</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    <i class="fa-solid fa-chalkboard-user"></i>
+                    Seleccionar Tutor
+                </label>
+                <select id="tutor-select" class="form-select" disabled>
+                    <option value="">Primero selecciona un semestre</option>
+                </select>
+            </div>
+
+            <button id="btn-generate-tutor-list" class="btn-generate">
+                <i class="fa-solid fa-file-pdf"></i>
+                Generar PDF
+            </button>
+        </div>
+    </section>
+
+    <!-- Sección 2: Historial Completo de Estudiante -->
+    <section class="report-section">
+        <div class="section-header">
+            <div class="section-title">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                <h2>Historial Completo de Estudiante</h2>
+            </div>
+            <p class="section-description">
+                Muestra todas las sesiones (académicas, personales y profesionales) de un estudiante a lo largo de todos los semestres.
+            </p>
+        </div>
+
+        <div class="report-controls">
+            <div class="form-group">
+                <label>
+                    <i class="fa-solid fa-user-graduate"></i>
+                    Buscar Estudiante
+                </label>
+                <div class="search-input-wrapper">
+                    <input 
+                        type="text" 
+                        id="student-search" 
+                        class="form-input"
+                        placeholder="Buscar por código o nombre..."
+                    >
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                </div>
+                <div id="student-suggestions" class="suggestions-dropdown"></div>
+            </div>
+
+            <div class="action-buttons">
+                <button id="btn-view-history" class="btn-secondary">
+                    <i class="fa-solid fa-eye"></i>
+                    Ver en Pantalla
+                </button>
+                <button id="btn-export-history" class="btn-generate">
+                    <i class="fa-solid fa-file-pdf"></i>
+                    Exportar PDF
+                </button>
+            </div>
+        </div>
+
+        <!-- Tabla de resultados del historial -->
+        <div id="history-results" class="history-results hidden">
+            <div class="results-header">
+                <h3 id="student-name-display"></h3>
+                <span id="total-sessions-badge" class="badge">0 sesiones</span>
+            </div>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Semestre</th>
+                            <th>Tipo</th>
+                            <th>Tutor</th>
+                            <th>Tema</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table-body">
+                        <!-- Se llenará dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección 3: Constancia de Tutoría -->
+    <section class="report-section">
+        <div class="section-header">
+            <div class="section-title">
+                <i class="fa-solid fa-certificate"></i>
+                <h2>Constancia de Tutoría</h2>
+            </div>
+            <p class="section-description">
+                Genera una constancia formal que certifica que un estudiante completó su plan de tutorías para un semestre específico.
+            </p>
+        </div>
+
+        <div class="report-controls">
+            <div class="form-group">
+                <label>
+                    <i class="fa-solid fa-calendar"></i>
+                    Seleccionar Semestre
+                </label>
+                <select id="semester-constancia" class="form-select">
+                    <option value="">Cargando semestres...</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    <i class="fa-solid fa-user-graduate"></i>
+                    Buscar Estudiante
+                </label>
+                <div class="search-input-wrapper">
+                    <input 
+                        type="text" 
+                        id="student-constancia" 
+                        class="form-input"
+                        placeholder="Buscar por código o nombre..."
+                    >
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                </div>
+                <div id="student-constancia-suggestions" class="suggestions-dropdown"></div>
+            </div>
+
+            <button id="btn-generate-constancia" class="btn-generate">
+                <i class="fa-solid fa-file-pdf"></i>
+                Generar Constancia (PDF)
+            </button>
+        </div>
+
+        <!-- Información de constancia -->
+        <div id="constancia-info" class="constancia-info hidden">
+            <div class="info-card">
+                <h4>
+                    <i class="fa-solid fa-info-circle"></i>
+                    Información de la Constancia
+                </h4>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Estudiante:</span>
+                        <span id="const-student-name" class="info-value"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Código:</span>
+                        <span id="const-student-code" class="info-value"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Semestre:</span>
+                        <span id="const-semester" class="info-value"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Sesiones Completadas:</span>
+                        <span id="const-sessions" class="info-value"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Estado:</span>
+                        <span id="const-status" class="info-value"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección 4: Reporte de Cumplimiento -->
+    <section class="report-section">
+        <div class="section-header">
+            <div class="section-title">
+                <i class="fa-solid fa-chart-bar"></i>
+                <h2>Reporte de Cumplimiento</h2>
+            </div>
+            <p class="section-description">
+                Muestra un resumen estadístico de cuántos tutores han registrado sus sesiones y promedio de sesiones por estudiante.
+            </p>
+        </div>
+
+        <div class="report-controls">
+            <div class="form-group">
+                <label>
+                    <i class="fa-solid fa-calendar"></i>
+                    Seleccionar Semestre
+                </label>
+                <select id="semester-compliance" class="form-select">
+                    <option value="">Cargando semestres...</option>
+                </select>
+            </div>
+
+            <button id="btn-generate-compliance" class="btn-generate">
+                <i class="fa-solid fa-chart-simple"></i>
+                Generar Gráfico
+            </button>
+        </div>
+
+        <!-- Resultados del reporte -->
+        <div id="compliance-results" class="compliance-results hidden">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fa-solid fa-chalkboard-user"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label">Total Tutores</span>
+                        <span id="stat-total-tutors" class="stat-value">0</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fa-solid fa-user-graduate"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label">Total Estudiantes</span>
+                        <span id="stat-total-students" class="stat-value">0</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fa-solid fa-calendar-check"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label">Sesiones Registradas</span>
+                        <span id="stat-total-sessions" class="stat-value">0</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label">Promedio por Estudiante</span>
+                        <span id="stat-avg-sessions" class="stat-value">0.0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <canvas id="compliance-chart"></canvas>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Loading overlay -->
+<div id="loading-overlay" class="loading-overlay" style="display: none;">
+    <div class="loading-spinner">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <p>Procesando...</p>
+    </div>
+</div>

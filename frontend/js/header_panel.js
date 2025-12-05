@@ -236,19 +236,13 @@ function handleModalClick(event) {
  * Inicialización del header
  */
 async function initializeHeader() {
-    console.log('🎯 Inicializando Header Panel...');
-    
-    // Actualizar información (ahora es async)
     await updateSemesterInfo();
     updateHeaderUserInfo();
     
-    // Agregar listener para cerrar modal al hacer clic fuera
     const modal = document.getElementById('helpModal');
     if (modal) {
         modal.addEventListener('click', handleModalClick);
     }
-    
-    console.log('✅ Header Panel inicializado');
 }
 
 // Inicializar cuando el DOM esté listo

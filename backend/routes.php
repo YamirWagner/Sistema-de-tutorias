@@ -93,6 +93,10 @@ $routes = [
     'GET|api/asignaciones' => 'api/asignaciones.php',
     'POST|api/asignaciones' => 'api/asignaciones.php',
 
+    // Rutas de reportes
+    'GET|api/reportes' => 'api/reportes.php',
+    'POST|api/reportes' => 'api/reportes.php',
+
     // Rutas de bitácora (log de acceso/actividad)
     'GET|api/log' => 'api/log.php',
     'POST|api/log' => 'api/log.php',

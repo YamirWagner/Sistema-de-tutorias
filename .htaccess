@@ -42,34 +42,25 @@ DirectoryIndex frontend/index.html
   RewriteRule ^dashboard/?$ frontend/panel.html [L,NC,QSA]
   RewriteRule ^index/?$ frontend/index.html [L,NC]
   
-  # Módulos que se cargan dentro del panel
-  RewriteRule ^semestre/?$ frontend/panel.html?module=semestre [L,NC,QSA]
-  RewriteRule ^gestion-usuarios/?$ frontend/panel.html?module=gestion-usuarios [L,NC,QSA]
-  RewriteRule ^asignaciones/?$ frontend/panel.html?module=asignaciones [L,NC,QSA]
+  # Módulos que se cargan dentro del panel - Servir panel.html
+  RewriteRule ^semestre/?$ frontend/panel.html [L,NC]
+  RewriteRule ^gestion-usuarios/?$ frontend/panel.html [L,NC]
+  RewriteRule ^asignaciones/?$ frontend/panel.html [L,NC]
+  RewriteRule ^reportes/?$ frontend/panel.html [L,NC]
+  RewriteRule ^auditoria/?$ frontend/panel.html [L,NC]
 
   # ============================================
   # RECURSOS ESTÁTICOS
   # ============================================
   
   # Recursos estáticos (CSS, JS, imágenes, componentes)
-  RewriteRule ^js/(.*)$ frontend/js/$1 [L,NC,END]
-  RewriteRule ^css/(.*)$ frontend/css/$1 [L,NC,END]
-  RewriteRule ^assets/(.*)$ frontend/assets/$1 [L,NC,END]
-  RewriteRule ^components/(.*)$ frontend/components/$1 [L,NC,END]
+  RewriteRule ^js/(.*)$ frontend/js/$1 [L,NC]
+  RewriteRule ^css/(.*)$ frontend/css/$1 [L,NC]
+  RewriteRule ^assets/(.*)$ frontend/assets/$1 [L,NC]
+  RewriteRule ^components/(.*)$ frontend/components/$1 [L,NC]
   
   # Permitir acceso directo a archivos estáticos existentes
   RewriteCond %{REQUEST_FILENAME} -f
-  RewriteRule ^ - [L]
-
-  # Redirigir URLs con .html a versiones sin extensión
-  # EXCEPTO para componentes, js, css y assets
-  RewriteCond %{THE_REQUEST} ^[A-Z]{3,}\s([^.]+)\.html [NC]
-  RewriteCond %{REQUEST_URI} !^/Sistema-de-tutorias/(components|js|css|assets)/ [NC]
-  RewriteRule ^ %1 [R=301,L]
-
-  # NO aplicar más reglas si es un archivo o directorio existente
-  RewriteCond %{REQUEST_FILENAME} -f [OR]
-  RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 </IfModule>
 

@@ -23,8 +23,9 @@
         }
         
         try {
-            const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
-            const htmlPath = `${basePath}/components/administrador/asignaciones.html`;
+            // Usar helper simplificado
+            const htmlPath = window.PATH?.adminAsignaciones() || 
+                           '/Sistema-de-tutorias/frontend/components/administrador/asignaciones.html';
             
             const response = await fetch(htmlPath);
             if (!response.ok) throw new Error(`Error ${response.status}: ${response.statusText}`);

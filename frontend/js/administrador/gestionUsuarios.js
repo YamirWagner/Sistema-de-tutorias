@@ -45,8 +45,9 @@ async function loadGestionUsuariosContent() {
     try {
         content.innerHTML = '<div class="loading-message" style="text-align:center;padding:40px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:32px;color:#a42727;"></i><p style="margin-top:16px;color:#666;">Cargando módulo...</p></div>';
         
-        const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
-        const cssPath = `${basePath}/css/administrador/gestionUsuarios.css`;
+        // Usar helpers simplificados
+        const cssPath = window.PATH?.css('administrador/gestionUsuarios.css') || 
+                       '/Sistema-de-tutorias/frontend/css/administrador/gestionUsuarios.css';
         
         if (!document.querySelector(`link[href*="gestionUsuarios.css"]`)) {
             const cssLink = document.createElement('link');
@@ -55,7 +56,8 @@ async function loadGestionUsuariosContent() {
             document.head.appendChild(cssLink);
         }
         
-        const url = `${basePath}/components/administrador/gestionUsuarios.html?v=${Date.now()}`;
+        const url = (window.PATH?.adminGestionUsuarios() || 
+                    '/Sistema-de-tutorias/frontend/components/administrador/gestionUsuarios.html') + `?v=${Date.now()}`;
         
         const response = await fetch(url, { cache: 'no-store' });
         

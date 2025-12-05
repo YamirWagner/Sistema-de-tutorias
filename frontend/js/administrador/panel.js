@@ -15,9 +15,9 @@ async function loadAdminPanelContent() {
         // Limpiar contenido previo
         content.innerHTML = '';
         
-        // Construir URL correcta
-        const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
-        const url = `${basePath}/components/administrador/panel.html`;
+        // Usar helper simplificado
+        const url = window.PATH?.adminPanel() || 
+                   '/Sistema-de-tutorias/frontend/components/administrador/panel.html';
         console.log('📡 Cargando desde:', url);
         
         const response = await fetch(url);
@@ -292,8 +292,10 @@ async function loadAdminContent() {
             await loadCronogramaContent();
         }
         
-        // 3. Cargar el dashboard del administrador
-        const response = await fetch('/frontend/components/administrador/dashboard.html');
+        // 3. Cargar el dashboard del administrador (usar helper)
+        const dashboardPath = window.PATH?.adminDashboard() || 
+                            '/Sistema-de-tutorias/frontend/components/administrador/dashboard.html';
+        const response = await fetch(dashboardPath);
         const html = await response.text();
         
         // Limpiar contenido existente del admin panel

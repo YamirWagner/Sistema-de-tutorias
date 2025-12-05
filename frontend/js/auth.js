@@ -149,6 +149,64 @@ function renderInlineVerification(email) {
     if (firstInput) firstInput.focus();
 }
 
+/**
+ * Verificar si el usuario está autenticado
+ */
+function isAuthenticated() {
+    const token = localStorage.getItem('token');
+    if (!token) return false;
+    
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const now = Math.floor(Date.now() / 1000);
+        
+        if (payload.exp && payload.exp < now) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            return false;
+        }
+        
+        return true;
+    } catch (error) {
+        return false;
+    }
+}
+
+/**
+ * Obtener información del usuario desde el token JWT
+ */
+function getUserFromToken() {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+    
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return {
+            id: payload.user_id || payload.id || payload.userId,
+            email: payload.email,
+            name: payload.name || payload.nombres,
+            role: payload.role,
+            semestre: payload.semestre,
+            userType: payload.userType,
+            codigo: payload.codigo,
+            dni: payload.dni,
+            especialidad: payload.especialidad
+        };
+    } catch (error) {
+        return null;
+    }
+}
+
+/**
+ * Cerrar sesión
+ */
+function logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+    window.location.href = basePath + '/login';
+}
+
 // Configurar navegación entre inputs de código
 function setupCodeInputs(formEl) {
     const inputs = formEl.querySelectorAll('.code-input');
@@ -246,3 +304,11 @@ function attachVerifyHandler(formEl, email, messageElementId) {
         }
     });
 }
+
+// ===== EXPONER FUNCIONES GLOBALES =====
+window.sendVerificationCode = sendVerificationCode;
+window.verifyCode = verifyCode;
+window.isAuthenticated = isAuthenticated;
+window.getUserFromToken = getUserFromToken;
+window.logout = logout;
+window.showMessage = showMessage;

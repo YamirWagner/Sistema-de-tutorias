@@ -7,22 +7,56 @@
     <title>Panel Principal - Sistema de Tutorías</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.1/dist/flowbite.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="/Sistema-de-tutorias/css/panel.css">
-    <link rel="stylesheet" href="/Sistema-de-tutorias/css/header_panel.css">
-    <link rel="stylesheet" href="/Sistema-de-tutorias/css/sidebar_panel.css">
-    <link rel="stylesheet" href="/Sistema-de-tutorias/css/footer_panel.css">
-    <link rel="stylesheet" href="/Sistema-de-tutorias/css/modals.css">
-    <link rel="stylesheet" href="/Sistema-de-tutorias/css/administrador/panel.css">
-    <link rel="stylesheet" href="/Sistema-de-tutorias/css/administrador/semestre.css">
-    <link rel="stylesheet" href="/Sistema-de-tutorias/css/administrador/gestionUsuarios.css">
-    <link rel="stylesheet" href="/Sistema-de-tutorias/css/administrador/asignaciones.css">
+    <link rel="stylesheet" href="/Sistema-de-tutorias/frontend/css/panel.css">
+    <link rel="stylesheet" href="/Sistema-de-tutorias/frontend/css/header_panel.css">
+    <link rel="stylesheet" href="/Sistema-de-tutorias/frontend/css/sidebar_panel.css">
+    <link rel="stylesheet" href="/Sistema-de-tutorias/frontend/css/footer_panel.css">
+    <link rel="stylesheet" href="/Sistema-de-tutorias/frontend/css/modals.css">
+    <link rel="stylesheet" href="/Sistema-de-tutorias/frontend/css/administrador/panel.css">
+    <link rel="stylesheet" href="/Sistema-de-tutorias/frontend/css/administrador/semestre.css">
+    <link rel="stylesheet" href="/Sistema-de-tutorias/frontend/css/administrador/gestionUsuarios.css">
+    <link rel="stylesheet" href="/Sistema-de-tutorias/frontend/css/administrador/asignaciones.css">
+    <link rel="stylesheet" href="/Sistema-de-tutorias/frontend/css/administrador/reportes.css">
+    <style>
+        /* Asegurar visibilidad de componentes principales */
+        #header-container,
+        #sidebar-container,
+        #footer-container {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        .loading-spinner {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .loading-spinner i {
+            font-size: 2rem;
+            color: #3498db;
+        }
+    </style>
 </head>
 <body class="bg-gray-100">
     <!-- Header Fijo -->
-    <div id="header-container"></div>
+    <div id="header-container" style="display: block; visibility: visible; opacity: 1;"></div>
 
     <!-- Sidebar Fijo -->
-    <div id="sidebar-container"></div>
+    <div id="sidebar-container" style="display: block; visibility: visible; opacity: 1;"></div>
 
     <!-- Contenedor Principal (con margen para header y sidebar) -->
     <div class="main-wrapper">
@@ -35,24 +69,41 @@
         </main>
         
         <!-- Footer dentro del main-wrapper -->
-        <div id="footer-container"></div>
+        <div id="footer-container" style="display: block; visibility: visible; opacity: 1;"></div>
     </div>
 
     <!-- Modales -->
     <div id="modals-container"></div>
 
-    <script src="/Sistema-de-tutorias/js/api.js"></script>
-    <script src="/Sistema-de-tutorias/js/calendar.js"></script>
-    <script src="/Sistema-de-tutorias/js/administrador/semestre.js"></script>
-    <script src="/Sistema-de-tutorias/js/administrador/panel.js"></script>
-    <script src="/Sistema-de-tutorias/js/administrador/gestionUsuarios.js"></script>
-    <script src="/Sistema-de-tutorias/js/administrador/asignaciones.js"></script>
-    <script src="/Sistema-de-tutorias/js/tutor/tutor.js"></script>
-    <script src="/Sistema-de-tutorias/js/estudiante/student.js"></script>
-    <script src="/Sistema-de-tutorias/js/verificador/verifier.js"></script>
-    <script src="/Sistema-de-tutorias/js/main.js"></script>
-    <script src="/Sistema-de-tutorias/js/header_panel.js"></script>
-    <script src="/Sistema-de-tutorias/js/sidebar_panel.js"></script>
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner">
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            <p>Cargando...</p>
+        </div>
+    </div>
+
+    <!-- Librerías externas para reportes -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+    <!-- Configuración global (debe cargarse primero) -->
+    <script src="/Sistema-de-tutorias/frontend/js/config.js"></script>
+    
+    <script src="/Sistema-de-tutorias/frontend/js/api.js"></script>
+    <script src="/Sistema-de-tutorias/frontend/js/calendar.js"></script>
+    <script src="/Sistema-de-tutorias/frontend/js/administrador/semestre.js"></script>
+    <script src="/Sistema-de-tutorias/frontend/js/administrador/panel.js"></script>
+    <script src="/Sistema-de-tutorias/frontend/js/administrador/gestionUsuarios.js"></script>
+    <script src="/Sistema-de-tutorias/frontend/js/administrador/asignaciones.js"></script>
+    <script src="/Sistema-de-tutorias/frontend/js/administrador/reportes.js"></script>
+    <script src="/Sistema-de-tutorias/frontend/js/tutor/tutor.js"></script>
+    <script src="/Sistema-de-tutorias/frontend/js/estudiante/student.js"></script>
+    <script src="/Sistema-de-tutorias/frontend/js/verificador/verifier.js"></script>
+    <script src="/Sistema-de-tutorias/frontend/js/main.js"></script>
+    <script src="/Sistema-de-tutorias/frontend/js/header_panel.js"></script>
+    <script src="/Sistema-de-tutorias/frontend/js/sidebar_panel.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.1/dist/flowbite.min.js"></script>
 </body>
 </html>

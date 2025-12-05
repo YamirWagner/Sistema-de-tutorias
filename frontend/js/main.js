@@ -9,29 +9,19 @@ async function loadAppConfig() {
         const response = await fetch(`${apiUrl}/config`);
         const config = await response.json();
         
-        console.log('Configuración cargada:', config);
-        
         if (config.success) {
-            // Guardar versión en variable global
             window.APP_VERSION = config.data.version;
             window.APP_NAME = config.data.app_name;
-            
-            console.log('Versión del sistema:', window.APP_VERSION);
-            
-            // Actualizar footer si existe
             updateFooterVersion(config.data.version);
         }
     } catch (error) {
         console.error('Error al cargar configuración:', error);
-        window.APP_VERSION = '1.0.0'; // Versión por defecto
+        window.APP_VERSION = '1.0.0';
     }
 }
 
 // Actualizar versión en el footer
 function updateFooterVersion(version) {
-    console.log('📌 Actualizando versión a:', version);
-    
-    // Verificar que el footer esté visible
     const footerContainer = document.getElementById('footer-container');
     if (footerContainer) {
         const footer = footerContainer.querySelector('footer');
@@ -39,16 +29,12 @@ function updateFooterVersion(version) {
             footer.style.display = 'block';
             footer.style.visibility = 'visible';
             footer.style.opacity = '1';
-            console.log('✅ Footer forzado a visible en updateFooterVersion');
         }
     }
     
-    // Actualizar versión
     const versionElements = document.querySelectorAll('.app-version');
-    console.log('📍 Elementos de versión encontrados:', versionElements.length);
-    versionElements.forEach((el, index) => {
+    versionElements.forEach(el => {
         el.textContent = version;
-        console.log(`  ${index + 1}. Actualizado:`, el.parentElement?.className || 'sin clase');
     });
 }
 
@@ -58,37 +44,28 @@ function checkAuth() {
     const path = window.location.pathname;
     const basePath = window.APP_BASE_PATH || '';
     
-    console.log('🔐 Verificando autenticación...');
-    console.log('   Token:', token ? '✅ Presente' : '❌ No hay token');
-    console.log('   Ruta actual:', path);
-    
-    // Detectar página actual (funciona con URLs limpias y .html)
     const isPanel = path.includes('panel') || path.includes('dashboard');
     const isSemestre = path.includes('semestre');
     const isGestionUsuarios = path.includes('gestion-usuarios');
     const isAsignaciones = path.includes('asignaciones');
+    const isReportes = path.includes('reportes');
+    const isAuditoria = path.includes('auditoria');
     const isLogin = path.includes('login');
     const isVerify = path.includes('verify');
     const isIndex = path.endsWith('/') || path.includes('index');
     
-    // Páginas protegidas que requieren autenticación
-    const isProtectedPage = isPanel || isSemestre || isGestionUsuarios || isAsignaciones;
+    const isProtectedPage = isPanel || isSemestre || isGestionUsuarios || isAsignaciones || isReportes || isAuditoria;
     
-    // Si no hay token y está en una página protegida, redirigir a login
     if (!token && isProtectedPage) {
-        console.warn('⚠️ Sin token en página protegida - Redirigiendo a login');
         window.location.href = basePath + '/login';
         return false;
     }
     
-    // Si hay token y está en login/verify/index, redirigir a panel
     if (token && (isLogin || isVerify || isIndex)) {
-        console.log('✅ Token presente en página pública - Redirigiendo a panel');
         window.location.href = basePath + '/panel';
         return false;
     }
     
-    console.log('✅ Autenticación verificada correctamente');
     return true;
 }
 
@@ -117,49 +94,34 @@ function logout() {
 // Cargar componentes HTML (header, sidebar, footer)
 async function loadComponent(elementId, componentPath) {
     try {
-        const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
-        // Construir URL completa con basePath
-        const fullPath = `${basePath}/${componentPath}`;
+        const fullPath = componentPath.startsWith('/') ? componentPath : 
+                        `${window.APP_BASE_PATH || '/Sistema-de-tutorias'}/${componentPath}`;
         
-        console.log(`🔄 Cargando componente: ${fullPath}`);
-        console.log(`📍 Elemento destino: #${elementId}`);
-        
-        // Verificar que el elemento existe ANTES de hacer fetch
         const element = document.getElementById(elementId);
         if (!element) {
-            console.error(`❌ Elemento #${elementId} NO EXISTE en el DOM`);
-            console.log('📋 Elementos disponibles:', Array.from(document.querySelectorAll('[id]')).map(e => e.id));
+            console.error(`❌ Elemento #${elementId} NO EXISTE`);
             return;
         }
-        console.log(`✅ Elemento #${elementId} encontrado`);
         
         const response = await fetch(fullPath);
-        console.log(`📡 Response status: ${response.status}`);
         
         if (!response.ok) {
             console.error(`❌ Error HTTP ${response.status} al cargar ${fullPath}`);
-            const errorText = await response.text();
-            console.error('Response:', errorText.substring(0, 200));
             return;
         }
         
         const html = await response.text();
-        console.log(`📦 HTML recibido: ${html.length} caracteres`);
-        console.log(`📝 Primeros 100 caracteres:`, html.substring(0, 100));
-        
         element.innerHTML = html;
-        console.log(`✅ Componente ${componentPath} insertado en #${elementId}`);
         
-        // Verificar que el contenido se insertó
-        if (element.innerHTML.length > 0) {
-            console.log(`✅ Verificación: #${elementId} ahora tiene ${element.innerHTML.length} caracteres`);
-        } else {
-            console.error(`❌ PROBLEMA: #${elementId} está vacío después de insertar`);
+        // Asegurar visibilidad de componentes principales
+        if (['header-container', 'sidebar-container', 'footer-container'].includes(elementId)) {
+            element.style.display = 'block';
+            element.style.visibility = 'visible';
+            element.style.opacity = '1';
         }
         
     } catch (error) {
-        console.error(`❌ ERROR CRÍTICO cargando ${componentPath}:`, error);
-        console.error('Stack:', error.stack);
+        console.error(`❌ Error cargando ${componentPath}:`, error);
     }
 }
 
@@ -186,110 +148,98 @@ async function initDashboard() {
     console.log('Footer container:', footerContainer ? '✅ Existe' : '❌ NO EXISTE');
     
     // Cargar configuración del sistema
-    console.log('\n📡 Paso 1: Cargando configuración del sistema...');
     await loadAppConfig();
     
     // Cargar componentes
-    console.log('\n📦 Paso 2: Cargando componentes HTML...');
-    
-    console.log('--- Header ---');
-    await loadComponent('header-container', 'components/header-panel.html');
+    const headerPath = window.PATH?.header() || 'frontend/components/header-panel.html';
+    await loadComponent('header-container', headerPath);
     const headerCheck = document.getElementById('header-container');
-    console.log('✔️ Header insertado:', headerCheck && headerCheck.innerHTML.length > 0 ? `${headerCheck.innerHTML.length} chars` : '❌ VACÍO');
     
-    // Actualizar información del header (semestre y días restantes)
-    if (typeof window.updateHeaderPanelInfo === 'function') {
-        setTimeout(async () => {
-            await window.updateHeaderPanelInfo();
-            console.log('✅ Información del header actualizada');
-        }, 100);
+    // Asegurar visibilidad del header
+    if (headerCheck && headerCheck.innerHTML.length > 0) {
+        headerCheck.style.display = 'block';
+        headerCheck.style.visibility = 'visible';
+        headerCheck.style.opacity = '1';
     }
     
-    console.log('--- Sidebar ---');
-    await loadComponent('sidebar-container', 'components/sidebar-panel.html');
+    // Actualizar información del header
+    if (typeof window.updateHeaderPanelInfo === 'function') {
+        setTimeout(() => window.updateHeaderPanelInfo(), 100);
+    }
+    
+    const sidebarPath = window.PATH?.sidebar() || 'frontend/components/sidebar-panel.html';
+    await loadComponent('sidebar-container', sidebarPath);
+    
+    // Asegurar visibilidad del sidebar
     const sidebarCheck = document.getElementById('sidebar-container');
-    console.log('✔️ Sidebar insertado:', sidebarCheck && sidebarCheck.innerHTML.length > 0 ? `${sidebarCheck.innerHTML.length} chars` : '❌ VACÍO');
+    if (sidebarCheck && sidebarCheck.innerHTML.length > 0) {
+        sidebarCheck.style.display = 'block';
+        sidebarCheck.style.visibility = 'visible';
+        sidebarCheck.style.opacity = '1';
+    }
     
     // Inicializar funcionalidad del sidebar
     if (typeof window.initializeSidebar === 'function') {
-        setTimeout(() => {
-            window.initializeSidebar();
-            console.log('✅ Sidebar inicializado');
-        }, 150);
+        setTimeout(() => window.initializeSidebar(), 150);
     }
     
-    console.log('--- Footer ---');
-    await loadComponent('footer-container', 'components/footer-panel.html');
+    const footerPath = window.PATH?.footer() || 'frontend/components/footer-panel.html';
+    await loadComponent('footer-container', footerPath);
     const footerCheck = document.getElementById('footer-container');
-    console.log('✔️ Footer insertado:', footerCheck && footerCheck.innerHTML.length > 0 ? `${footerCheck.innerHTML.length} chars` : '❌ VACÍO');
     
-    // Verificación final visual
     if (footerCheck && footerCheck.innerHTML.length > 0) {
-        console.log('🎉 FOOTER CARGADO EXITOSAMENTE');
-        console.log('Footer HTML:', footerCheck.innerHTML.substring(0, 100));
+        footerCheck.style.display = 'block';
+        footerCheck.style.visibility = 'visible';
+        footerCheck.style.opacity = '1';
         
-        // Forzar visibilidad del footer
         const footerElement = footerCheck.querySelector('footer');
         if (footerElement) {
             footerElement.style.display = 'block';
             footerElement.style.visibility = 'visible';
             footerElement.style.opacity = '1';
-            console.log('✅ Footer forzado a visible');
         }
-    } else {
-        console.error('⚠️ PROBLEMA: Footer NO se cargó correctamente');
     }
     
-    // Obtener datos del usuario ANTES de cargar modales
+    // Obtener datos del usuario
     const user = getUserFromToken();
     const userRole = user ? normalizeRole(user.role) : null;
-    const userRoleName = user ? getRoleName(user.role) : null;
     
-    console.log('👤 Usuario:', user);
-    console.log('🎭 Rol normalizado:', userRole);
-    console.log('🎭 Nombre del rol:', userRoleName);
-    
-    console.log('--- Modales ---');
-    // Cargar modales generales primero (incluye helpModal)
-    await loadComponent('modals-container', 'components/modals.html');
+    // Cargar modales
+    const modalsPath = window.PATH?.modals() || 'frontend/components/modals.html';
+    await loadComponent('modals-container', modalsPath);
     const modalsCheck = document.getElementById('modals-container');
-    console.log('✔️ Modales generales insertados:', modalsCheck && modalsCheck.innerHTML.length > 0 ? `${modalsCheck.innerHTML.length} chars` : '❌ VACÍO');
     
-    // Luego cargar modales específicos del rol
+    // Cargar modales específicos del rol
     if (userRole === 'admin') {
-        const adminModalsPath = 'components/administrador/modals.html';
+        const adminModalsPath = window.PATH?.adminModals() || 
+                               '/Sistema-de-tutorias/frontend/components/administrador/modals.html';
         try {
             const response = await fetch(adminModalsPath);
             if (response.ok) {
                 const html = await response.text();
                 modalsCheck.insertAdjacentHTML('beforeend', html);
-                console.log('✔️ Modales de administrador agregados');
             }
         } catch (error) {
-            console.log('⚠️ No se pudieron cargar modales de administrador:', error);
+            console.error('Error cargando modales de administrador:', error);
         }
     }
     
-    console.log('✔️ Total de modales:', modalsCheck && modalsCheck.innerHTML.length > 0 ? `${modalsCheck.innerHTML.length} chars` : '❌ VACÍO');
-    
-    console.log('\n✅ Todos los componentes procesados');
-    
-    // Actualizar versión en el footer después de cargarlo
+    // Actualizar versión en el footer
     setTimeout(() => {
         if (window.APP_VERSION) {
             updateFooterVersion(window.APP_VERSION);
         }
     }, 100);
     
-    // Actualizar información del usuario en el contenido principal
+    // Actualizar información del usuario
     if (user) {
+        const userRoleName = getRoleName(user.role);
         const welcomeMsg = document.getElementById('welcomeMessage');
         const userRoleEl = document.getElementById('userRole');
         
         if (welcomeMsg) welcomeMsg.textContent = `Bienvenido, ${user.name || user.email}`;
         if (userRoleEl) userRoleEl.textContent = `Rol: ${userRoleName}`;
         
-        // Actualizar información en el header y sidebar (después de que se carguen)
         setTimeout(() => {
             const headerUserName = document.getElementById('headerUserName');
             const headerUserRole = document.getElementById('headerUserRole');
@@ -305,9 +255,7 @@ async function initDashboard() {
         const urlParams = new URLSearchParams(window.location.search);
         const moduleParam = urlParams.get('module');
         
-        console.log('🔍 Detectando módulo...');
-        console.log('   Path:', currentPath);
-        console.log('   Module param:', moduleParam);
+        console.log('🔍 Detectando módulo - Path:', currentPath, '| Param:', moduleParam);
         
         // Configuración de módulos
         const modulesConfig = {
@@ -325,6 +273,11 @@ async function initDashboard() {
                 paths: ['/asignaciones', '/Sistema-de-tutorias/asignaciones'],
                 param: 'asignaciones',
                 loadFn: 'loadAsignacionesContent'
+            },
+            'reportes': {
+                paths: ['/reportes', '/Sistema-de-tutorias/reportes'],
+                param: 'reportes',
+                loadFn: 'loadReportesContent'
             }
         };
         
@@ -337,41 +290,46 @@ async function initDashboard() {
             
             if (matchPath || matchParam) {
                 moduleToLoad = { name: moduleName, config };
-                console.log(`✅ Módulo detectado: ${moduleName}`);
                 break;
             }
         }
         
         if (moduleToLoad) {
-            // Cargar módulo específico
-            console.log(`⏳ Cargando módulo: ${moduleToLoad.name}`);
+            console.log('✅ Módulo detectado:', moduleToLoad.name, '| Función:', moduleToLoad.config.loadFn);
             
             const tryLoadModule = () => {
                 const loadFn = window[moduleToLoad.config.loadFn];
                 
-                console.log(`📋 Verificando función ${moduleToLoad.config.loadFn}:`, typeof loadFn);
+                console.log('📋 Verificando función:', moduleToLoad.config.loadFn, '| Tipo:', typeof loadFn);
                 
                 if (typeof loadFn === 'function') {
-                    console.log(`✅ ${moduleToLoad.config.loadFn} encontrada, ejecutando...`);
+                    console.log('✅ Ejecutando función de carga...');
                     try {
                         loadFn();
                     } catch (error) {
-                        console.error(`❌ Error al ejecutar ${moduleToLoad.config.loadFn}:`, error);
+                        console.error(`Error al ejecutar ${moduleToLoad.config.loadFn}:`, error);
                     }
                 } else {
-                    console.error(`❌ ${moduleToLoad.config.loadFn} no está disponible`);
+                    console.warn('⚠️ Función no disponible aún');
+                    if (!tryLoadModule.attempts) {
+                        tryLoadModule.attempts = 0;
+                    }
+                    tryLoadModule.attempts++;
                     
-                    if (!tryLoadModule.retried) {
-                        console.log('🔄 Reintentando en 1 segundo...');
-                        tryLoadModule.retried = true;
-                        setTimeout(tryLoadModule, 1000);
+                    if (tryLoadModule.attempts < 5) {
+                        console.log(`🔄 Reintento ${tryLoadModule.attempts}/5 en 500ms...`);
+                        setTimeout(tryLoadModule, 500);
                     } else {
-                        console.error(`❌ No se pudo cargar el módulo ${moduleToLoad.name} después de reintentar`);
+                        console.error(`❌ No se pudo cargar el módulo ${moduleToLoad.name} después de ${tryLoadModule.attempts} intentos`);
+                        const dashboardContent = document.getElementById('dashboardContent');
+                        if (dashboardContent) {
+                            dashboardContent.innerHTML = `<div class="p-6 text-red-600">Error: No se pudo cargar el módulo ${moduleToLoad.name}. La función ${moduleToLoad.config.loadFn} no está disponible.</div>`;
+                        }
                     }
                 }
             };
             
-            setTimeout(tryLoadModule, 500);
+            setTimeout(tryLoadModule, 300);
         } else {
             // No hay módulo específico, cargar dashboard por defecto según el rol
             console.log('📊 Sin módulo específico, cargando dashboard por defecto');
@@ -486,7 +444,13 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('📍 Ruta actual:', path);
     
     // Detectar si estamos en una página que requiere el panel (funciona con URLs limpias y .html)
-    const isPanelPage = path.includes('panel') || path.includes('dashboard') || path.includes('semestre') || path.includes('gestion-usuarios') || path.includes('asignaciones');
+    const isPanelPage = path.includes('panel') || 
+                       path.includes('dashboard') || 
+                       path.includes('semestre') || 
+                       path.includes('gestion-usuarios') || 
+                       path.includes('asignaciones') ||
+                       path.includes('reportes') ||
+                       path.includes('auditoria');
     
     if (isPanelPage) {
         console.log('✅ Detectada página de panel/módulo - Inicializando dashboard...');

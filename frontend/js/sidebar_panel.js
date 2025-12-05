@@ -203,48 +203,48 @@ async function loadSidebarMenu() {
         return;
     }
     
+    // Configuración simplificada de menús por rol
     const menus = {
         admin: [
-            { icon: 'fa-solid fa-house', text: '&nbsp;Inicio', action: 'goToHome', active: true },
-            { icon: 'fa-solid fa-calendar-days', text: '&nbsp;Semestre', action: 'showScheduleSection' },
-            { icon: 'fa-solid fa-users-gear', text: '&nbsp;Gestión de usuarios', action: 'showUserManagement' },
-            { icon: 'fa-solid fa-clipboard-list', text: '&nbsp;Asignaciones', action: 'showAssignmentsSection' },
-            { icon: 'fa-solid fa-chart-line', text: '&nbsp;Reportes', action: 'showReportsSection' },
-            { icon: 'fa-solid fa-magnifying-glass-chart', text: '&nbsp;Buscar Historial', action: 'showSearchHistory' },
-            { icon: 'fa-solid fa-shield-halved', text: '&nbsp;Auditoría', action: 'showAuditSection' },
+            { icon: 'fa-solid fa-house', text: 'Inicio', module: null, active: true },
+            { icon: 'fa-solid fa-calendar-days', text: 'Semestre', module: 'semestre' },
+            { icon: 'fa-solid fa-users-gear', text: 'Gestión de usuarios', module: 'gestion-usuarios' },
+            { icon: 'fa-solid fa-clipboard-list', text: 'Asignaciones', module: 'asignaciones' },
+            { icon: 'fa-solid fa-chart-line', text: 'Reportes', module: 'reportes' },
+            { icon: 'fa-solid fa-magnifying-glass-chart', text: 'Buscar Historial', module: 'buscar-historial' },
+            { icon: 'fa-solid fa-shield-halved', text: 'Auditoría', module: 'auditoria' },
         ],
         tutor: [
-            { icon: 'fa-solid fa-house', text: 'Inicio', action: 'goToHome', active: true },
-            { icon: 'fa-solid fa-plus-circle', text: 'Nueva Sesión', action: 'createNewSession' },
-            { icon: 'fa-solid fa-calendar-check', text: 'Agendamientos', action: 'showScheduledSessions' },
-            { icon: 'fa-solid fa-user-graduate', text: 'Mis estudiantes', action: 'showMyStudents' },
+            { icon: 'fa-solid fa-house', text: 'Inicio', module: null, active: true },
+            { icon: 'fa-solid fa-plus-circle', text: 'Nueva Sesión', module: 'nueva-sesion' },
+            { icon: 'fa-solid fa-calendar-check', text: 'Agendamientos', module: 'agendamientos' },
+            { icon: 'fa-solid fa-user-graduate', text: 'Mis estudiantes', module: 'mis-estudiantes' },
         ],
         student: [
-            { icon: 'fa-solid fa-house', text: 'Inicio', action: 'goToHome', active: true },
-            { icon: 'fa-solid fa-chalkboard-user', text: 'Mi Tutor', action: 'showMyTutor' },
-            { icon: 'fa-solid fa-clock-rotate-left', text: 'Historial de Sesiones', action: 'showSessionHistory' },
-            { icon: 'fa-solid fa-book-open', text: 'Materiales de Apoyo', action: 'showMaterials' },
-            { icon: 'fa-solid fa-user-circle', text: 'Mi Perfil', action: 'showMyProfile' },
+            { icon: 'fa-solid fa-house', text: 'Inicio', module: null, active: true },
+            { icon: 'fa-solid fa-chalkboard-user', text: 'Mi Tutor', module: 'mi-tutor' },
+            { icon: 'fa-solid fa-clock-rotate-left', text: 'Historial de Sesiones', module: 'historial' },
+            { icon: 'fa-solid fa-book-open', text: 'Materiales de Apoyo', module: 'materiales' },
+            { icon: 'fa-solid fa-user-circle', text: 'Mi Perfil', module: 'perfil' },
         ],
         verifier: [
-            { icon: 'fa-solid fa-clipboard-check', text: 'Lista de Asistencias', action: 'showAttendanceList', active: true },
-            { icon: 'fa-solid fa-search', text: 'Búsqueda de Tutorías', action: 'searchTutorials' },
-            { icon: 'fa-solid fa-user-clock', text: 'Historial por Estudiante', action: 'showStudentHistory' },
-            { icon: 'fa-solid fa-chalkboard-teacher', text: 'Seguimiento por Tutor', action: 'showTutorTracking' },
+            { icon: 'fa-solid fa-clipboard-check', text: 'Lista de Asistencias', module: 'asistencias', active: true },
+            { icon: 'fa-solid fa-search', text: 'Búsqueda de Tutorías', module: 'buscar-tutorias' },
+            { icon: 'fa-solid fa-user-clock', text: 'Historial por Estudiante', module: 'historial-estudiante' },
+            { icon: 'fa-solid fa-chalkboard-teacher', text: 'Seguimiento por Tutor', module: 'seguimiento-tutor' },
         ]
     };
     
     const menuItems = menus[role] || menus.student;
     
-    console.log(`📋 Cargando ${menuItems.length} opciones para rol: ${role}`);
-    
     let menuHTML = '';
     menuItems.forEach((item) => { 
         const activeClass = item.active ? 'active' : '';
+        const moduleAttr = item.module ? `data-module="${item.module}"` : '';
         
         menuHTML += `
             <li>
-                <a href="#" class="${activeClass}" onclick="handleMenuAction('${item.action}'); return false;">
+                <a href="#" class="${activeClass}" ${moduleAttr} onclick="navigateToModule(this); return false;">
                     <i class="${item.icon}"></i>
                     <span class="sidebar-menu-text">${item.text}</span>
                 </a>
@@ -256,86 +256,65 @@ async function loadSidebarMenu() {
 }
 
 /**
- * Manejar acciones del menú
+ * Navegar a un módulo (función simplificada y unificada)
  */
-function handleMenuAction(action) {
-    console.log('═══════════════════════════════════════');
-    console.log('🎯 Acción del menú recibida:', action);
-    console.log('📝 Tipo:', typeof action);
-    console.log('═══════════════════════════════════════');
+function navigateToModule(element) {
+    const module = element.getAttribute('data-module');
+    const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
     
     // Cerrar sidebar en móvil
     closeSidebarOnNavigation();
     
-    switch(action) {
-        case 'goToHome':
-            // Redirigir al panel principal (dashboard)
-            console.log('🏠 Redirigiendo a panel principal');
-            const homeBasePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
-            window.location.href = `${homeBasePath}/panel`;
-            break;
-        case 'showUserManagement':
-            // Redirigir a la vista de Gestión de Usuarios
-            console.log('👥 Redirigiendo a Gestión de Usuarios');
-            {
-                const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
-                window.location.href = `${basePath}/gestion-usuarios`;
-            }
-            break;
-        case 'showScheduleSection':
-            // Redirigir a la página de gestión de semestre
-            console.log('🎯 Redirigiendo a gestión de semestre');
-            const semesterBasePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
-            window.location.href = `${semesterBasePath}/semestre`;
-            break;
-        case 'showAssignmentSection':
-        case 'showAssignmentsSection':
-            console.log('🎯 Cargando módulo de asignaciones');
-            const assignBasePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
-            window.location.href = `${assignBasePath}/asignaciones`;
-            break;
-        case 'showTutorPanel':
-            showNotification('Panel de tutor en desarrollo', 'info');
-            break;
-        case 'showSessionsSection':
-            showNotification('Sección de sesiones en desarrollo', 'info');
-            break;
-        case 'showMySessions':
-            showNotification('Mis sesiones en desarrollo', 'info');
-            break;
-        case 'showMyStudents':
-            showNotification('Mis estudiantes en desarrollo', 'info');
-            break;
-        case 'showReports':
-            loadReportsSection();
-            break;
-        case 'searchTutors':
-            showNotification('Buscar tutores en desarrollo', 'info');
-            break;
-        case 'showMaterials':
-            showNotification('Materiales en desarrollo', 'info');
-            break;
-        case 'verifySessions':
-            showNotification('Verificar sesiones en desarrollo', 'info');
-            break;
-        case 'showHistory':
-            showNotification('Historial en desarrollo', 'info');
-            // Redirigir al panel principal (dashboard)
-            console.log('🏠 Redirigiendo a panel principal');
-            const historialBasePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
-            window.location.href = `${historialBasePath}/panel`;
-            break;
-        case 'showSearchHistory':
-            // Redirigir a la página de buscar historial
-            console.log('🔎 Redirigiendo a Buscar Historial');
-            const searchBasePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
-            window.location.href = `${searchBasePath}/buscar_historial`;
-            break;
-        case 'logout':
-            logout();
-            break;
-        default:
-            showNotification('Función en desarrollo', 'info');
+    console.log('🎯 Navegando a módulo:', module);
+    
+    // Si no hay módulo, ir a inicio
+    if (!module) {
+        window.location.href = `${basePath}/panel`;
+        return;
+    }
+    
+    // Mapeo de módulos a funciones de carga
+    const moduleLoaders = {
+        'semestre': 'loadCronogramaContent',
+        'gestion-usuarios': 'loadGestionUsuariosContent',
+        'asignaciones': 'loadAsignacionesContent',
+        'reportes': 'loadReportesContent',
+        'auditoria': 'loadAuditoriaContent',
+        'buscar-historial': null, // Página independiente
+        // Tutor
+        'nueva-sesion': 'loadNuevaSesionContent',
+        'agendamientos': 'loadAgendamientosContent',
+        'mis-estudiantes': 'loadMisEstudiantesContent',
+        // Estudiante
+        'mi-tutor': 'loadMiTutorContent',
+        'historial': 'loadHistorialContent',
+        'materiales': 'loadMaterialesContent',
+        'perfil': 'loadPerfilContent',
+        // Verificador
+        'asistencias': 'loadAsistenciasContent',
+        'buscar-tutorias': 'loadBuscarTutoriasContent',
+        'historial-estudiante': 'loadHistorialEstudianteContent',
+        'seguimiento-tutor': 'loadSeguimientoTutorContent'
+    };
+    
+    const loaderFn = moduleLoaders[module];
+    
+    // Si el módulo requiere página completa (como buscar-historial)
+    if (loaderFn === null) {
+        window.location.href = `${basePath}/${module}`;
+        return;
+    }
+    
+    // Cambiar URL sin recargar
+    window.history.pushState({module: module}, '', `${basePath}/${module}`);
+    
+    // Cargar el módulo dinámicamente
+    if (loaderFn && typeof window[loaderFn] === 'function') {
+        window[loaderFn]();
+        console.log(`✅ Módulo ${module} cargado`);
+    } else {
+        console.warn(`⚠️ Módulo ${module} en desarrollo`);
+        showNotification(`Módulo "${module}" en desarrollo`, 'info');
     }
 }
 
@@ -355,4 +334,5 @@ window.restoreSidebarState = restoreSidebarState;
 window.closeSidebarOnNavigation = closeSidebarOnNavigation;
 window.initializeSidebar = initializeSidebar;
 window.loadSidebarMenu = loadSidebarMenu;
-window.handleMenuAction = handleMenuAction;
+window.navigateToModule = navigateToModule;
+
