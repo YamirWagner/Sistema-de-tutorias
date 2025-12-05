@@ -211,7 +211,7 @@ async function loadSidebarMenu() {
             { icon: 'fa-solid fa-users-gear', text: 'Gestión de usuarios', module: 'gestion-usuarios' },
             { icon: 'fa-solid fa-clipboard-list', text: 'Asignaciones', module: 'asignaciones' },
             { icon: 'fa-solid fa-chart-line', text: 'Reportes', module: 'reportes' },
-            { icon: 'fa-solid fa-magnifying-glass-chart', text: 'Buscar Historial', module: 'buscar-historial' },
+            { icon: 'fa-solid fa-magnifying-glass-chart', text: 'Historial', module: 'historial' },
             { icon: 'fa-solid fa-shield-halved', text: 'Auditoría', module: 'auditoria' },
         ],
         tutor: [
@@ -280,6 +280,7 @@ function navigateToModule(element) {
         'asignaciones': 'loadAsignacionesContent',
         'reportes': 'loadReportesContent',
         'auditoria': 'loadAuditoriaContent',
+        'historial': 'loadHistorialContent', // Módulo de historial de administrador
         'buscar-historial': null, // Página independiente
         // Tutor
         'nueva-sesion': 'loadNuevaSesionContent',
@@ -287,7 +288,6 @@ function navigateToModule(element) {
         'mis-estudiantes': 'loadMisEstudiantesContent',
         // Estudiante
         'mi-tutor': 'loadMiTutorContent',
-        'historial': 'loadHistorialContent',
         'materiales': 'loadMaterialesContent',
         'perfil': 'loadPerfilContent',
         // Verificador
@@ -298,6 +298,8 @@ function navigateToModule(element) {
     };
     
     const loaderFn = moduleLoaders[module];
+    
+    console.log('📋 Función a ejecutar:', loaderFn, '| Tipo:', typeof window[loaderFn]);
     
     // Si el módulo requiere página completa (como buscar-historial)
     if (loaderFn === null) {
@@ -310,10 +312,11 @@ function navigateToModule(element) {
     
     // Cargar el módulo dinámicamente
     if (loaderFn && typeof window[loaderFn] === 'function') {
+        console.log(`✅ Ejecutando ${loaderFn}()...`);
         window[loaderFn]();
         console.log(`✅ Módulo ${module} cargado`);
     } else {
-        console.warn(`⚠️ Módulo ${module} en desarrollo`);
+        console.warn(`⚠️ Módulo ${module} en desarrollo o función no encontrada`);
         showNotification(`Módulo "${module}" en desarrollo`, 'info');
     }
 }

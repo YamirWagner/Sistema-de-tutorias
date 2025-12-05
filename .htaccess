@@ -47,6 +47,7 @@ DirectoryIndex frontend/index.html
   RewriteRule ^gestion-usuarios/?$ frontend/panel.html [L,NC]
   RewriteRule ^asignaciones/?$ frontend/panel.html [L,NC]
   RewriteRule ^reportes/?$ frontend/panel.html [L,NC]
+  RewriteRule ^historial/?$ frontend/panel.html [L,NC]
   RewriteRule ^auditoria/?$ frontend/panel.html [L,NC]
 
   # ============================================

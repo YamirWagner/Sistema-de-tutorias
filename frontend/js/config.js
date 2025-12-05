@@ -33,6 +33,8 @@
                 REPORTES: '/Sistema-de-tutorias/frontend/components/administrador/reportes.html',
                 SEMESTRE: '/Sistema-de-tutorias/frontend/components/administrador/semestre.html',
                 GESTION_USUARIOS: '/Sistema-de-tutorias/frontend/components/administrador/gestionUsuarios.html',
+                HISTORIAL: '/Sistema-de-tutorias/frontend/components/administrador/historial.html',
+                AUDITORIA: '/Sistema-de-tutorias/frontend/components/administrador/auditoria.html',
                 MODALS: '/Sistema-de-tutorias/frontend/components/administrador/modals.html'
             }
         },
@@ -57,6 +59,8 @@
         adminReportes: () => window.APP_CONFIG.COMPONENTS.ADMIN.REPORTES,
         adminSemestre: () => window.APP_CONFIG.COMPONENTS.ADMIN.SEMESTRE,
         adminGestionUsuarios: () => window.APP_CONFIG.COMPONENTS.ADMIN.GESTION_USUARIOS,
+        adminHistorial: () => window.APP_CONFIG.COMPONENTS.ADMIN.HISTORIAL,
+        adminAuditoria: () => window.APP_CONFIG.COMPONENTS.ADMIN.AUDITORIA,
         adminModals: () => window.APP_CONFIG.COMPONENTS.ADMIN.MODALS,
         logo: () => window.APP_CONFIG.ASSETS.LOGO,
         css: (subpath = '') => window.APP_CONFIG.PATHS.CSS + (subpath ? '/' + subpath : '')

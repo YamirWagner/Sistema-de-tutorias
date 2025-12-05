@@ -1,35 +1,82 @@
-<!-- Registro de auditoria -->
-<div class="bg-white p-6 rounded-lg shadow mt-6">
-    <h3 class="text-xl font-bold mb-4 text-gray-800">Registro de Auditoría</h3>
-    <div id="auditLogContainer" class="overflow-x-auto">
-        <div class="mb-4">
-            <form id="auditFilterForm" class="flex flex-wrap gap-2 items-end">
-                <div class="w-full sm:w-auto">
-                    <label class="text-sm text-gray-600">Usuario</label>
-                    <input type="text" id="auditUsuario" class="border p-2 rounded w-full" placeholder="Nombre o correo">
-                </div>
-                <div class="w-full sm:w-auto">
-                    <label class="text-sm text-gray-600">Acción</label>
-                    <input type="text" id="auditAccion" class="border p-2 rounded w-full" placeholder="p.ej. login, crear_usuario">
-                </div>
-                <div class="w-full sm:w-auto">
-                    <label class="text-sm text-gray-600">Desde</label>
-                    <input type="datetime-local" id="auditDesde" class="border p-2 rounded w-full">
-                </div>
-                <div class="w-full sm:w-auto">
-                    <label class="text-sm text-gray-600">Hasta</label>
-                    <input type="datetime-local" id="auditHasta" class="border p-2 rounded w-full">
-                </div>
-                <div class="w-full sm:w-auto">
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Filtrar</button>
-                </div>
-                <div class="w-full sm:w-auto">
-                    <button type="button" id="auditClear" class="px-4 py-2 bg-gray-200 rounded">Limpiar</button>
-                </div>
-            </form>
+<div class="auditoria-container">
+    <div class="auditoria-header">
+        <h1>Auditoría del Sistema</h1>
+        <p class="descripcion">Monitoreo y registro de todas las actividades del sistema</p>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="estadisticas-grid">
+        <div class="stat-card">
+            <div class="stat-numero" id="statAccionesTotales">0</div>
+            <div class="stat-label">Acciones totales</div>
         </div>
-        <div id="auditTableWrap" class="overflow-x-auto">
-            <p class="text-gray-500 text-center py-4">Use los filtros y presione "Filtrar" para ver registros</p>
+        <div class="stat-card">
+            <div class="stat-numero" id="statAccionesHoy">0</div>
+            <div class="stat-label">Hoy</div>
         </div>
+        <div class="stat-card">
+            <div class="stat-numero" id="statUsuariosActivos">0</div>
+            <div class="stat-label">Usuarios Activos</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-numero" id="statAsignaciones">0</div>
+            <div class="stat-label">Asignaciones</div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filtros-container">
+        <div class="filtros-row">
+            <div class="filtro-item">
+                <label>Usuario</label>
+                <input type="text" id="filtroUsuario" placeholder="Nombre o código">
+            </div>
+            <div class="filtro-item">
+                <label>Acción</label>
+                <input type="text" id="filtroAccion" placeholder="Acción">
+            </div>
+            <div class="filtro-item">
+                <label>Desde</label>
+                <input type="date" id="filtroDesde">
+            </div>
+            <div class="filtro-item">
+                <label>Hasta</label>
+                <input type="date" id="filtroHasta">
+            </div>
+            <div class="filtro-item filtro-btn">
+                <button id="btnFiltrar" class="btn-filtrar">
+                    <i class="fas fa-filter"></i> Filtrar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de registros -->
+    <div class="tabla-container">
+        <table class="tabla-auditoria">
+            <thead>
+                <tr>
+                    <th>Fecha y hora</th>
+                    <th>Usuario</th>
+                    <th>Rol</th>
+                    <th>Acción</th>
+                    <th>Detalle</th>
+                </tr>
+            </thead>
+            <tbody id="tablaAuditoriaBody">
+                <tr>
+                    <td colspan="5" class="no-data">
+                        <i class="fas fa-search"></i>
+                        <p>Use los filtros para ver los registros de auditoría</p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Loading spinner -->
+    <div id="loadingAuditoria" class="loading-spinner" style="display: none;">
+        <div class="spinner"></div>
+        <p>Cargando registros...</p>
     </div>
 </div>

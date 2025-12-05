@@ -278,6 +278,16 @@ async function initDashboard() {
                 paths: ['/reportes', '/Sistema-de-tutorias/reportes'],
                 param: 'reportes',
                 loadFn: 'loadReportesContent'
+            },
+            'historial': {
+                paths: ['/historial', '/Sistema-de-tutorias/historial'],
+                param: 'historial',
+                loadFn: 'loadHistorialContent'
+            },
+            'auditoria': {
+                paths: ['/auditoria', '/Sistema-de-tutorias/auditoria'],
+                param: 'auditoria',
+                loadFn: 'loadAuditoriaContent'
             }
         };
         
@@ -450,6 +460,7 @@ document.addEventListener('DOMContentLoaded', () => {
                        path.includes('gestion-usuarios') || 
                        path.includes('asignaciones') ||
                        path.includes('reportes') ||
+                       path.includes('historial') ||
                        path.includes('auditoria');
     
     if (isPanelPage) {

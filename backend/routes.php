@@ -100,6 +100,12 @@ $routes = [
     // Rutas de bitácora (log de acceso/actividad)
     'GET|api/log' => 'api/log.php',
     'POST|api/log' => 'api/log.php',
+
+    // Rutas de historial
+    'GET|api/historial' => 'api/historial.php',
+
+    // Rutas de auditoría
+    'GET|api/auditoria' => 'api/auditoria.php',
 ];
 
 // Obtener el método HTTP

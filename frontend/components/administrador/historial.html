@@ -1,0 +1,54 @@
+<div class="historial-container">
+    <div class="historial-header">
+        <h1>Historial de Tutorías</h1>
+        <p class="descripcion">Consulta el historial completo de sesiones de tutoría de los estudiantes</p>
+    </div>
+
+    <!-- Buscador -->
+    <div class="search-section">
+        <div class="search-box">
+            <input 
+                type="text" 
+                id="busquedaEstudiante" 
+                class="search-input" 
+                placeholder="Buscar estudiante por nombre o código (ej:231443)"
+                autocomplete="off"
+            >
+            <button id="btnBuscar" class="btn-search">
+                <i class="fas fa-search"></i> Buscar
+            </button>
+        </div>
+        <div id="resultadosBusqueda" class="resultados-busqueda" style="display: none;"></div>
+    </div>
+
+    <!-- Sección de información del estudiante -->
+    <div id="infoEstudiante" class="info-estudiante" style="display: none;">
+        <div class="estudiante-card">
+            <div class="estudiante-header">
+                <h2 id="estudianteNombre"></h2>
+                <p class="estudiante-codigo">Código: <span id="estudianteCodigo"></span></p>
+                <p class="estudiante-tutor">Tutor actual: <span id="estudianteTutor"></span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Título de historial -->
+    <div id="tituloHistorial" class="titulo-historial" style="display: none;">
+        <h3>Historial completo de sesiones</h3>
+    </div>
+
+    <!-- Contenedor de sesiones -->
+    <div id="sesionesContainer" class="sesiones-container"></div>
+
+    <!-- Mensaje cuando no hay resultados -->
+    <div id="mensajeVacio" class="mensaje-vacio" style="display: none;">
+        <i class="fas fa-search"></i>
+        <p>Busca un estudiante para ver su historial de tutorías</p>
+    </div>
+
+    <!-- Loading spinner -->
+    <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+        <div class="spinner"></div>
+        <p>Cargando historial...</p>
+    </div>
+</div>
