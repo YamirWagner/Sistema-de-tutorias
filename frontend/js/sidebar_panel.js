@@ -296,6 +296,16 @@ function handleMenuAction(action) {
             break;
         case 'showHistory':
             showNotification('Historial en desarrollo', 'info');
+            // Redirigir al panel principal (dashboard)
+            console.log('🏠 Redirigiendo a panel principal');
+            const historialBasePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+            window.location.href = `${historialBasePath}/panel`;
+            break;
+        case 'showSearchHistory':
+            // Redirigir a la página de buscar historial
+            console.log('🔎 Redirigiendo a Buscar Historial');
+            const searchBasePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+            window.location.href = `${searchBasePath}/buscar_historial`;
             break;
         case 'logout':
             logout();

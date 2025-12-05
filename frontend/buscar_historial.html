@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Buscar Historial - Sistema de Tutorías</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.1/dist/flowbite.min.css" rel="stylesheet" />
+    
+    <link rel="stylesheet" href="css/panel.css">
+    <link rel="stylesheet" href="css/header_panel.css">
+    <link rel="stylesheet" href="css/sidebar_panel.css"> <link rel="stylesheet" href="css/footer_panel.css">
+    
+    <link rel="stylesheet" href="css/buscar-historial.css">
+</head>
+<body class="bg-gray-100">
+
+    <div id="header-container"></div>
+
+    <div id="sidebar-container"></div>
+
+    <div class="main-wrapper">
+        <main class="flex-1">
+            
+            <div class="mb-6">
+                <h1 class="text-3xl font-bold text-gray-800">Buscar Historial Académico</h1>
+                <p class="text-gray-500">Consulta las sesiones pasadas de cualquier estudiante.</p>
+            </div>
+
+            <div class="search-card">
+                <div class="search-container">
+                    <input type="text" id="inputBusqueda" placeholder="Ingresa nombre o código (Ej: 181818)">
+                    <button id="btnBuscar">Buscar Estudiante</button>
+                </div>
+            </div>
+
+            <div id="resultadosContainer" style="display: none;">
+                
+                <div class="student-card-result">
+                    <div class="student-profile-header">
+                        <div class="student-avatar-circle">GH</div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-800">Gerald Huanto Ayma</h2>
+                            <p class="text-gray-600">Código: 181818 | Ing. Informática</p>
+                            <p class="text-sm text-blue-600">Tutor Actual: Carlos López</p>
+                        </div>
+                    </div>
+
+                    <div class="history-list">
+                        <h3 class="text-lg font-bold mb-4">Historial de Sesiones</h3>
+
+                        <div class="session-item">
+                            <div class="session-top-bar">
+                                <span class="text-red-800">📅 15 Oct, 2025</span>
+                                <span class="text-gray-500">Registrado por: Tutor Carlos</span>
+                            </div>
+                            <div class="info-grid">
+                                <div class="info-box">
+                                    <h4>📚 Académico</h4>
+                                    <p>Tema: Cálculo II<br>Avance: 60%</p>
+                                </div>
+                                <div class="info-box">
+                                    <h4>🧠 Personal</h4>
+                                    <p>Menciona carga académica alta.</p>
+                                </div>
+                                <div class="info-box">
+                                    <h4>💼 Profesional</h4>
+                                    <p>Sin observaciones.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="session-item">
+                            <div class="session-top-bar">
+                                <span class="text-red-800">📅 01 Oct, 2025</span>
+                                <span class="text-gray-500">Registrado por: Tutor Carlos</span>
+                            </div>
+                            <div class="info-grid">
+                                <div class="info-box">
+                                    <h4>📚 Académico</h4>
+                                    <p>Inicio de semestre.<br>Avance: 10%</p>
+                                </div>
+                                <div class="info-box">
+                                    <h4>🧠 Personal</h4>
+                                    <p>Motivado.</p>
+                                </div>
+                                <div class="info-box">
+                                    <h4>💼 Profesional</h4>
+                                    <p>Interés en Data Engineering.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <div id="footer-container"></div>
+    </div>
+
+    <script>
+        window.APP_BASE_PATH = '/Sistema-de-tutorias'; // Tu configuración base
+    </script>
+    <script src="js/api.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/header_panel.js"></script>
+    <script src="js/sidebar_panel.js"></script> <script src="js/buscar-historial.js"></script>
+
+</body>
+</html>

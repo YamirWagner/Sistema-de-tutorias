@@ -6,7 +6,7 @@ require_once __DIR__ . '/mailer.php';
 require_once __DIR__ . '/../models/logacceso.php';
 
 class Activity {
-    const TIMEOUT_SECONDS = 900; // 15 minutos
+    const TIMEOUT_SECONDS = 1800; // 30 minutos
 
     /** Obtener IP real del cliente */
     public static function clientIp(): string {
