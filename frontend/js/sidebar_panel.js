@@ -237,9 +237,28 @@ async function loadSidebarMenu() {
     
     const menuItems = menus[role] || menus.student;
     
+    // Obtener el módulo actual de la URL
+    const currentPath = window.location.pathname;
+    const pathSegments = currentPath.split('/').filter(s => s);
+    const currentModule = pathSegments[pathSegments.length - 1];
+    
+    // El módulo "panel" es equivalente a "Inicio" (no hay módulo específico)
+    const isPanelPage = currentModule === 'panel' || !currentModule;
+    
     let menuHTML = '';
     menuItems.forEach((item) => { 
-        const activeClass = item.active ? 'active' : '';
+        // Determinar si este enlace es activo
+        let isActive = false;
+        
+        if (item.module === null) {
+            // El botón de Inicio se activa cuando estamos en panel
+            isActive = isPanelPage;
+        } else {
+            // Los demás botones se activan cuando el módulo coincide con la URL
+            isActive = item.module === currentModule;
+        }
+        
+        const activeClass = isActive ? 'active' : '';
         const moduleAttr = item.module ? `data-module="${item.module}"` : '';
         
         menuHTML += `
@@ -262,13 +281,20 @@ function navigateToModule(element) {
     const module = element.getAttribute('data-module');
     const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
     
+    // Remover clase active de todos los enlaces y agregar al actual
+    const allLinks = document.querySelectorAll('.sidebar-menu a');
+    allLinks.forEach(link => link.classList.remove('active'));
+    element.classList.add('active');
+    
     // Cerrar sidebar en móvil
     closeSidebarOnNavigation();
     
     console.log('🎯 Navegando a módulo:', module);
     
     // Si no hay módulo, ir a inicio
-    if (!module) {
+    if (!module || module === 'null') {
+        // Cambiar URL sin recargar
+        window.history.pushState({module: 'inicio'}, '', `${basePath}/panel`);
         window.location.href = `${basePath}/panel`;
         return;
     }
