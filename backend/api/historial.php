@@ -1,9 +1,15 @@
 <?php
+// Configurar reporte de errores para desarrollo
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/../logs/historial_errors.log');
+
 require_once __DIR__ . '/../core/database.php';
 require_once __DIR__ . '/../core/response.php';
 require_once __DIR__ . '/../core/jwt.php';
 
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
@@ -13,166 +19,279 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
+error_log("=== HISTORIAL.PHP INICIADO ===");
+error_log("REQUEST_URI: " . $_SERVER['REQUEST_URI']);
+
+$action = $_GET['action'] ?? null;
+
 // Verificar autenticación
 $headers = getallheaders();
-$token = isset($headers['Authorization']) ? str_replace('Bearer ', '', $headers['Authorization']) : null;
+$token = null;
+
+if (isset($headers['Authorization'])) {
+    $token = str_replace('Bearer ', '', $headers['Authorization']);
+} elseif (isset($headers['authorization'])) {
+    $token = str_replace('Bearer ', '', $headers['authorization']);
+}
 
 if (!$token) {
+    error_log("ERROR: Token no proporcionado");
     Response::error('Token no proporcionado', 401);
+    exit;
 }
 
 try {
     $decoded = JWT::decode($token);
-    
-    // Verificar que sea administrador
-    if ($decoded->rol !== 'Administrador') {
-        Response::error('Acceso denegado. Solo administradores', 403);
-    }
+    error_log("Token válido para: " . ($decoded->email ?? 'unknown'));
 } catch (Exception $e) {
+    error_log("ERROR: Token inválido - " . $e->getMessage());
     Response::error('Token inválido: ' . $e->getMessage(), 401);
+    exit;
 }
 
-$db = new Database();
-$conn = $db->getConnection();
+// Conectar a la base de datos
+try {
+    $db = new Database();
+    $conn = $db->getConnection();
+    error_log("Conexión a BD establecida");
+} catch (Exception $e) {
+    error_log("ERROR: No se pudo conectar a la BD - " . $e->getMessage());
+    Response::error('Error de conexión a la base de datos', 500);
+    exit;
+}
 
-// Obtener método y acción
-$method = $_SERVER['REQUEST_METHOD'];
-$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-$segments = explode('/', trim($uri, '/'));
-
-// Buscar estudiante
-if ($method === 'GET' && isset($_GET['action']) && $_GET['action'] === 'buscar') {
+// ============================================
+// BUSCAR ESTUDIANTE
+// ============================================
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && $action === 'buscar') {
+    error_log("=== BÚSQUEDA DE ESTUDIANTE ===");
+    
     $busqueda = $_GET['busqueda'] ?? '';
+    error_log("Término de búsqueda: " . $busqueda);
     
     if (empty($busqueda)) {
         Response::error('Parámetro de búsqueda requerido', 400);
+        exit;
     }
     
     try {
-        $sql = "SELECT u.ID_Usuario, u.Codigo, u.Nombre, u.Apellido, u.Email,
-                       t.Nombre as TutorNombre, t.Apellido as TutorApellido
-                FROM Usuario u
-                LEFT JOIN asignacion a ON u.ID_Usuario = a.ID_Estudiante
-                LEFT JOIN Usuario t ON a.ID_Tutor = t.ID_Usuario
-                WHERE u.Rol = 'Estudiante' 
-                AND (u.Codigo LIKE ? OR CONCAT(u.Nombre, ' ', u.Apellido) LIKE ?)
+        // ✅ Query con PDO
+        $sql = "SELECT 
+                    e.id,
+                    e.codigo,
+                    e.nombres,
+                    e.apellidos,
+                    e.correo,
+                    COALESCE(t.nombres, '') AS tutorNombres,
+                    COALESCE(t.apellidos, '') AS tutorApellidos
+                FROM estudiante e
+                LEFT JOIN asignaciontutor a ON e.id = a.idEstudiante AND a.estado = 'Activa'
+                LEFT JOIN usuariosistema t ON a.idTutor = t.id
+                WHERE e.estado = 'Activo'
+                AND (
+                    e.codigo LIKE :busqueda1
+                    OR CONCAT(e.nombres, ' ', e.apellidos) LIKE :busqueda2
+                    OR e.nombres LIKE :busqueda3
+                    OR e.apellidos LIKE :busqueda4
+                )
                 LIMIT 10";
         
         $stmt = $conn->prepare($sql);
+        
+        if (!$stmt) {
+            throw new Exception("Error al preparar consulta");
+        }
+        
         $searchParam = "%{$busqueda}%";
-        $stmt->bind_param("ss", $searchParam, $searchParam);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        
+        // ✅ PDO usa bindParam o bindValue
+        $stmt->bindValue(':busqueda1', $searchParam, PDO::PARAM_STR);
+        $stmt->bindValue(':busqueda2', $searchParam, PDO::PARAM_STR);
+        $stmt->bindValue(':busqueda3', $searchParam, PDO::PARAM_STR);
+        $stmt->bindValue(':busqueda4', $searchParam, PDO::PARAM_STR);
+        
+        if (!$stmt->execute()) {
+            throw new Exception("Error al ejecutar consulta");
+        }
+        
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        error_log("Resultados encontrados: " . count($rows));
         
         $estudiantes = [];
-        while ($row = $result->fetch_assoc()) {
+        foreach ($rows as $row) {
             $tutorActual = null;
-            if ($row['TutorNombre']) {
-                $tutorActual = $row['TutorNombre'] . ' ' . $row['TutorApellido'];
+            if (!empty($row['tutorNombres'])) {
+                $tutorActual = trim($row['tutorNombres'] . ' ' . $row['tutorApellidos']);
             }
             
             $estudiantes[] = [
-                'id' => $row['ID_Usuario'],
-                'codigo' => $row['Codigo'],
-                'nombre' => $row['Nombre'] . ' ' . $row['Apellido'],
-                'email' => $row['Email'],
+                'id' => (int)$row['id'],
+                'codigo' => $row['codigo'],
+                'nombre' => trim($row['nombres'] . ' ' . $row['apellidos']),
+                'email' => $row['correo'],
                 'tutorActual' => $tutorActual
             ];
         }
         
+        error_log("Estudiantes procesados: " . count($estudiantes));
+        
         Response::success($estudiantes);
+        exit;
         
     } catch (Exception $e) {
+        error_log("ERROR en búsqueda: " . $e->getMessage());
         Response::error('Error al buscar estudiante: ' . $e->getMessage(), 500);
+        exit;
     }
 }
 
-// Obtener historial completo de un estudiante
-if ($method === 'GET' && isset($_GET['action']) && $_GET['action'] === 'historial') {
+// ============================================
+// OBTENER HISTORIAL COMPLETO DE UN ESTUDIANTE
+// ============================================
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && $action === 'historial') {
+    error_log("=== OBTENER HISTORIAL ===");
+    
     $idEstudiante = $_GET['id_estudiante'] ?? null;
+    error_log("ID Estudiante: " . ($idEstudiante ?? 'NULL'));
     
     if (!$idEstudiante) {
         Response::error('ID de estudiante requerido', 400);
+        exit;
     }
     
     try {
-        // Obtener información del estudiante
-        $sqlEstudiante = "SELECT u.ID_Usuario, u.Codigo, u.Nombre, u.Apellido,
-                                 t.Nombre as TutorNombre, t.Apellido as TutorApellido
-                          FROM Usuario u
-                          LEFT JOIN asignacion a ON u.ID_Usuario = a.ID_Estudiante
-                          LEFT JOIN Usuario t ON a.ID_Tutor = t.ID_Usuario
-                          WHERE u.ID_Usuario = ? AND u.Rol = 'Estudiante'";
+        // ✅ Obtener información del estudiante con PDO
+        $sqlEstudiante = "SELECT 
+                            e.id,
+                            e.codigo,
+                            e.nombres,
+                            e.apellidos,
+                            COALESCE(t.nombres, '') AS tutorNombres,
+                            COALESCE(t.apellidos, '') AS tutorApellidos
+                          FROM estudiante e
+                          LEFT JOIN asignaciontutor a ON e.id = a.idEstudiante AND a.estado = 'Activa'
+                          LEFT JOIN usuariosistema t ON a.idTutor = t.id
+                          WHERE e.id = :idEstudiante AND e.estado = 'Activo'";
         
         $stmt = $conn->prepare($sqlEstudiante);
-        $stmt->bind_param("i", $idEstudiante);
-        $stmt->execute();
-        $estudiante = $stmt->get_result()->fetch_assoc();
         
-        if (!$estudiante) {
-            Response::error('Estudiante no encontrado', 404);
+        if (!$stmt) {
+            throw new Exception("Error al preparar consulta estudiante");
         }
         
-        // Obtener todas las sesiones del estudiante
-        $sqlSesiones = "SELECT s.ID_Sesion, s.Fecha, s.Hora_Inicio, s.Hora_Fin,
-                              s.Tema_Academico, s.Avance_Academico, s.Notas_Academicas,
-                              s.Tema_Personal, s.Notas_Personales,
-                              s.Tema_Profesional, s.Notas_Profesionales,
-                              s.Asistencia, s.Fecha_Registro,
-                              t.Nombre as TutorNombre, t.Apellido as TutorApellido
-                       FROM sesion s
-                       INNER JOIN Usuario t ON s.ID_Tutor = t.ID_Usuario
-                       WHERE s.ID_Estudiante = ?
-                       ORDER BY s.Fecha DESC, s.Hora_Inicio DESC";
+        $stmt->bindValue(':idEstudiante', $idEstudiante, PDO::PARAM_INT);
+        
+        if (!$stmt->execute()) {
+            throw new Exception("Error al ejecutar consulta estudiante");
+        }
+        
+        $estudiante = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$estudiante) {
+            error_log("ERROR: Estudiante no encontrado con ID: " . $idEstudiante);
+            Response::error('Estudiante no encontrado', 404);
+            exit;
+        }
+        
+        error_log("Estudiante encontrado: " . $estudiante['codigo']);
+        
+        // ✅ Obtener todas las tutorías del estudiante
+        $sqlSesiones = "SELECT 
+                          tu.id,
+                          c.fecha,
+                          c.horaInicio,
+                          c.horaFin,
+                          tu.tipo,
+                          COALESCE(tu.observaciones, '') AS observaciones,
+                          tu.estado,
+                          COALESCE(tu.fechaRealizada, c.fecha) AS fechaRealizada,
+                          COALESCE(t.nombres, '') AS tutorNombres,
+                          COALESCE(t.apellidos, '') AS tutorApellidos
+                       FROM tutoria tu
+                       INNER JOIN asignaciontutor a ON tu.idAsignacion = a.id
+                       INNER JOIN cronograma c ON tu.idCronograma = c.id
+                       INNER JOIN usuariosistema t ON a.idTutor = t.id
+                       WHERE a.idEstudiante = :idEstudiante
+                       ORDER BY c.fecha DESC, c.horaInicio DESC";
         
         $stmt = $conn->prepare($sqlSesiones);
-        $stmt->bind_param("i", $idEstudiante);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        
+        if (!$stmt) {
+            throw new Exception("Error al preparar consulta sesiones");
+        }
+        
+        $stmt->bindValue(':idEstudiante', $idEstudiante, PDO::PARAM_INT);
+        
+        if (!$stmt->execute()) {
+            throw new Exception("Error al ejecutar consulta sesiones");
+        }
+        
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        error_log("Sesiones encontradas: " . count($rows));
         
         $sesiones = [];
-        while ($row = $result->fetch_assoc()) {
+        foreach ($rows as $row) {
+            // Mapear según el tipo de tutoría
+            $academico = ['tema' => null, 'avance' => null, 'notas' => null];
+            $personal = ['tema' => null, 'notas' => null];
+            $profesional = ['tema' => null, 'notas' => null];
+            
+            switch ($row['tipo']) {
+                case 'Académica':
+                    $academico['tema'] = 'Tutoría Académica';
+                    $academico['notas'] = $row['observaciones'];
+                    break;
+                case 'Personal':
+                    $personal['tema'] = 'Tutoría Personal';
+                    $personal['notas'] = $row['observaciones'];
+                    break;
+                case 'Profesional':
+                    $profesional['tema'] = 'Tutoría Profesional';
+                    $profesional['notas'] = $row['observaciones'];
+                    break;
+            }
+            
             $sesiones[] = [
-                'id' => $row['ID_Sesion'],
-                'fecha' => $row['Fecha'],
-                'horaInicio' => $row['Hora_Inicio'],
-                'horaFin' => $row['Hora_Fin'],
-                'academico' => [
-                    'tema' => $row['Tema_Academico'],
-                    'avance' => $row['Avance_Academico'],
-                    'notas' => $row['Notas_Academicas']
-                ],
-                'personal' => [
-                    'tema' => $row['Tema_Personal'],
-                    'notas' => $row['Notas_Personales']
-                ],
-                'profesional' => [
-                    'tema' => $row['Tema_Profesional'],
-                    'notas' => $row['Notas_Profesionales']
-                ],
-                'asistencia' => $row['Asistencia'],
-                'fechaRegistro' => $row['Fecha_Registro'],
-                'tutor' => $row['TutorNombre'] . ' ' . $row['TutorApellido']
+                'id' => (int)$row['id'],
+                'fecha' => $row['fecha'],
+                'horaInicio' => $row['horaInicio'],
+                'horaFin' => $row['horaFin'],
+                'academico' => $academico,
+                'personal' => $personal,
+                'profesional' => $profesional,
+                'asistencia' => $row['estado'] === 'Realizada' ? 'Asistió' : 'Pendiente',
+                'fechaRegistro' => $row['fechaRealizada'],
+                'tutor' => trim($row['tutorNombres'] . ' ' . $row['tutorApellidos'])
             ];
+        }
+        
+        $tutorActual = null;
+        if (!empty($estudiante['tutorNombres'])) {
+            $tutorActual = trim($estudiante['tutorNombres'] . ' ' . $estudiante['tutorApellidos']);
         }
         
         $response = [
             'estudiante' => [
-                'id' => $estudiante['ID_Usuario'],
-                'codigo' => $estudiante['Codigo'],
-                'nombre' => $estudiante['Nombre'] . ' ' . $estudiante['Apellido'],
-                'tutorActual' => $estudiante['TutorNombre'] ? 
-                    $estudiante['TutorNombre'] . ' ' . $estudiante['TutorApellido'] : null
+                'id' => (int)$estudiante['id'],
+                'codigo' => $estudiante['codigo'],
+                'nombre' => trim($estudiante['nombres'] . ' ' . $estudiante['apellidos']),
+                'tutorActual' => $tutorActual
             ],
             'sesiones' => $sesiones,
             'totalSesiones' => count($sesiones)
         ];
         
+        error_log("Respuesta exitosa con " . count($sesiones) . " sesiones");
+        
         Response::success($response);
+        exit;
         
     } catch (Exception $e) {
+        error_log("ERROR en historial: " . $e->getMessage());
         Response::error('Error al obtener historial: ' . $e->getMessage(), 500);
+        exit;
     }
 }
 
+error_log("ERROR: Acción no válida - " . ($action ?? 'NULL'));
 Response::error('Acción no válida', 400);

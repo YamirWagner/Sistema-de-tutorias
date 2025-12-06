@@ -146,26 +146,61 @@ function inicializarHistorial() {
 }
 
 async function buscarEstudiante(busqueda) {
+    console.log('🔍 Buscando estudiante:', busqueda);
+    
     try {
-        const apiUrl = window.APP_CONFIG?.API.BASE_URL || '/Sistema-de-tutorias/backend/api';
-        const response = await fetch(`${apiUrl}/historial.php?action=buscar&busqueda=${encodeURIComponent(busqueda)}`, {
+        const token = localStorage.getItem('token');
+        console.log('🔑 Token:', token ? 'Presente' : 'Ausente');
+        
+        if (!token) {
+            mostrarError('No se encontró token de autenticación. Por favor, inicia sesión nuevamente.');
+            return;
+        }
+        
+        // ✅ CORRECCIÓN: Usar la ruta limpia sin .php
+        const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+        const url = `${basePath}/api/historial?action=buscar&busqueda=${encodeURIComponent(busqueda)}`;
+        
+        console.log('📡 URL de búsqueda:', url);
+        
+        const response = await fetch(url, {
             method: 'GET',
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             }
         });
         
-        const data = await response.json();
+        console.log('📊 Response status:', response.status);
+        console.log('📊 Response OK:', response.ok);
         
-        if (data.success && data.data.length > 0) {
+        // Verificar si la respuesta es realmente JSON
+        const contentType = response.headers.get('content-type');
+        console.log('📊 Content-Type:', contentType);
+        
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            console.error('❌ La respuesta no es JSON. Primeros 500 caracteres:', text.substring(0, 500));
+            
+            // Mostrar si es HTML
+            if (text.includes('<!DOCTYPE') || text.includes('<html')) {
+                throw new Error('El servidor devolvió HTML en lugar de JSON. Revisa el archivo historial.php y routes.php');
+            }
+            
+            throw new Error('El servidor no devolvió JSON válido');
+        }
+        
+        const data = await response.json();
+        console.log('✅ Datos recibidos:', data);
+        
+        if (data.success && data.data && data.data.length > 0) {
             mostrarResultados(data.data);
         } else {
             mostrarResultadosVacios();
         }
     } catch (error) {
-        console.error('Error al buscar estudiante:', error);
-        mostrarError('Error al realizar la búsqueda');
+        console.error('❌ Error completo al buscar estudiante:', error);
+        mostrarError('Error al realizar la búsqueda: ' + error.message);
     }
 }
 
@@ -198,24 +233,58 @@ function mostrarResultadosVacios() {
 
 function ocultarResultados() {
     const resultadosDiv = document.getElementById('resultadosBusqueda');
-    resultadosDiv.style.display = 'none';
+    if (resultadosDiv) {
+        resultadosDiv.style.display = 'none';
+    }
 }
 
 async function seleccionarEstudiante(idEstudiante) {
+    console.log('👤 Seleccionando estudiante:', idEstudiante);
+    
     ocultarResultados();
     mostrarLoading();
     
     try {
-        const apiUrl = window.APP_CONFIG?.API.BASE_URL || '/Sistema-de-tutorias/backend/api';
-        const response = await fetch(`${apiUrl}/historial.php?action=historial&id_estudiante=${idEstudiante}`, {
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+            throw new Error('No se encontró token de autenticación');
+        }
+        
+        // ✅ CORRECCIÓN: Usar la ruta limpia sin .php
+        const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+        const url = `${basePath}/api/historial?action=historial&id_estudiante=${idEstudiante}`;
+        
+        console.log('📡 URL de historial:', url);
+        
+        const response = await fetch(url, {
             method: 'GET',
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             }
         });
         
+        console.log('📊 Response status:', response.status);
+        console.log('📊 Response OK:', response.ok);
+        
+        // Verificar si la respuesta es JSON
+        const contentType = response.headers.get('content-type');
+        console.log('📊 Content-Type:', contentType);
+        
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            console.error('❌ La respuesta no es JSON. Primeros 500 caracteres:', text.substring(0, 500));
+            
+            if (text.includes('<!DOCTYPE') || text.includes('<html')) {
+                throw new Error('El servidor devolvió HTML en lugar de JSON. Revisa historial.php');
+            }
+            
+            throw new Error('El servidor no devolvió JSON válido');
+        }
+        
         const data = await response.json();
+        console.log('✅ Historial recibido:', data);
         
         if (data.success) {
             estudianteActual = data.data;
@@ -224,28 +293,40 @@ async function seleccionarEstudiante(idEstudiante) {
             throw new Error(data.message || 'Error al cargar historial');
         }
     } catch (error) {
-        console.error('Error al cargar historial:', error);
-        mostrarError('Error al cargar el historial del estudiante');
+        console.error('❌ Error completo al cargar historial:', error);
+        mostrarError('Error al cargar el historial del estudiante: ' + error.message);
     } finally {
         ocultarLoading();
     }
 }
 
 function mostrarHistorial(datos) {
+    console.log('📋 Mostrando historial:', datos);
+    
     // Mostrar información del estudiante
     const infoEstudiante = document.getElementById('infoEstudiante');
-    document.getElementById('estudianteNombre').textContent = datos.estudiante.nombre;
-    document.getElementById('estudianteCodigo').textContent = datos.estudiante.codigo;
-    document.getElementById('estudianteTutor').textContent = datos.estudiante.tutorActual || 'Sin tutor asignado';
-    infoEstudiante.style.display = 'block';
+    const estudianteNombre = document.getElementById('estudianteNombre');
+    const estudianteCodigo = document.getElementById('estudianteCodigo');
+    const estudianteTutor = document.getElementById('estudianteTutor');
+    
+    if (estudianteNombre) estudianteNombre.textContent = datos.estudiante.nombre;
+    if (estudianteCodigo) estudianteCodigo.textContent = datos.estudiante.codigo;
+    if (estudianteTutor) estudianteTutor.textContent = datos.estudiante.tutorActual || 'Sin tutor asignado';
+    if (infoEstudiante) infoEstudiante.style.display = 'block';
     
     // Mostrar título
-    document.getElementById('tituloHistorial').style.display = 'block';
+    const tituloHistorial = document.getElementById('tituloHistorial');
+    if (tituloHistorial) tituloHistorial.style.display = 'block';
     
     // Mostrar sesiones
     const sesionesContainer = document.getElementById('sesionesContainer');
     
-    if (datos.sesiones.length === 0) {
+    if (!sesionesContainer) {
+        console.error('❌ sesionesContainer no encontrado');
+        return;
+    }
+    
+    if (!datos.sesiones || datos.sesiones.length === 0) {
         sesionesContainer.innerHTML = `
             <div class="mensaje-vacio">
                 <i class="fas fa-calendar-times"></i>
@@ -261,7 +342,10 @@ function mostrarHistorial(datos) {
     }
     
     // Ocultar mensaje vacío
-    document.getElementById('mensajeVacio').style.display = 'none';
+    const mensajeVacio = document.getElementById('mensajeVacio');
+    if (mensajeVacio) {
+        mensajeVacio.style.display = 'none';
+    }
 }
 
 function renderizarSesion(sesion) {
@@ -333,28 +417,59 @@ function formatearFecha(fecha) {
     const mes = meses[date.getMonth()];
     const año = date.getFullYear();
     
-    return `${dia} de ${mes},${año}`;
+    return `${dia} de ${mes}, ${año}`;
 }
 
 function mostrarLoading() {
-    document.getElementById('loadingSpinner').style.display = 'block';
-    document.getElementById('sesionesContainer').innerHTML = '';
-    document.getElementById('infoEstudiante').style.display = 'none';
-    document.getElementById('tituloHistorial').style.display = 'none';
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    if (loadingSpinner) {
+        loadingSpinner.style.display = 'block';
+    }
+    
+    const sesionesContainer = document.getElementById('sesionesContainer');
+    if (sesionesContainer) {
+        sesionesContainer.innerHTML = '';
+    }
+    
+    const infoEstudiante = document.getElementById('infoEstudiante');
+    if (infoEstudiante) {
+        infoEstudiante.style.display = 'none';
+    }
+    
+    const tituloHistorial = document.getElementById('tituloHistorial');
+    if (tituloHistorial) {
+        tituloHistorial.style.display = 'none';
+    }
 }
 
 function ocultarLoading() {
-    document.getElementById('loadingSpinner').style.display = 'none';
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    if (loadingSpinner) {
+        loadingSpinner.style.display = 'none';
+    }
 }
 
 function mostrarError(mensaje) {
     const sesionesContainer = document.getElementById('sesionesContainer');
-    sesionesContainer.innerHTML = `
-        <div class="mensaje-vacio">
-            <i class="fas fa-exclamation-triangle"></i>
-            <p>${mensaje}</p>
-        </div>
-    `;
-    document.getElementById('infoEstudiante').style.display = 'none';
-    document.getElementById('tituloHistorial').style.display = 'none';
+    if (sesionesContainer) {
+        sesionesContainer.innerHTML = `
+            <div class="mensaje-vacio">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>${mensaje}</p>
+            </div>
+        `;
+    }
+    
+    const infoEstudiante = document.getElementById('infoEstudiante');
+    if (infoEstudiante) {
+        infoEstudiante.style.display = 'none';
+    }
+    
+    const tituloHistorial = document.getElementById('tituloHistorial');
+    if (tituloHistorial) {
+        tituloHistorial.style.display = 'none';
+    }
 }
+
+// Exponer funciones globalmente para onclick
+window.seleccionarEstudiante = seleccionarEstudiante;
