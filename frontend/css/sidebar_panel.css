@@ -106,6 +106,8 @@
     transition: all 0.2s ease;
     position: relative;
     font-size: 0.875rem;
+    /* cambio*/
+    gap: 12px;
 }
 
 .sidebar-menu a::before {

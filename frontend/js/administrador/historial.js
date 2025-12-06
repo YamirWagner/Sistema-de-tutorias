@@ -148,7 +148,7 @@ function inicializarHistorial() {
 async function buscarEstudiante(busqueda) {
     try {
         const apiUrl = window.APP_CONFIG?.API.BASE_URL || '/Sistema-de-tutorias/backend/api';
-        const response = await fetch(`${apiUrl}/historial?action=buscar&busqueda=${encodeURIComponent(busqueda)}`, {
+        const response = await fetch(`${apiUrl}/historial.php?action=buscar&busqueda=${encodeURIComponent(busqueda)}`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -207,7 +207,7 @@ async function seleccionarEstudiante(idEstudiante) {
     
     try {
         const apiUrl = window.APP_CONFIG?.API.BASE_URL || '/Sistema-de-tutorias/backend/api';
-        const response = await fetch(`${apiUrl}/historial?action=historial&id_estudiante=${idEstudiante}`, {
+        const response = await fetch(`${apiUrl}/historial.php?action=historial&id_estudiante=${idEstudiante}`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`,
