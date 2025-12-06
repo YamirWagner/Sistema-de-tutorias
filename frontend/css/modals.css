@@ -1,4 +1,12 @@
 /* MODALES - Sistema de Tutorías UNSAAC */
+#modalAsignacionAleatoria{
+    z-index: 9999;
+    height: 500px;
+}
+.asignacionAleatoria{
+    
+    overflow-y: auto;
+}
 
 .modal-overlay {
     position: fixed;
