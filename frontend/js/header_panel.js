@@ -5,10 +5,40 @@
 /**
  * Actualiza la información del semestre en el header
  */
-function updateSemesterInfo() {
+async function updateSemesterInfo() {
     try {
-        const user = getUserFromToken();
+        console.log('🔄 Actualizando información del semestre en header...');
         
+        // Intentar obtener del API
+        try {
+            const response = await apiGet('/semestre?action=current');
+            
+            if (response?.success && response.data?.semester) {
+                const semester = response.data.semester;
+                console.log('✅ Semestre obtenido desde BD:', semester);
+                
+                // Actualizar nombre del semestre
+                const semesterElement = document.getElementById('headerSemester');
+                if (semesterElement) {
+                    semesterElement.textContent = semester.name || semester.nombre || '2025-I';
+                }
+                
+                // Calcular días restantes usando la fecha de fin de la BD
+                if (semester.endDate || semester.fechaFin) {
+                    const endDate = semester.endDate || semester.fechaFin;
+                    calculateDaysRemainingFromDate(endDate);
+                } else {
+                    calculateDaysRemaining(); // Fallback al método anterior
+                }
+                
+                return; // Salir si todo fue exitoso
+            }
+        } catch (apiError) {
+            console.warn('⚠️ No se pudo obtener semestre del API:', apiError.message);
+        }
+        
+        // Fallback: usar datos del token si existen
+        const user = getUserFromToken();
         if (user && user.semestre) {
             const semesterElement = document.getElementById('headerSemester');
             if (semesterElement) {
@@ -16,10 +46,54 @@ function updateSemesterInfo() {
             }
         }
         
-        // Calcular días restantes del semestre
+        // Calcular días restantes con método por defecto
         calculateDaysRemaining();
     } catch (error) {
-        console.error('Error al actualizar info del semestre:', error);
+        console.error('❌ Error al actualizar info del semestre:', error);
+        // En caso de error, mostrar valores por defecto
+        calculateDaysRemaining();
+    }
+}
+
+/**
+ * Calcula los días restantes hasta una fecha específica
+ */
+function calculateDaysRemainingFromDate(endDateStr) {
+    const daysElement = document.getElementById('headerDaysRemaining');
+    if (!daysElement) return;
+    
+    try {
+        // Parsear fecha en formato YYYY-MM-DD
+        const endDate = new Date(endDateStr + 'T23:59:59');
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        // Calcular diferencia en días
+        const diffTime = endDate - today;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        console.log(`📅 Días restantes calculados: ${diffDays} (hasta ${endDateStr})`);
+        
+        // Actualizar el elemento
+        if (diffDays >= 0) {
+            daysElement.textContent = diffDays;
+            
+            // Cambiar color según días restantes
+            if (diffDays <= 15) {
+                daysElement.style.color = '#DC2626'; // Rojo
+            } else if (diffDays <= 30) {
+                daysElement.style.color = '#F59E0B'; // Amarillo/Naranja
+            } else {
+                daysElement.style.color = '#7B1113'; // Rojo UNSAAC
+            }
+        } else {
+            daysElement.textContent = '0';
+            daysElement.style.color = '#DC2626';
+            console.warn('⚠️ El semestre ya terminó');
+        }
+    } catch (error) {
+        console.error('❌ Error al calcular días desde fecha:', error);
+        daysElement.textContent = '--';
     }
 }
 
@@ -161,20 +235,14 @@ function handleModalClick(event) {
 /**
  * Inicialización del header
  */
-function initializeHeader() {
-    console.log('🎯 Inicializando Header Panel...');
-    
-    // Actualizar información
-    updateSemesterInfo();
+async function initializeHeader() {
+    await updateSemesterInfo();
     updateHeaderUserInfo();
     
-    // Agregar listener para cerrar modal al hacer clic fuera
     const modal = document.getElementById('helpModal');
     if (modal) {
         modal.addEventListener('click', handleModalClick);
     }
-    
-    console.log('✅ Header Panel inicializado');
 }
 
 // Inicializar cuando el DOM esté listo
@@ -187,8 +255,8 @@ if (document.readyState === 'loading') {
 }
 
 // ========== EXPONER FUNCIONES GLOBALES ==========
-window.updateHeaderPanelInfo = function() {
-    updateSemesterInfo();
+window.updateHeaderPanelInfo = async function() {
+    await updateSemesterInfo();
     updateHeaderUserInfo();
 };
 

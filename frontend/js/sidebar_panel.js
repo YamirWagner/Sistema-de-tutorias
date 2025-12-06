@@ -150,11 +150,6 @@ function initializeSidebar() {
     // Cargar menú dinámico según rol
     loadSidebarMenu();
     
-    // Restaurar el botón activo después de cargar el menú
-    setTimeout(() => {
-        restoreActiveMenuButton();
-    }, 100);
-    
     // Adjuntar listeners a los links del menú
     const sidebarLinks = document.querySelectorAll('.sidebar-menu a');
     console.log(`📍 ${sidebarLinks.length} enlaces encontrados`);
@@ -261,53 +256,11 @@ async function loadSidebarMenu() {
 }
 
 /**
- * Activar estado visual del botón del menú
- */
-function activateMenuButton(element) {
-    // Remover clase active de todos los links
-    const allLinks = document.querySelectorAll('.sidebar-menu a');
-    allLinks.forEach(link => link.classList.remove('active'));
-    
-    // Agregar clase active al elemento clicado
-    element.classList.add('active');
-    
-    // Guardar el módulo activo en localStorage
-    const module = element.getAttribute('data-module') || 'home';
-    localStorage.setItem('activeModule', module);
-    
-    console.log('🎨 Botón activado:', element.querySelector('.sidebar-menu-text')?.textContent || 'Inicio');
-}
-
-/**
- * Restaurar el estado del botón activo al cargar la página
- */
-function restoreActiveMenuButton() {
-    const activeModule = localStorage.getItem('activeModule') || 'home';
-    
-    if (activeModule === 'home') {
-        // Activar el primer botón (Inicio)
-        const firstLink = document.querySelector('.sidebar-menu a');
-        if (firstLink) {
-            firstLink.classList.add('active');
-        }
-    } else {
-        // Buscar y activar el botón correspondiente
-        const link = document.querySelector(`.sidebar-menu a[data-module="${activeModule}"]`);
-        if (link) {
-            link.classList.add('active');
-        }
-    }
-}
-
-/**
  * Navegar a un módulo (función simplificada y unificada)
  */
 function navigateToModule(element) {
     const module = element.getAttribute('data-module');
     const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
-    
-    // Activar el botón visualmente
-    activateMenuButton(element);
     
     // Cerrar sidebar en móvil
     closeSidebarOnNavigation();
@@ -385,6 +338,4 @@ window.closeSidebarOnNavigation = closeSidebarOnNavigation;
 window.initializeSidebar = initializeSidebar;
 window.loadSidebarMenu = loadSidebarMenu;
 window.navigateToModule = navigateToModule;
-window.activateMenuButton = activateMenuButton;
-window.restoreActiveMenuButton = restoreActiveMenuButton;
 
