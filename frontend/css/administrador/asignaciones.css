@@ -1,4 +1,16 @@
 /* Estilos para el módulo de asignaciones */
+.right-3{
+    right: 0.75rem;
+}
+.pr-10{
+    padding-right: 2.5rem;
+}
+.left-3{
+    left: 0.75rem;
+}
+.pl-10{
+    padding-left: 2.5rem;
+}
 
 .tutor-btn {
     transition: all 0.2s ease;
@@ -6,11 +18,24 @@
 }
 
 .tutor-btn:hover {
-    background-color: #f9fafb !important;
+    background-color: f9fafb !important;
 }
 
-.tutor-btn.bg-red-200 {
-    background-color: #fecaca !important;
+/* Tutor seleccionado - oscurecido */
+.tutor-btn:focus {
+    background: #f9fafb;
+    background-color: rgba(155, 25, 45, 0.2);
+    color: white !important;
+    border-color: #b91c1c !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.tutor-btn.bg-red-200 .font-semibold {
+    color: white !important;
+}
+
+.tutor-btn.bg-red-200 .text-xs {
+    color: rgba(255, 255, 255, 0.9) !important;
 }
 
 .student-item {

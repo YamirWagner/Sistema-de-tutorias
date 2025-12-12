@@ -8,7 +8,7 @@
             <h3 class="text-base font-bold mb-3 text-gray-800">1. Seleccionar Tutor</h3>
             
             <!-- Búsqueda de tutor -->
-            <div class="mb-3 relative">
+            <div class="mb-3 relative pr-2">
                 <input type="text" id="inputBuscarTutor"
                     placeholder="Busca tutor por nombre..."
                     class="border border-gray-400 p-2 pr-10 rounded w-full text-sm focus:outline-none focus:ring-1 focus:ring-gray-500">
@@ -46,7 +46,7 @@
                 <!-- Búsqueda de estudiantes asignados -->
                 <div class="mb-2 relative">
                     <input type="text" id="inputBuscarEstudianteAsignado"
-                        placeholder="Busca tutor por nombre..."
+                        placeholder="Busca estudiante por nombre..."
                         class="border border-gray-400 p-2 pr-10 rounded w-full text-sm focus:outline-none focus:ring-1 focus:ring-gray-500">
                     <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -67,7 +67,7 @@
                 <!-- Búsqueda de estudiantes sin asignar -->
                 <div class="mb-2 relative">
                     <input type="text" id="inputBuscarEstudianteNoAsignado"
-                        placeholder="Busca tutor por nombre..."
+                        placeholder="Busca estudiante por nombre..."
                         class="border border-gray-400 p-2 pr-10 rounded w-full text-sm focus:outline-none focus:ring-1 focus:ring-gray-500">
                     <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -84,7 +84,7 @@
 </div>
 
 <!-- Modal de Asignación Aleatoria (FUERA del contenedor principal) -->
-<div id="modalAsignacionAleatoria" class="hidden fixed inset-0 bg-black bg-opacity-50  flex items-center justify-center">
+<div id="modalAsignacionAleatoria" class="overflow-y-auto hidden fixed inset-0 bg-black bg-opacity-50  flex items-center justify-center">
     <div class="AsignacionAleatoria bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full mx-4 overflow-y-auto">
         <h3 class="text-xl font-bold mb-4 text-gray-800">Asignación Automática de Estudiantes</h3>
         
