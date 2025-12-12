@@ -8,26 +8,100 @@ const GestionUsuariosModule = {
     }
 };
 
+// ============= CONFIGURACIÓN DE EVENTOS =============
+
+function setupEventListeners() {
+    // Botón abrir modal
+    const btnOpen = document.getElementById('btnOpenRegister');
+    if (btnOpen) {
+        btnOpen.onclick = function() {
+            openRegisterModal();
+        };
+    }
+    
+    // Búsqueda
+    const search = document.getElementById('searchUser');
+    if (search) {
+        search.oninput = applyFilters;
+    }
+    
+    // Filtro de rol
+    const filter = document.getElementById('filterRole');
+    if (filter) {
+        filter.onchange = applyFilters;
+    }
+    
+    // Cambio de rol en formulario
+    const rolSelect = document.getElementById('inputRol');
+    if (rolSelect) {
+        rolSelect.onchange = handleRoleChange;
+    }
+}
+
 // ============= INICIALIZACIÓN =============
 
 async function initGestionUsuariosModule() {
-    if (GestionUsuariosModule.state.isLoading) {
-        return;
-    }
+    if (GestionUsuariosModule.state.isLoading) return;
     
     GestionUsuariosModule.state.isLoading = true;
     
-    const btnOpenRegister = document.getElementById('btnOpenRegister');
-    if (!btnOpenRegister) {
-        GestionUsuariosModule.state.isLoading = false;
-        return;
-    }
-    
     try {
-        setupEventListeners();
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+        // Configurar botón registrar
+        const btnOpen = document.getElementById('btnOpenRegister');
+        if (btnOpen) {
+            btnOpen.onclick = () => {
+                const modal = document.getElementById('registerModal');
+                if (modal) {
+                    modal.style.display = 'flex';
+                    document.body.style.overflow = 'hidden';
+                }
+            };
+        }
+        
+        // Botones de cerrar modales
+        const closeBtns = document.querySelectorAll('.modal-close-btn');
+        closeBtns.forEach(btn => {
+            btn.onclick = () => {
+                const modal = btn.closest('.modal-overlay');
+                if (modal) {
+                    modal.style.display = 'none';
+                    document.body.style.overflow = 'auto';
+                }
+            };
+        });
+        
+        // Configurar filtros
+        const searchInput = document.getElementById('searchUser');
+        const filterRole = document.getElementById('filterRole');
+        
+        if (searchInput) {
+            searchInput.oninput = () => applyFilters();
+        }
+        
+        if (filterRole) {
+            filterRole.onchange = () => applyFilters();
+        }
+        
+        // Cambio de rol en formularios
+        const rolSelect = document.getElementById('inputRol');
+        if (rolSelect) {
+            rolSelect.onchange = function() {
+                handleRoleChange.call(this);
+            };
+        }
+        
+        const rolSelectEdit = document.getElementById('editInputRol');
+        if (rolSelectEdit) {
+            rolSelectEdit.onchange = function() {
+                handleRoleChange.call(this);
+            };
+        }
+        
         await loadUsers();
     } catch (e) {
-        console.error('Error al inicializar:', e);
+        console.error('Error en inicialización:', e);
     } finally {
         GestionUsuariosModule.state.isLoading = false;
     }
@@ -35,17 +109,13 @@ async function initGestionUsuariosModule() {
 
 async function loadGestionUsuariosContent() {
     const content = document.getElementById('dashboardContent');
-    if (!content) {
-        return;
-    }
+    if (!content) return;
     
-    // Limpiar modales anteriores si existen
     cleanupGestionUsuariosModals();
     
     try {
         content.innerHTML = '<div class="loading-message" style="text-align:center;padding:40px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:32px;color:#a42727;"></i><p style="margin-top:16px;color:#666;">Cargando módulo...</p></div>';
         
-        // Usar helpers simplificados
         const cssPath = window.PATH?.css('administrador/gestionUsuarios.css') || 
                        '/Sistema-de-tutorias/frontend/css/administrador/gestionUsuarios.css';
         
@@ -60,29 +130,12 @@ async function loadGestionUsuariosContent() {
                     '/Sistema-de-tutorias/frontend/components/administrador/gestionUsuarios.html') + `?v=${Date.now()}`;
         
         const response = await fetch(url, { cache: 'no-store' });
-        
-        if (!response.ok) {
-            throw new Error(`Error al cargar: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`Error al cargar: ${response.status}`);
         
         const htmlText = await response.text();
         content.innerHTML = htmlText;
         
-        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-        
-        const registerModal = document.getElementById('registerModal');
-        const editModal = document.getElementById('editModal');
-        
-        if (registerModal && registerModal.parentElement.id === 'dashboardContent') {
-            document.body.appendChild(registerModal);
-            registerModal.setAttribute('data-gestion-usuarios-modal', 'true');
-        }
-        
-        if (editModal && editModal.parentElement.id === 'dashboardContent') {
-            document.body.appendChild(editModal);
-            editModal.setAttribute('data-gestion-usuarios-modal', 'true');
-        }
-        
+        await new Promise(resolve => setTimeout(resolve, 100));
         await initGestionUsuariosModule();
         
     } catch (error) {
@@ -95,100 +148,88 @@ async function loadGestionUsuariosContent() {
     }
 }
 
-// ============= CONFIGURACIÓN DE EVENTOS =============
+// ============= FUNCIONES GLOBALES DE MODALES =============
 
-function setupEventListeners() {
-    const btnOpenRegister = document.getElementById('btnOpenRegister');
-    const closeRegister = document.getElementById('closeRegister');
-    const btnCancelRegister = document.getElementById('btnCancelRegister');
-    const btnSaveUser = document.getElementById('btnSaveUser');
-    const registerModal = document.getElementById('registerModal');
-    const searchUser = document.getElementById('searchUser');
-    const filterRole = document.getElementById('filterRole');
-    const inputRol = document.getElementById('inputRol');
+function openRegisterModal() {
+    console.log('📂 Intentando abrir modal...');
+    const modal = document.getElementById('registerModal');
+    console.log('🔍 Modal:', modal);
     
-    const closeEdit = document.getElementById('closeEdit');
-    const btnCancelEdit = document.getElementById('btnCancelEdit');
-    const btnSaveEdit = document.getElementById('btnSaveEdit');
-    const editModal = document.getElementById('editModal');
-
-    if (btnOpenRegister) {
-        btnOpenRegister.onclick = () => {
-            resetRegisterForm();
-            showModal(registerModal);
-        };
-    }
-
-    if (closeRegister) closeRegister.onclick = () => hideModal(registerModal);
-    if (btnCancelRegister) btnCancelRegister.onclick = () => hideModal(registerModal);
-    if (btnSaveUser) btnSaveUser.onclick = () => saveNewUser();
-    
-    if (closeEdit) closeEdit.onclick = () => hideModal(editModal);
-    if (btnCancelEdit) btnCancelEdit.onclick = () => hideModal(editModal);
-    if (btnSaveEdit) btnSaveEdit.onclick = () => saveEditUser();
-
-    if (searchUser) {
-        searchUser.oninput = () => applyFilters();
-    }
-
-    if (filterRole) {
-        filterRole.onchange = () => applyFilters();
-    }
-
-    if (inputRol) {
-        inputRol.onchange = () => {
-            const selectedRole = inputRol.value;
-            const studentFields = document.querySelectorAll('.student-field');
-            const systemFields = document.querySelectorAll('.system-field');
-            const dniField = document.getElementById('inputDNI');
-            const dniRequired = document.getElementById('dniRequired');
-
-            if (selectedRole === 'Estudiante') {
-                studentFields.forEach(f => f.classList.remove('hidden'));
-                systemFields.forEach(f => f.classList.add('hidden'));
-                if (dniRequired) dniRequired.style.display = 'none';
-                if (dniField) dniField.removeAttribute('required');
-            } else if (selectedRole) {
-                studentFields.forEach(f => f.classList.add('hidden'));
-                if (selectedRole === 'Tutor' || selectedRole === 'Verificador') {
-                    systemFields.forEach(f => f.classList.remove('hidden'));
-                } else {
-                    systemFields.forEach(f => f.classList.add('hidden'));
-                }
-                if (dniRequired) dniRequired.style.display = 'inline';
-                if (dniField) dniField.setAttribute('required', 'required');
-            } else {
-                studentFields.forEach(f => f.classList.add('hidden'));
-                systemFields.forEach(f => f.classList.add('hidden'));
+    if (modal) {
+        console.log('✅ Modal encontrado, abriendo...');
+        resetRegisterForm();
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        console.log('✅ Modal abierto');
+        
+        // Click en overlay para cerrar
+        modal.onclick = function(e) {
+            if (e.target === modal) {
+                closeRegisterModal();
             }
         };
+    } else {
+        console.error('❌ Modal NO encontrado en el DOM');
+    }
+}
+
+function closeRegisterModal() {
+    const modal = document.getElementById('registerModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+        modal.onclick = null;
+    }
+}
+
+function openEditModal(userId, userType) {
+    const modal = document.getElementById('editModal');
+    if (modal) {
+        loadUserDataForEdit(userId, userType);
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        
+        modal.onclick = function(e) {
+            if (e.target === modal) {
+                closeEditModal();
+            }
+        };
+    }
+}
+
+function closeEditModal() {
+    const modal = document.getElementById('editModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+        modal.onclick = null;
+    }
+}
+
+function handleRoleChange() {
+    const rol = this.value;
+    const studentFields = document.querySelectorAll('.student-field');
+    const systemFields = document.querySelectorAll('.system-field');
+    const dniField = document.getElementById('inputDNI');
+    const dniReq = document.getElementById('dniRequired');
+    
+    if (rol === 'Estudiante') {
+        studentFields.forEach(f => f.classList.remove('hidden'));
+        systemFields.forEach(f => f.classList.add('hidden'));
+        if (dniReq) dniReq.style.display = 'none';
+        if (dniField) dniField.removeAttribute('required');
+    } else if (rol) {
+        studentFields.forEach(f => f.classList.add('hidden'));
+        systemFields.forEach(f => f.classList.add('hidden'));
+        if (rol === 'Tutor' || rol === 'Verificador') {
+            systemFields.forEach(f => f.classList.remove('hidden'));
+        }
+        if (dniReq) dniReq.style.display = 'inline';
+        if (dniField) dniField.setAttribute('required', 'required');
     }
 }
 
 // ============= FUNCIONES DE UI =============
-
-function showModal(modal) {
-    if (!modal) return;
-    
-    modal.style.display = 'flex';
-    modal.classList.remove('hidden');
-    
-    setTimeout(() => {
-        modal.onclick = (e) => {
-            if (e.target === modal) {
-                hideModal(modal);
-            }
-        };
-    }, 100);
-}
-
-function hideModal(modal) {
-    if (modal) {
-        modal.style.display = 'none';
-        modal.classList.add('hidden');
-        modal.onclick = null;
-    }
-}
 
 function showNotification(message, type = 'success') {
     const container = document.getElementById('notificationsContainer');
@@ -235,6 +276,9 @@ function resetRegisterForm() {
     
     document.querySelectorAll('.student-field').forEach(f => f.classList.add('hidden'));
     document.querySelectorAll('.system-field').forEach(f => f.classList.add('hidden'));
+    
+    const dniReq = document.getElementById('dniRequired');
+    if (dniReq) dniReq.style.display = 'none';
 }
 
 // ============= CARGA DE DATOS =============
@@ -267,18 +311,21 @@ async function loadUsers(role = null, estado = null, search = null) {
 }
 
 function applyFilters() {
-    const searchUser = document.getElementById('searchUser');
-    const filterRole = document.getElementById('filterRole');
+    const search = document.getElementById('searchUser');
+    const filter = document.getElementById('filterRole');
     
-    const searchTerm = searchUser?.value.toLowerCase().trim() || '';
-    const roleFilter = filterRole?.value || 'Todos';
+    if (!search || !filter) return;
+    
+    const searchTerm = search.value.toLowerCase().trim();
+    const roleFilter = filter.value;
     
     GestionUsuariosModule.state.filteredUsers = GestionUsuariosModule.state.users.filter(user => {
         const matchRole = roleFilter === 'Todos' || user.rol === roleFilter;
+        
         const matchSearch = !searchTerm || 
-            user.nombres.toLowerCase().includes(searchTerm) ||
-            user.apellidos.toLowerCase().includes(searchTerm) ||
-            user.correo.toLowerCase().includes(searchTerm) ||
+            (user.nombres && user.nombres.toLowerCase().includes(searchTerm)) ||
+            (user.apellidos && user.apellidos.toLowerCase().includes(searchTerm)) ||
+            (user.correo && user.correo.toLowerCase().includes(searchTerm)) ||
             (user.codigo && user.codigo.toLowerCase().includes(searchTerm)) ||
             (user.dni && user.dni.includes(searchTerm));
         
@@ -446,7 +493,7 @@ async function toggleUserStatus(userId, userType, activate) {
 
 // ============= EDICIÓN DE USUARIOS =============
 
-async function openEditModal(userId, userType) {
+async function loadUserDataForEdit(userId, userType) {
     try {
         const user = GestionUsuariosModule.state.users.find(u => 
             u.id === userId && u.userType === userType
@@ -488,8 +535,6 @@ async function openEditModal(userId, userType) {
                 document.getElementById('editEspecialidad').value = user.especialidad || '';
             }
         }
-        
-        showModal(document.getElementById('editModal'));
     } catch (error) {
         console.error('Error al abrir modal de edición:', error);
         showNotification('Error al cargar datos del usuario', 'error');
@@ -565,11 +610,12 @@ async function saveEditUser() {
 // ============= LIMPIEZA DE MODALES =============
 
 function cleanupGestionUsuariosModals() {
-    // Eliminar modales anteriores del body
-    const oldModals = document.querySelectorAll('[data-gestion-usuarios-modal="true"]');
+    // Eliminar modales anteriores si existen
+    const oldModals = document.querySelectorAll('#registerModal, #editModal');
     oldModals.forEach(modal => {
-        hideModal(modal);
-        modal.remove();
+        if (modal && modal.parentElement) {
+            modal.remove();
+        }
     });
 }
 
@@ -579,4 +625,9 @@ window.loadGestionUsuariosContent = loadGestionUsuariosContent;
 window.initGestionUsuariosModule = initGestionUsuariosModule;
 window.toggleUserStatus = toggleUserStatus;
 window.openEditModal = openEditModal;
+window.closeEditModal = closeEditModal;
+window.openRegisterModal = openRegisterModal;
+window.closeRegisterModal = closeRegisterModal;
+window.saveNewUser = saveNewUser;
+window.saveEditUser = saveEditUser;
 window.cleanupGestionUsuariosModals = cleanupGestionUsuariosModals;
