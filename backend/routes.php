@@ -73,6 +73,9 @@ $routes = [
     'POST|api/tutor' => 'api/tutor.php',
     'PUT|api/tutor' => 'api/tutor.php',
     
+    // Rutas de panel del tutor
+    'GET|api/PanelTutor' => 'api/PanelTutor.php',
+    
     // Rutas de estudiante
     'GET|api/student' => 'api/student.php',
     'POST|api/student' => 'api/student.php',
