@@ -216,7 +216,6 @@ async function loadSidebarMenu() {
         ],
         tutor: [
             { icon: 'fa-solid fa-house', text: 'Inicio', module: null, active: true },
-            { icon: 'fa-solid fa-plus-circle', text: 'Nueva Sesión', module: 'nueva-sesion' },
             { icon: 'fa-solid fa-calendar-check', text: 'Agendamientos', module: 'agendamientos' },
             { icon: 'fa-solid fa-user-graduate', text: 'Mis estudiantes', module: 'mis-estudiantes' },
         ],

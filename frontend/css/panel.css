@@ -23,6 +23,8 @@ body {
     background-color: #f3f4f6;
     min-height: 100vh;
     overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 /* ========== CONTENEDORES FIJOS ========== */
@@ -68,6 +70,7 @@ body:has(.sidebar-panel.collapsed) #header-container {
     transition: margin-left 0.3s ease, width 0.3s ease;
     width: calc(100% - 17%);
     min-height: calc(100vh - 80px);
+    height: 100%;
 }
 
 /* Main cuando sidebar está colapsado */
