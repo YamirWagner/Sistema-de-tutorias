@@ -85,6 +85,18 @@
         }
     }
 
+/* ============================================================
+   UTILIDADES
+   ============================================================ */
+
+/**
+ * Obtiene el nombre completo de una persona
+ */
+function getFullName(person) {
+    return person?.nombre || 
+           (person?.nombres && person?.apellidos ? `${person.nombres} ${person.apellidos}` : 'Sin nombre');
+}
+
 /* ------------------------------------------------------------
 2. Cargar lista de tutores
 ------------------------------------------------------------ */
@@ -97,13 +109,12 @@ function cargarTutores(filtroNombre = "") {
     contenedor.innerHTML = "";
 
     const tutoresFiltrados = window.tutores.filter(t => {
-        const nombre = t.nombre || (t.nombres && t.apellidos ? `${t.nombres} ${t.apellidos}` : '');
-        return nombre.toLowerCase().includes(filtroNombre.toLowerCase());
+        return getFullName(t).toLowerCase().includes(filtroNombre.toLowerCase());
     });
 
     tutoresFiltrados.forEach(tutor => {
             const totalAsignados = window.asignaciones[tutor.id]?.length || 0;
-            const displayName = tutor.nombre || (tutor.nombres && tutor.apellidos ? `${tutor.nombres} ${tutor.apellidos}` : 'Sin nombre');
+            const displayName = getFullName(tutor);
 
             const btn = document.createElement("button");
             btn.className = `tutor-btn text-left px-3 py-2.5 bg-white rounded border border-gray-300 hover:bg-gray-50 transition`;
@@ -149,8 +160,7 @@ function seleccionarTutor(tutorID) {
     const tutor = window.tutores.find(t => t.id === tutorID);
     const nombreTutorSpan = document.getElementById('nombre-tutor-seleccionado');
     if (nombreTutorSpan && tutor) {
-        const displayName = tutor.nombre || (tutor.nombres && tutor.apellidos ? `${tutor.nombres} ${tutor.apellidos}` : 'Sin nombre');
-        nombreTutorSpan.textContent = displayName;
+        nombreTutorSpan.textContent = getFullName(tutor);
     }
     
     cargarEstudiantesAsignados();
@@ -185,13 +195,11 @@ function cargarEstudiantesAsignados(filtroNombre = "") {
     }
 
     const estudiantesFiltrados = estudiantesAsignados.filter(e => {
-        if (!e) return false;
-        const nombre = e.nombreEstudiante || e.nombre || (e.nombres && e.apellidos ? `${e.nombres} ${e.apellidos}` : '');
-        return nombre.toLowerCase().includes(filtroNombre.toLowerCase());
+        return e && getFullName(e).toLowerCase().includes(filtroNombre.toLowerCase());
     });
 
     estudiantesFiltrados.forEach(est => {
-            const estudianteNombre = est.nombreEstudiante || est.nombre || (est.nombres && est.apellidos ? `${est.nombres} ${est.apellidos}` : 'Sin nombre');
+            const estudianteNombre = getFullName(est);
             
             const div = document.createElement("div");
             div.className = `student-item border border-gray-400 rounded p-2.5 flex justify-between items-center hover:bg-white bg-gray-50`;
@@ -231,13 +239,11 @@ function cargarEstudiantesNoAsignados(filtroNombre = "") {
     }
 
     const estudiantesFiltrados = window.estudiantesNoAsignados.filter(e => {
-        const nombre = e.nombre || (e.nombres && e.apellidos ? `${e.nombres} ${e.apellidos}` : '');
-        return nombre.toLowerCase().includes(filtroNombre.toLowerCase());
+        return getFullName(e).toLowerCase().includes(filtroNombre.toLowerCase());
     });
 
     estudiantesFiltrados.forEach(est => {
-            const estudianteId = est.id || '';
-            const nombre = est.nombre || (est.nombres && est.apellidos ? `${est.nombres} ${est.apellidos}` : 'Sin nombre');
+            const nombre = getFullName(est);
             
             const div = document.createElement("div");
             div.className = `student-item border border-gray-400 rounded p-2.5 flex justify-between items-center hover:bg-white bg-gray-50`;
@@ -309,183 +315,305 @@ async function quitarEstudiante(idEstudiante) {
    ------------------------------------------------------------ */
 
 function initAssignmentSearchEvents() {
-    // Búsqueda de tutores en tiempo real
-    const inputBuscarTutor = document.getElementById('inputBuscarTutor');
-    if (inputBuscarTutor) {
-        inputBuscarTutor.addEventListener('input', (e) => {
-            const filtro = e.target.value;
-            cargarTutores(filtro);
-        });
-    }
-
-    // Búsqueda de estudiantes asignados en tiempo real
-    const inputBuscarAsignado = document.getElementById('inputBuscarEstudianteAsignado');
-    if (inputBuscarAsignado) {
-        inputBuscarAsignado.addEventListener('input', (e) => {
-            const filtro = e.target.value;
-            cargarEstudiantesAsignados(filtro);
-        });
-    }
-
-    // Búsqueda de estudiantes no asignados en tiempo real
-    const inputBuscarNoAsignado = document.getElementById('inputBuscarEstudianteNoAsignado');
-    if (inputBuscarNoAsignado) {
-        inputBuscarNoAsignado.addEventListener('input', (e) => {
-            const filtro = e.target.value;
-            cargarEstudiantesNoAsignados(filtro);
-        });
-    }
-}
-
-/* ------------------------------------------------------------
-   9. Asignación aleatoria
-   ------------------------------------------------------------ */
-
-function abrirModalAsignacion() {
-    if (!window.tutores || window.tutores.length === 0) {
-        alert('No hay tutores disponibles');
-        return;
-    }
-
-    if (!window.estudiantesNoAsignados || window.estudiantesNoAsignados.length === 0) {
-        alert('No hay estudiantes sin asignar');
-        return;
-    }
-
-    // Buscar o crear el modal
-    let modal = document.getElementById('modalAsignacionAleatoria');
+    // Mapeo de búsquedas para evitar repetición
+    const searchConfigs = [
+        { inputId: 'inputBuscarTutor', callback: cargarTutores },
+        { inputId: 'inputBuscarEstudianteAsignado', callback: cargarEstudiantesAsignados },
+        { inputId: 'inputBuscarEstudianteNoAsignado', callback: cargarEstudiantesNoAsignados }
+    ];
     
-    if (!modal) {
-        modal = crearModalAsignacion();
-        document.body.appendChild(modal);
-    }
-
-    // Mostrar información del semestre
-    const semestreNombre = document.getElementById('modalSemestreNombre');
-    if (semestreNombre) {
-        semestreNombre.textContent = window.CURRENT_SEMESTER_NOMBRE || 'Semestre Activo';
-    }
-
-    // Mostrar total de estudiantes
-    const totalEstudiantes = document.getElementById('modalTotalEstudiantes');
-    if (totalEstudiantes) {
-        totalEstudiantes.textContent = window.estudiantesNoAsignados.length;
-    }
-
-    // Llenar lista de tutores con checkboxes
-    llenarListaTutoresModal();
-
-    // Mostrar modal
-    modal.classList.remove('hidden');
+    searchConfigs.forEach(({ inputId, callback }) => {
+        const input = document.getElementById(inputId);
+        if (input) {
+            input.addEventListener('input', (e) => callback(e.target.value));
+        }
+    });
 }
 
-function crearModalAsignacion() {
-    const modal = document.createElement('div');
-    modal.id = 'modalAsignacionAleatoria';
-    modal.className = 'hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center';
-    modal.style.zIndex = '99999';
-    modal.innerHTML = `
-        <div class="bg-white rounded-lg shadow-2xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto" style="box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
-            <h3 class="text-xl font-bold mb-4 text-gray-900">Asignación Automática de Estudiantes</h3>
+/* ============================================================
+   9. MODAL DE ASIGNACIÓN AUTOMÁTICA - REFACTORIZADO
+   ============================================================ */
+
+/**
+ * Crea la estructura HTML del modal
+ */
+function crearModalHTML() {
+    return `
+    <div id="modalAsignacionAleatoria" 
+        class="modal-overlay hidden"
+        role="dialog"
+        aria-labelledby="modalTitle"
+        aria-hidden="true">
+        
+        <div class="modal-content animate-fadeInScale">
             
-            <!-- Información del Semestre -->
-            <div class="bg-blue-100 border-2 border-blue-300 rounded-lg p-4 mb-4">
-                <div class="flex items-center gap-2 mb-2">
-                    <svg class="w-5 h-5 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            <!-- Header -->
+            <div class="modal-header flex items-center justify-between">
+                <h2 id="modalTitle" class="text-2xl font-bold text-gray-900">Asignación Automática de Estudiantes</h2>
+                <button type="button" 
+                    id="btnCerrarModalX"
+                    class="text-gray-500 hover:text-gray-700 transition"
+                    aria-label="Cerrar modal">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
-                    <h4 class="font-semibold text-blue-900">Semestre Activo</h4>
-                </div>
-                <p class="text-blue-900 font-bold text-lg" id="modalSemestreNombre">Cargando...</p>
+                </button>
             </div>
 
-            <!-- Información de Estudiantes -->
-            <div class="bg-yellow-100 border-2 border-yellow-300 rounded-lg p-4 mb-4">
-                <div class="flex items-center gap-2 mb-2">
-                    <svg class="w-5 h-5 text-yellow-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                    </svg>
-                    <h4 class="font-semibold text-yellow-900">Estudiantes Sin Asignar</h4>
-                </div>
-                <p class="text-yellow-900 font-bold">
-                    Total: <span id="modalTotalEstudiantes" class="text-2xl">0</span> estudiantes pendientes de asignación
-                </p>
-            </div>
-
-            <!-- Selección de Tutores -->
-            <div class="mb-6">
-                <div class="flex items-center justify-between mb-3">
-                    <h4 class="font-bold text-gray-900 text-lg">Seleccionar Tutores para Asignación</h4>
-                    <button id="btnSeleccionarTodosTutores" class="text-sm text-blue-700 hover:text-blue-900 font-bold underline">
-                        Seleccionar todos
-                    </button>
-                </div>
-                <p class="text-sm text-gray-700 mb-3 font-medium">
-                    Seleccione los tutores que participarán en la asignación automática. Los estudiantes se distribuirán equitativamente entre ellos.
-                </p>
+            <!-- Content -->
+            <div class="modal-body space-y-3">
                 
-                <div id="listaTutoresModal" class="border-2 border-gray-400 rounded-lg max-h-60 overflow-y-auto bg-white">
-                    <!-- Se llena dinámicamente -->
+                <!-- Información del Semestre -->
+                <div class="info-card bg-gradient-to-r from-blue-50 to-blue-100 border-l-4 border-blue-500 rounded-lg p-3">
+                    <div class="flex items-center gap-2 mb-1">
+                        <svg class="w-5 h-5 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        <h3 class="font-bold text-blue-900 text-sm">Semestre Activo</h3>
+                    </div>
+                    <p class="text-blue-800 font-semibold text-sm ml-7" id="modalSemestreNombre">Cargando...</p>
                 </div>
+
+                <!-- Información de Estudiantes -->
+                <div class="info-card bg-gradient-to-r from-amber-50 to-amber-100 border-l-4 border-amber-500 rounded-lg p-3">
+                    <div class="flex items-center gap-2 mb-1">
+                        <svg class="w-5 h-5 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                        <h3 class="font-bold text-amber-900 text-sm">Estudiantes Sin Asignar</h3>
+                    </div>
+                    <p class="text-amber-800 font-semibold text-sm ml-7">
+                        Total: <span id="modalTotalEstudiantes" class="text-lg font-bold">0</span> pendientes
+                    </p>
+                </div>
+
+                <!-- Selección de Tutores -->
+                <div class="tutores-section">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="font-bold text-gray-900 text-base">Tutores para Asignación</h3>
+                        <button id="btnSeleccionarTodosTutores" type="button"
+                            class="text-xs text-blue-600 hover:text-blue-800 hover:underline font-semibold transition">
+                            Seleccionar todos
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-600 mb-3">
+                        Seleccione tutores para distribución equitativa.
+                    </p>
+                    
+                    <div id="listaTutoresModal" 
+                        class="tutores-grid border-2 border-gray-300 rounded-lg overflow-y-auto bg-white divide-y">
+                        <!-- Se llena dinámicamente -->
+                    </div>
+                </div>
+
             </div>
 
-            <!-- Botones de Acción -->
-            <div class="flex justify-end gap-3 pt-4 border-t-2 border-gray-300">
+            <!-- Footer -->
+            <div class="modal-footer flex justify-end gap-3">
                 <button id="btnCancelarAsignacion" 
-                    class="px-6 py-2.5 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition font-bold shadow-md">
+                    type="button"
+                    class="px-5 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold text-sm rounded-lg transition-colors duration-200 shadow-sm">
                     Cancelar
                 </button>
                 <button id="btnConfirmarAsignacion" 
-                    class="px-6 py-2.5 bg-yellow-500 text-gray-900 rounded-lg hover:bg-yellow-600 transition font-bold shadow-lg">
-                    Procesar Asignación
+                    type="button"
+                    class="px-5 py-2 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-900 font-bold text-sm rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
+                    Procesar
                 </button>
             </div>
+            
         </div>
+    </div>
     `;
+}
+
+/**
+ * Obtiene o crea el modal y lo inyecta en el body
+ */
+function asegurarModalEnBody() {
+    let modal = document.getElementById('modalAsignacionAleatoria');
     
-    // Agregar event listeners a los botones del modal
-    setTimeout(() => {
-        const btnConfirmar = document.getElementById('btnConfirmarAsignacion');
-        const btnCancelar = document.getElementById('btnCancelarAsignacion');
-        const btnSeleccionarTodos = document.getElementById('btnSeleccionarTodosTutores');
-        
-        if (btnConfirmar) btnConfirmar.addEventListener('click', asignarAleatoriamente);
-        if (btnCancelar) btnCancelar.addEventListener('click', cerrarModalAsignacion);
-        if (btnSeleccionarTodos) btnSeleccionarTodos.addEventListener('click', toggleSeleccionTodosTutores);
-    }, 0);
+    if (!modal) {
+        // Crear modal y agregarlo directamente al body
+        const modalHTML = crearModalHTML();
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        modal = document.getElementById('modalAsignacionAleatoria');
+    }
     
     return modal;
 }
 
+/**
+ * Abre y configura el modal de asignación automática
+ */
+function abrirModalAsignacion() {
+    // Validaciones previas
+    if (!validarAsignacionAutomatica()) {
+        return;
+    }
+
+    // Asegurar que el modal existe en el body
+    const modal = asegurarModalEnBody();
+    if (!modal) {
+        console.error('❌ No se pudo crear el modal');
+        return;
+    }
+
+    // Bloquear scroll del body cuando el modal está abierto
+    document.body.style.overflow = 'hidden';
+
+    // Actualizar información del modal
+    actualizarInfoModal();
+    
+    // Llenar lista de tutores
+    llenarListaTutoresModal();
+    
+    // Mostrar modal con transición suave
+    modal.classList.remove('hidden');
+    modal.setAttribute('aria-hidden', 'false');
+    // Activar fallback de centrado
+    modal.classList.add('modal-centered');
+    // Bloquear scroll del body
+    document.body.style.overflow = 'hidden';
+    
+    // Resetear scroll del modal body
+    requestAnimationFrame(() => {
+        const modalBody = modal.querySelector('.modal-body');
+        if (modalBody) modalBody.scrollTop = 0;
+    });
+    
+    // Registrar event listeners después de que el modal sea visible
+    setTimeout(() => {
+        registrarEventosModal();
+        
+        // Focus en el botón de cerrar para mejor accesibilidad
+        const closeBtn = document.getElementById('btnCerrarModalX');
+        if (closeBtn) closeBtn.focus();
+        // Resetear scroll del cuerpo del modal
+        const modalBody = modal.querySelector('.modal-body');
+        if (modalBody) modalBody.scrollTop = 0;
+    }, 50);
+}
+
+/**
+ * Valida que sea posible realizar la asignación automática
+ */
+function validarAsignacionAutomatica() {
+    if (!window.tutores || window.tutores.length === 0) {
+        alert('❌ No hay tutores disponibles para la asignación automática');
+        return false;
+    }
+
+    if (!window.estudiantesNoAsignados || window.estudiantesNoAsignados.length === 0) {
+        alert('❌ No hay estudiantes sin asignar');
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * Actualiza la información mostrada en el modal
+ */
+function actualizarInfoModal() {
+    const semestreNombre = document.getElementById('modalSemestreNombre');
+    const totalEstudiantes = document.getElementById('modalTotalEstudiantes');
+    
+    if (semestreNombre) {
+        semestreNombre.textContent = window.CURRENT_SEMESTER_NOMBRE || 'Semestre Activo';
+    }
+    
+    if (totalEstudiantes) {
+        totalEstudiantes.textContent = window.estudiantesNoAsignados?.length || 0;
+    }
+}
+
+/**
+ * Registra los event listeners del modal
+ */
+function registrarEventosModal() {
+    const btnConfirmar = document.getElementById('btnConfirmarAsignacion');
+    const btnCancelar = document.getElementById('btnCancelarAsignacion');
+    const btnCerrar = document.getElementById('btnCerrarModalX');
+    const btnSeleccionarTodos = document.getElementById('btnSeleccionarTodosTutores');
+
+    // Clonar botón confirmar para eliminar listeners previos
+    if (btnConfirmar) {
+        const nuevoBtn = btnConfirmar.cloneNode(true);
+        btnConfirmar.replaceWith(nuevoBtn);
+        nuevoBtn.addEventListener('click', asignarAleatoriamente);
+    }
+    
+    btnCancelar?.addEventListener('click', cerrarModalAsignacion);
+    btnCerrar?.addEventListener('click', cerrarModalAsignacion);
+    btnSeleccionarTodos?.addEventListener('click', toggleSeleccionTodosTutores);
+
+    // Listener para tecla ESC
+    document.removeEventListener('keydown', manejarTeclaESC);
+    document.addEventListener('keydown', manejarTeclaESC);
+}
+
+/**
+ * Maneja la tecla ESC para cerrar el modal
+ */
+function manejarTeclaESC(event) {
+    if (event.key === 'Escape') {
+        const modal = document.getElementById('modalAsignacionAleatoria');
+        if (modal && !modal.classList.contains('hidden')) {
+            cerrarModalAsignacion();
+        }
+    }
+}
+
+/**
+ * Llena la lista de tutores en el modal con checkboxes
+ */
 function llenarListaTutoresModal() {
     const listaTutoresModal = document.getElementById('listaTutoresModal');
     if (!listaTutoresModal) return;
 
     listaTutoresModal.innerHTML = '';
 
-    window.tutores.forEach(tutor => {
+    if (window.tutores.length === 0) {
+        listaTutoresModal.innerHTML = '<div class="p-4 text-center text-gray-500">No hay tutores disponibles</div>';
+        return;
+    }
+
+    window.tutores.forEach((tutor, index) => {
         const tutorId = tutor.id;
         const asignados = window.asignaciones[tutorId] ? window.asignaciones[tutorId].length : 0;
         const maximo = tutor.max || 10;
         const disponibles = maximo - asignados;
-        const displayName = tutor.nombre || (tutor.nombres && tutor.apellidos ? `${tutor.nombres} ${tutor.apellidos}` : 'Sin nombre');
+        const estaLleno = disponibles <= 0;
+        
+        const displayName = tutor.nombre || 
+                          (tutor.nombres && tutor.apellidos ? `${tutor.nombres} ${tutor.apellidos}` : 'Sin nombre');
 
         const tutorItem = document.createElement('div');
-        tutorItem.className = 'flex items-center gap-3 p-3 hover:bg-gray-50 border-b last:border-b-0';
+        tutorItem.className = 'tutor-item-modal';
         
+        const statusColor = estaLleno 
+            ? 'text-red-600 font-bold' 
+            : 'text-green-600 font-medium';
+        
+        const statusText = estaLleno 
+            ? '⚠️ Sin cupo disponible' 
+            : `✓ ${disponibles} disponible(s)`;
+
         tutorItem.innerHTML = `
-            <input type="checkbox" 
-                id="tutor-checkbox-${tutorId}" 
-                value="${tutorId}" 
-                class="tutor-checkbox w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                ${disponibles > 0 ? 'checked' : 'disabled'}>
-            <label for="tutor-checkbox-${tutorId}" class="flex-1 cursor-pointer">
-                <div class="font-medium text-gray-900">${displayName}</div>
-                <div class="text-sm text-gray-600">
-                    Asignados: ${asignados} / ${maximo}
-                    ${disponibles > 0 
-                        ? `<span class="text-green-600 font-medium"> (${disponibles} disponibles)</span>` 
-                        : `<span class="text-red-600 font-medium"> (Sin cupo)</span>`}
+            <label class="flex items-center gap-3 flex-1">
+                <input type="checkbox" 
+                    id="tutor-checkbox-${tutorId}" 
+                    value="${tutorId}" 
+                    class="tutor-checkbox"
+                    ${estaLleno ? 'disabled' : 'checked'}
+                    aria-label="Seleccionar tutor ${displayName}">
+                <div class="tutor-info flex-1">
+                    <div class="font-semibold text-gray-900">${displayName}</div>
+                    <div class="text-sm text-gray-600">
+                        Asignados: ${asignados}/${maximo}
+                        <span class="${statusColor}"> ${statusText}</span>
+                    </div>
                 </div>
             </label>
         `;
@@ -494,6 +622,9 @@ function llenarListaTutoresModal() {
     });
 }
 
+/**
+ * Alterna la selección de todos los tutores
+ */
 function toggleSeleccionTodosTutores() {
     const checkboxes = document.querySelectorAll('.tutor-checkbox:not([disabled])');
     const todosSeleccionados = Array.from(checkboxes).every(cb => cb.checked);
@@ -508,32 +639,49 @@ function toggleSeleccionTodosTutores() {
     }
 }
 
+/**
+ * Cierra el modal de asignación
+ */
 function cerrarModalAsignacion() {
     const modal = document.getElementById('modalAsignacionAleatoria');
-    if (modal) {
-        modal.classList.add('hidden');
-    }
+    if (!modal) return;
+
+    modal.classList.add('hidden');
+    modal.setAttribute('aria-hidden', 'true');
+    // Restaurar scroll del body
+    document.body.style.overflow = '';
+    
+    // Restaurar scroll del body
+    document.body.style.overflow = '';
+    
+    // Remover listener de ESC al cerrar
+    document.removeEventListener('keydown', manejarTeclaESC);
+    // Desactivar fallback de centrado
+    modal.classList.remove('modal-centered');
 }
 
+/**
+ * Ejecuta la asignación automática de estudiantes
+ */
 async function asignarAleatoriamente() {
     // Obtener tutores seleccionados
     const checkboxes = document.querySelectorAll('.tutor-checkbox:checked');
     const tutoresSeleccionados = Array.from(checkboxes).map(cb => parseInt(cb.value));
 
     if (tutoresSeleccionados.length === 0) {
-        alert('Debe seleccionar al menos un tutor');
+        alert('❌ Debe seleccionar al menos un tutor para la asignación');
         return;
     }
 
     if (!window.estudiantesNoAsignados || window.estudiantesNoAsignados.length === 0) {
-        alert('No hay estudiantes para asignar');
+        alert('❌ No hay estudiantes para asignar');
         return;
     }
 
-    // Confirmación
+    // Confirmación de la acción
     const totalEstudiantes = window.estudiantesNoAsignados.length;
     const confirmacion = confirm(
-        `¿Desea asignar ${totalEstudiantes} estudiante(s) entre ${tutoresSeleccionados.length} tutor(es) seleccionado(s)?`
+        `✓ Asignará ${totalEstudiantes} estudiante(s) entre ${tutoresSeleccionados.length} tutor(es).\n\n¿Continuar?`
     );
 
     if (!confirmacion) return;
@@ -541,21 +689,25 @@ async function asignarAleatoriamente() {
     cerrarModalAsignacion();
 
     try {
-        const resp = await apiPost('/asignaciones?action=autoAssign', {
+        const response = await apiPost('/asignaciones?action=autoAssign', {
             semesterId: window.CURRENT_SEMESTER_ID,
             tutoresSeleccionados: tutoresSeleccionados
         });
 
-        if (!resp || !resp.success) {
-            alert(resp?.message || 'Error al asignar automáticamente');
+        if (!response || !response.success) {
+            alert('❌ ' + (response?.message || 'Error al asignar automáticamente'));
             return;
         }
 
-        alert(`Asignación automática completada:\n${resp.data.estudiantesAsignados} estudiantes asignados entre ${resp.data.tutoresUtilizados} tutores`);
+        const { estudiantesAsignados, tutoresUtilizados } = response.data || {};
+        
+        alert(`✅ Asignación completada:\n• ${estudiantesAsignados} estudiantes asignados\n• ${tutoresUtilizados} tutores utilizados`);
+        
+        // Recargar datos del módulo
         await initAssignmentModule();
     } catch (error) {
-        console.error('Error en asignación automática:', error);
-        alert('Error al asignar automáticamente');
+        console.error('❌ Error en asignación automática:', error);
+        alert('❌ Error al procesar la asignación automática');
     }
 }
 

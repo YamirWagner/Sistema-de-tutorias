@@ -1,18 +1,11 @@
 /* MODALES - Sistema de Tutorías UNSAAC */
-#modalAsignacionAleatoria{
-    z-index: 9999;
-    height: 500px;
-}
-.asignacionAleatoria{
-    
-    overflow-y: auto;
-}
 
+/* Estilos genéricos para modales (usados por otros módulos) */
 .modal-overlay {
     position: fixed;
     inset: 0;
     background-color: rgba(0, 0, 0, 0.6);
-    z-index: 1000;
+    z-index: 9999;
     display: flex;
     align-items: center;
     justify-content: center;

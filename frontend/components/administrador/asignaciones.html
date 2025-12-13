@@ -1,5 +1,5 @@
 <!-- === ASIGNACIONES === -->
-<div class="min-h-screen bg-gray-100 p-6">
+<div id="asignacionesContent" class="min-h-screen bg-gray-100 p-6">
     <!-- ====================== DOS COLUMNAS PRINCIPALES ====================== -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         
@@ -8,7 +8,7 @@
             <h3 class="text-base font-bold mb-3 text-gray-800">1. Seleccionar Tutor</h3>
             
             <!-- Búsqueda de tutor -->
-            <div class="mb-3 relative pr-2">
+            <div class="mb-3 relative">
                 <input type="text" id="inputBuscarTutor"
                     placeholder="Busca tutor por nombre..."
                     class="border border-gray-400 p-2 pr-10 rounded w-full text-sm focus:outline-none focus:ring-1 focus:ring-gray-500">
@@ -18,7 +18,7 @@
             </div>
             
             <!-- Lista de tutores -->
-            <div id="tutor-list" class="max-h-[calc(100vh-250px)] overflow-y-auto pr-2">
+            <div id="tutor-list" class="max-h-[calc(100vh-250px)] overflow-y-auto">
                 <div class="tutor-items flex flex-col gap-2">
                     <!-- Se llena dinámicamente -->
                 </div>
@@ -83,62 +83,4 @@
     </div>
 </div>
 
-<!-- Modal de Asignación Aleatoria (FUERA del contenedor principal) -->
-<div id="modalAsignacionAleatoria" class="overflow-y-auto hidden fixed inset-0 bg-black bg-opacity-50  flex items-center justify-center">
-    <div class="AsignacionAleatoria bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full mx-4 overflow-y-auto">
-        <h3 class="text-xl font-bold mb-4 text-gray-800">Asignación Automática de Estudiantes</h3>
-        
-        <!-- Información del Semestre -->
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-            <div class="flex items-center gap-2 mb-2">
-                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                </svg>
-                <h4 class="font-semibold text-blue-900">Semestre Activo</h4>
-            </div>
-            <p class="text-blue-800 font-medium" id="modalSemestreNombre">Cargando...</p>
-        </div>
-
-        <!-- Información de Estudiantes -->
-        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-            <div class="flex items-center gap-2 mb-2">
-                <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                </svg>
-                <h4 class="font-semibold text-yellow-900">Estudiantes Sin Asignar</h4>
-            </div>
-            <p class="text-yellow-800 font-medium">
-                Total: <span id="modalTotalEstudiantes">0</span> estudiantes pendientes de asignación
-            </p>
-        </div>
-
-        <!-- Selección de Tutores -->
-        <div class="mb-6">
-            <div class="flex items-center justify-between mb-3">
-                <h4 class="font-semibold text-gray-800">Seleccionar Tutores para Asignación</h4>
-                <button id="btnSeleccionarTodosTutores" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
-                    Seleccionar todos
-                </button>
-            </div>
-            <p class="text-sm text-gray-600 mb-3">
-                Seleccione los tutores que participarán en la asignación automática. Los estudiantes se distribuirán equitativamente entre ellos.
-            </p>
-            
-            <div id="listaTutoresModal" class="border border-gray-300 rounded-lg max-h-60 overflow-y-auto">
-                <!-- Se llena dinámicamente -->
-            </div>
-        </div>
-
-        <!-- Botones de Acción -->
-        <div class="flex justify-end gap-3 pt-4 border-t">
-            <button id="btnCancelarAsignacion" 
-                class="px-5 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition font-medium">
-                Cancelar
-            </button>
-            <button id="btnConfirmarAsignacion" 
-                class="px-5 py-2 bg-yellow-400 text-gray-900 rounded hover:bg-yellow-500 transition font-medium shadow">
-                Procesar Asignación
-            </button>
-        </div>
-    </div>
-</div>
+<!-- NOTA: Modal se inserta dinámicamente en el body por JavaScript -->
