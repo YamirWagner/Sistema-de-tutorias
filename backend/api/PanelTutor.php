@@ -1,11 +1,16 @@
 <?php
 // PanelTutor.php - API para el panel de inicio del tutor
 
-require_once '../core/config.php';
-require_once '../core/database.php';
-require_once '../core/response.php';
-require_once '../core/jwt.php';
-require_once '../core/activity.php';
+require_once __DIR__ . '/../core/config.php';
+require_once __DIR__ . '/../core/database.php';
+require_once __DIR__ . '/../core/response.php';
+require_once __DIR__ . '/../core/jwt.php';
+require_once __DIR__ . '/../core/activity.php';
+
+// Activar reporte de errores para depuración
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
 
 try {
     // Verificar autenticación
@@ -28,7 +33,13 @@ try {
         Response::forbidden('Acceso denegado - Solo tutores');
     }
     
-    $tutorId = $payload['user_id'];
+    // Obtener ID del tutor desde el token
+    $tutorId = $payload['user_id'] ?? null;
+    
+    if (!$tutorId) {
+        error_log("PanelTutor - Payload completo: " . json_encode($payload));
+        Response::error('ID de tutor no encontrado en el token. Payload: ' . json_encode($payload));
+    }
     
     // Obtener acción
     $action = $_GET['action'] ?? 'dashboard';
@@ -84,6 +95,8 @@ try {
                 $stmtEstudiantes->bindParam(':semestre_id', $semestre['id'], PDO::PARAM_INT);
                 $stmtEstudiantes->execute();
                 $totalEstudiantes = (int)$stmtEstudiantes->fetchColumn();
+                
+                error_log("PanelTutor - Estudiantes asignados: " . $totalEstudiantes . " (Tutor ID: $tutorId, Semestre ID: {$semestre['id']})");
             }
             
             // 4. Contar sesiones programadas en el mes actual
@@ -102,12 +115,15 @@ try {
                 $stmtSesionesMes->bindParam(':mes_actual', $mesActual, PDO::PARAM_STR);
                 $stmtSesionesMes->execute();
                 $sesionesMesActual = (int)$stmtSesionesMes->fetchColumn();
+                
+                error_log("PanelTutor - Sesiones mes actual ($mesActual): " . $sesionesMesActual . " (Semestre ID: {$semestre['id']})");
             }
             
             // 5. Obtener las 2 próximas sesiones
             $proximasSesiones = [];
             
             if ($semestre['id']) {
+                // Primero verificar si hay cronogramas en el semestre
                 $queryProximasSesiones = "SELECT 
                                             c.id,
                                             c.fecha,
@@ -115,26 +131,20 @@ try {
                                             c.horaFin,
                                             c.ambiente,
                                             c.descripcion,
-                                            c.estado,
-                                            COUNT(DISTINCT a.idEstudiante) as totalEstudiantes
+                                            c.estado
                                          FROM cronograma c
-                                         LEFT JOIN asignaciontutor a ON a.idSemestre = c.idSemestre 
-                                            AND a.idTutor = :tutor_id 
-                                            AND a.estado = 'Activa'
                                          WHERE c.idSemestre = :semestre_id
                                          AND c.fecha >= CURDATE()
                                          AND c.estado = 'Programada'
-                                         GROUP BY c.id, c.fecha, c.horaInicio, c.horaFin, c.ambiente, c.descripcion, c.estado
                                          ORDER BY c.fecha ASC, c.horaInicio ASC
                                          LIMIT 2";
                 
                 $stmtProximas = $db->prepare($queryProximasSesiones);
-                $stmtProximas->bindParam(':tutor_id', $tutorId, PDO::PARAM_INT);
                 $stmtProximas->bindParam(':semestre_id', $semestre['id'], PDO::PARAM_INT);
                 $stmtProximas->execute();
                 $proximasSesiones = $stmtProximas->fetchAll(PDO::FETCH_ASSOC);
                 
-                // Formatear las próximas sesiones
+                // Para cada sesión, obtener el número de estudiantes asignados al tutor
                 foreach ($proximasSesiones as &$sesion) {
                     // Formatear fecha
                     $fechaObj = new DateTime($sesion['fecha']);
@@ -143,6 +153,9 @@ try {
                     // Formatear horas
                     $sesion['horaInicio'] = substr($sesion['horaInicio'], 0, 5);
                     $sesion['horaFin'] = substr($sesion['horaFin'], 0, 5);
+                    
+                    // Contar estudiantes asignados al tutor en este semestre
+                    $sesion['totalEstudiantes'] = $totalEstudiantes;
                     
                     // Tipo de historial (aquí puedes agregar lógica para determinar el tipo)
                     $sesion['tipoHistorial'] = 'Académica'; // Valor por defecto
@@ -180,5 +193,6 @@ try {
     
 } catch (Exception $e) {
     error_log("Error en PanelTutor.php: " . $e->getMessage());
+    error_log("Stack trace: " . $e->getTraceAsString());
     Response::error('Error al procesar la solicitud: ' . $e->getMessage());
 }

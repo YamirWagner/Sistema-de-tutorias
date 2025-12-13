@@ -126,8 +126,8 @@ async function loadGestionUsuariosContent() {
             document.head.appendChild(cssLink);
         }
         
-        const url = (window.PATH?.adminGestionUsuarios() || 
-                    '/Sistema-de-tutorias/frontend/components/administrador/gestionUsuarios.html') + `?v=${Date.now()}`;
+        const url = window.PATH?.adminGestionUsuarios() || 
+                    '/Sistema-de-tutorias/frontend/components/administrador/gestionUsuarios.html';
         
         const response = await fetch(url, { cache: 'no-store' });
         if (!response.ok) throw new Error(`Error al cargar: ${response.status}`);

@@ -53,6 +53,9 @@ DirectoryIndex frontend/index.html
   RewriteRule ^reportes/?$ frontend/panel.html [L,NC]
   RewriteRule ^historial/?$ frontend/panel.html [L,NC]
   RewriteRule ^auditoria/?$ frontend/panel.html [L,NC]
+  
+  # Módulo del Tutor
+  RewriteRule ^tutor/?$ frontend/panel.html [L,NC]
 
   # ============================================
   # RECURSOS ESTÁTICOS
@@ -67,6 +70,18 @@ DirectoryIndex frontend/index.html
   # Permitir acceso directo a archivos estáticos existentes
   RewriteCond %{REQUEST_FILENAME} -f
   RewriteRule ^ - [L]
+</IfModule>
+
+# ============================================
+# Control de Caché para JS y CSS
+# ============================================
+<IfModule mod_headers.c>
+  # Deshabilitar caché para archivos JS y CSS
+  <FilesMatch "\.(js|css)$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+  </FilesMatch>
 </IfModule>
 
 # ============================================

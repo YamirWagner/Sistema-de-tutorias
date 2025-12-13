@@ -291,7 +291,31 @@ function attachVerifyHandler(formEl, email, messageElementId) {
             if (response && response.success) {
                 showMessage(messageElementId, 'Código verificado. Ingresando al sistema...', 'success');
                 const basePath = window.APP_BASE_PATH || '';
-                setTimeout(() => { window.location.href = basePath + '/panel'; }, 1000);
+                
+                // Obtener rol del usuario desde el token
+                const token = localStorage.getItem('token');
+                let userRole = 'student'; // Por defecto
+                
+                if (token) {
+                    try {
+                        const payload = JSON.parse(atob(token.split('.')[1]));
+                        userRole = payload.role || 'student';
+                        console.log('👤 Rol detectado:', userRole);
+                    } catch (e) {
+                        console.error('Error al decodificar token:', e);
+                    }
+                }
+                
+                // Redirigir según el rol
+                let redirectPath = '/panel';
+                if (userRole === 'tutor' || userRole === 'Tutor') {
+                    redirectPath = '/tutor';
+                    console.log('➡️ Redirigiendo tutor a /tutor');
+                }
+                
+                setTimeout(() => { 
+                    window.location.href = basePath + redirectPath; 
+                }, 1000);
             } else {
                 const msg = (response && (response.message || response.error)) || 'Código inválido o expirado';
                 showMessage(messageElementId, msg, 'error');

@@ -1,4 +1,5 @@
 // main.js - Lógica general y navegación
+console.log('📜 main.js cargado correctamente');
 
 // Obtener configuración del sistema
 async function loadAppConfig() {
@@ -44,7 +45,12 @@ function checkAuth() {
     const path = window.location.pathname;
     const basePath = window.APP_BASE_PATH || '';
     
+    console.log('🔐 checkAuth() ejecutado');
+    console.log('   - Path:', path);
+    console.log('   - Token presente:', token ? 'SÍ' : 'NO');
+    
     const isPanel = path.includes('panel') || path.includes('dashboard');
+    const isTutor = path.includes('tutor');
     const isSemestre = path.includes('semestre');
     const isGestionUsuarios = path.includes('gestion-usuarios');
     const isAsignaciones = path.includes('asignaciones');
@@ -54,18 +60,32 @@ function checkAuth() {
     const isVerify = path.includes('verify');
     const isIndex = path.endsWith('/') || path.includes('index');
     
-    const isProtectedPage = isPanel || isSemestre || isGestionUsuarios || isAsignaciones || isReportes || isAuditoria;
+    const isProtectedPage = isPanel || isTutor || isSemestre || isGestionUsuarios || isAsignaciones || isReportes || isAuditoria;
+    
+    console.log('   - Es página protegida:', isProtectedPage);
+    console.log('   - Es tutor:', isTutor);
     
     if (!token && isProtectedPage) {
+        console.log('❌ Sin token, redirigiendo a login');
         window.location.href = basePath + '/login';
         return false;
     }
     
     if (token && (isLogin || isVerify || isIndex)) {
-        window.location.href = basePath + '/panel';
+        // Redirigir según el rol del usuario
+        const user = getUserFromToken();
+        let redirectPath = '/panel';
+        
+        if (user && (user.role === 'tutor' || user.role === 'Tutor')) {
+            redirectPath = '/tutor';
+            console.log('➡️ Redirigiendo tutor autenticado a /tutor');
+        }
+        
+        window.location.href = basePath + redirectPath;
         return false;
     }
     
+    console.log('✅ checkAuth() - acceso permitido');
     return true;
 }
 
@@ -129,6 +149,8 @@ async function loadComponent(elementId, componentPath) {
 async function initDashboard() {
     console.log('='.repeat(50));
     console.log('🚀 INICIANDO DASHBOARD');
+    console.log('URL actual:', window.location.href);
+    console.log('Path:', window.location.pathname);
     console.log('='.repeat(50));
     
     if (!checkAuth()) {
@@ -255,7 +277,12 @@ async function initDashboard() {
         const urlParams = new URLSearchParams(window.location.search);
         const moduleParam = urlParams.get('module');
         
-        console.log('🔍 Detectando módulo - Path:', currentPath, '| Param:', moduleParam);
+        console.log('='.repeat(60));
+        console.log('🔍 DETECCIÓN DE MÓDULO');
+        console.log('Path completo:', currentPath);
+        console.log('Parámetro module:', moduleParam);
+        console.log('Rol del usuario:', user.role);
+        console.log('='.repeat(60));
         
         // Configuración de módulos
         const modulesConfig = {
@@ -288,6 +315,11 @@ async function initDashboard() {
                 paths: ['/auditoria', '/Sistema-de-tutorias/auditoria'],
                 param: 'auditoria',
                 loadFn: 'loadAuditoriaContent'
+            },
+            'tutor': {
+                paths: ['/tutor', '/Sistema-de-tutorias/tutor'],
+                param: 'tutor',
+                loadFn: 'loadTutorDashboard'
             }
         };
         
@@ -295,29 +327,40 @@ async function initDashboard() {
         let moduleToLoad = null;
         
         for (const [moduleName, config] of Object.entries(modulesConfig)) {
-            const matchPath = config.paths.some(p => currentPath.includes(p));
+            const matchPath = config.paths.some(p => {
+                const matches = currentPath.includes(p);
+                if (matches) {
+                    console.log(`✅ Match encontrado: "${moduleName}" - Path: ${p}`);
+                }
+                return matches;
+            });
             const matchParam = moduleParam === config.param;
             
             if (matchPath || matchParam) {
                 moduleToLoad = { name: moduleName, config };
+                console.log('🎯 Módulo seleccionado:', moduleName);
                 break;
             }
         }
         
         if (moduleToLoad) {
-            console.log('✅ Módulo detectado:', moduleToLoad.name, '| Función:', moduleToLoad.config.loadFn);
+            console.log('✅ Módulo detectado:', moduleToLoad.name);
+            console.log('📋 Función a ejecutar:', moduleToLoad.config.loadFn);
             
             const tryLoadModule = () => {
                 const loadFn = window[moduleToLoad.config.loadFn];
                 
-                console.log('📋 Verificando función:', moduleToLoad.config.loadFn, '| Tipo:', typeof loadFn);
+                console.log('🔍 Verificando función:', moduleToLoad.config.loadFn);
+                console.log('📦 Tipo:', typeof loadFn);
+                console.log('📦 Función disponible:', loadFn ? 'SÍ' : 'NO');
                 
                 if (typeof loadFn === 'function') {
                     console.log('✅ Ejecutando función de carga...');
                     try {
                         loadFn();
+                        console.log('✅ Función ejecutada exitosamente');
                     } catch (error) {
-                        console.error(`Error al ejecutar ${moduleToLoad.config.loadFn}:`, error);
+                        console.error(`❌ Error al ejecutar ${moduleToLoad.config.loadFn}:`, error);
                     }
                 } else {
                     console.warn('⚠️ Función no disponible aún');
@@ -399,8 +442,13 @@ function loadDashboardByRole(role) {
             }
             break;
         case 'tutor':
+            console.log('🎯 Cargando dashboard del tutor...');
             if (typeof loadTutorDashboard === 'function') {
+                console.log('✅ Ejecutando loadTutorDashboard()');
                 loadTutorDashboard();
+            } else {
+                console.error('❌ loadTutorDashboard no está disponible');
+                console.log('Funciones disponibles:', Object.keys(window).filter(k => k.includes('Tutor')));
             }
             break;
         case 'student':
@@ -456,12 +504,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // Detectar si estamos en una página que requiere el panel (funciona con URLs limpias y .html)
     const isPanelPage = path.includes('panel') || 
                        path.includes('dashboard') || 
+                       path.includes('tutor') ||
                        path.includes('semestre') || 
                        path.includes('gestion-usuarios') || 
                        path.includes('asignaciones') ||
                        path.includes('reportes') ||
                        path.includes('historial') ||
                        path.includes('auditoria');
+    
+    console.log('🔍 Detección de página:');
+    console.log('   - isPanelPage:', isPanelPage);
+    console.log('   - includes("tutor"):', path.includes('tutor'));
+    console.log('   - includes("panel"):', path.includes('panel'));
     
     if (isPanelPage) {
         console.log('✅ Detectada página de panel/módulo - Inicializando dashboard...');

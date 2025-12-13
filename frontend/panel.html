@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="mobile-web-app-capable" content="yes">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Panel Principal - Sistema de Tutorías</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.1/dist/flowbite.min.css" rel="stylesheet" />
@@ -11,19 +14,15 @@
     <link rel="stylesheet" href="/Sistema-de-tutorias/frontend/css/header_panel.css">
     <link rel="stylesheet" href="/Sistema-de-tutorias/frontend/css/sidebar_panel.css">
     <link rel="stylesheet" href="/Sistema-de-tutorias/frontend/css/footer_panel.css">
-    <link rel="stylesheet" href="/Sistema-de-tutorias/frontend/css/modals.css?v=2">
+    <link rel="stylesheet" href="/Sistema-de-tutorias/frontend/css/modals.css">
     <link rel="stylesheet" href="/Sistema-de-tutorias/frontend/css/administrador/panel.css">
     <link rel="stylesheet" href="/Sistema-de-tutorias/frontend/css/administrador/semestre.css">
     <link rel="stylesheet" href="/Sistema-de-tutorias/frontend/css/administrador/gestionUsuarios.css">
-    <link rel="stylesheet" href="/Sistema-de-tutorias/frontend/css/administrador/asignaciones.css?v=3">
+    <link rel="stylesheet" href="/Sistema-de-tutorias/frontend/css/administrador/asignaciones.css">
     <link rel="stylesheet" href="/Sistema-de-tutorias/frontend/css/administrador/reportes.css">
     <link rel="stylesheet" href="/Sistema-de-tutorias/frontend/css/administrador/historial.css">
     <link rel="stylesheet" href="/Sistema-de-tutorias/frontend/css/administrador/auditoria.css">
-<<<<<<< HEAD
-    <link rel="stylesheet" href="/Sistema-de-tutorias/frontend/css/tutor/panel.css">
-=======
-    <link rel="stylesheet" href="/Sistema-de-tutorias/frontend/css/tutor/inicio-tutor.css">
->>>>>>> 9a6005b5a5bf5c364a5ac21fb6b5b7f0c8a7c5b4
+    <link rel="stylesheet" href="/Sistema-de-tutorias/frontend/css/tutor/tutor.css">
     <style>
         /* Asegurar visibilidad de componentes principales */
         #header-container,
@@ -59,6 +58,14 @@
     </style>
 </head>
 <body class="bg-gray-100">
+    <!-- Script de Depuración Inicial -->
+    <script>
+        console.log('🚀 panel.html cargado');
+        console.log('📍 URL actual:', window.location.href);
+        console.log('📂 Pathname:', window.location.pathname);
+        console.log('🔑 Token presente:', localStorage.getItem('token') ? 'SÍ' : 'NO');
+    </script>
+    
     <!-- Header Fijo -->
     <div id="header-container" style="display: block; visibility: visible; opacity: 1;"></div>
 
@@ -108,7 +115,6 @@
     <script src="/Sistema-de-tutorias/frontend/js/administrador/historial.js"></script>
     <script src="/Sistema-de-tutorias/frontend/js/administrador/auditoria.js"></script>
     <script src="/Sistema-de-tutorias/frontend/js/tutor/tutor.js"></script>
-    <script src="/Sistema-de-tutorias/frontend/js/tutor/panel.js"></script>
     <script src="/Sistema-de-tutorias/frontend/js/estudiante/student.js"></script>
     <script src="/Sistema-de-tutorias/frontend/js/verificador/verifier.js"></script>
     <script src="/Sistema-de-tutorias/frontend/js/main.js"></script>

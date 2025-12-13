@@ -215,7 +215,7 @@ async function loadSidebarMenu() {
             { icon: 'fa-solid fa-shield-halved', text: 'Auditoría', module: 'auditoria' },
         ],
         tutor: [
-            { icon: 'fa-solid fa-house', text: 'Inicio', module: null, active: true },
+            { icon: 'fa-solid fa-house', text: 'Inicio', module: 'tutor', active: true },
             { icon: 'fa-solid fa-calendar-check', text: 'Agendamientos', module: 'agendamientos' },
             { icon: 'fa-solid fa-user-graduate', text: 'Mis estudiantes', module: 'mis-estudiantes' },
         ],
@@ -308,6 +308,7 @@ function navigateToModule(element) {
         'historial': 'loadHistorialContent', // Módulo de historial de administrador
         'buscar-historial': null, // Página independiente
         // Tutor
+        'tutor': 'loadTutorDashboard',
         'nueva-sesion': 'loadNuevaSesionContent',
         'agendamientos': 'loadAgendamientosContent',
         'mis-estudiantes': 'loadMisEstudiantesContent',

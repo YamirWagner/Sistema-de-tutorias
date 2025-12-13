@@ -1,6 +1,6 @@
-/* Panel del Tutor - Estilos */
+/* Dashboard del Tutor - Estilos */
 
-.tutor-dashboard {
+.dashboard-tutor {
     padding: 1.5rem;
     max-width: 1400px;
     margin: 0 auto;
@@ -8,52 +8,52 @@
 
 /* Responsivo para móviles */
 @media (max-width: 768px) {
-    .tutor-dashboard {
+    .dashboard-tutor {
         padding: 1rem;
     }
     
-    .tutor-dashboard .grid {
+    .dashboard-tutor .grid {
         grid-template-columns: 1fr;
     }
     
-    .tutor-dashboard h1 {
+    .dashboard-tutor h2 {
         font-size: 1.5rem;
     }
     
-    .tutor-dashboard .text-4xl {
+    .dashboard-tutor .text-4xl {
         font-size: 2rem;
     }
 }
 
 /* Animaciones suaves */
-.tutor-dashboard .bg-white {
+.dashboard-tutor .bg-white {
     transition: all 0.3s ease;
 }
 
-.tutor-dashboard .bg-white:hover {
+.dashboard-tutor .bg-white:hover {
     transform: translateY(-2px);
 }
 
 /* Tarjetas de estadísticas */
-.tutor-dashboard .shadow-md {
+.dashboard-tutor .shadow-md {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 /* Botones de acción */
-.tutor-dashboard button {
+.dashboard-tutor button {
     transition: all 0.2s ease;
 }
 
-.tutor-dashboard button:hover {
+.dashboard-tutor button:hover {
     transform: scale(1.02);
 }
 
-.tutor-dashboard button:active {
+.dashboard-tutor button:active {
     transform: scale(0.98);
 }
 
 /* Próximas sesiones - Lista */
-.tutor-dashboard .space-y-4 > div {
+.dashboard-tutor .space-y-4 > div {
     animation: fadeIn 0.3s ease-in;
 }
 
@@ -69,31 +69,32 @@
 }
 
 /* Estados de sesión */
-.tutor-dashboard .bg-orange-100 {
+.dashboard-tutor .bg-orange-100 {
     background-color: #fed7aa;
 }
 
-.tutor-dashboard .text-orange-700 {
+.dashboard-tutor .text-orange-700 {
     color: #c2410c;
 }
 
-.tutor-dashboard .bg-purple-100 {
+.dashboard-tutor .bg-purple-100 {
     background-color: #e9d5ff;
 }
 
-.tutor-dashboard .text-purple-700 {
+.dashboard-tutor .text-purple-700 {
     color: #7e22ce;
 }
 
 /* Iconos circulares */
-.tutor-dashboard .rounded-full {
+.dashboard-tutor .rounded-full {
     display: inline-flex;
     align-items: center;
     justify-content: center;
 }
 
 /* Mejora de accesibilidad */
-.tutor-dashboard button:focus {
+.dashboard-tutor button:focus {
     outline: 2px solid #3b82f6;
     outline-offset: 2px;
 }
+

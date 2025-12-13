@@ -108,11 +108,6 @@ try {
     // Control de actividad
     Activity::enforceAndTouch($db, $payload);
     
-    // Verificar rol admin
-    if ($payload['role'] !== 'admin') {
-        Response::forbidden('Acceso denegado');
-    }
-    
     $userId = $payload['id'];
     $action = $_GET['action'] ?? '';
     
@@ -142,6 +137,11 @@ try {
         
         // ============= LISTAR SEMESTRES =============
         case 'list':
+            // Verificar rol admin
+            if ($payload['role'] !== 'admin') {
+                Response::forbidden('Acceso denegado');
+            }
+            
             $semestres = fetchAll($db, "SELECT * FROM semestre ORDER BY fechaInicio DESC");
             Response::success($semestres, 'Semestres obtenidos exitosamente');
             break;
@@ -149,6 +149,12 @@ try {
         // ============= CREAR SEMESTRE =============
         case 'create':
             requirePost();
+            
+            // Verificar rol admin
+            if ($payload['role'] !== 'admin') {
+                Response::forbidden('Acceso denegado');
+            }
+            
             $input = getJsonInput();
             
             validateSemesterData($input);
@@ -182,6 +188,12 @@ try {
         // ============= ACTUALIZAR SEMESTRE =============
         case 'update':
             requirePost();
+            
+            // Verificar rol admin
+            if ($payload['role'] !== 'admin') {
+                Response::forbidden('Acceso denegado');
+            }
+            
             $input = getJsonInput();
             
             validateSemesterData($input, true);
@@ -225,6 +237,12 @@ try {
         // ============= CERRAR SEMESTRE ACTIVO =============
         case 'close':
             requirePost();
+            
+            // Verificar rol admin
+            if ($payload['role'] !== 'admin') {
+                Response::forbidden('Acceso denegado');
+            }
+            
             $input = getJsonInput();
             
             $semesterId = $input['id'] ?? null;

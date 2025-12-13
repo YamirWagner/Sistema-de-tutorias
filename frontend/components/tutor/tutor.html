@@ -6,27 +6,14 @@
             <div>
                 <h3 class="text-sm font-semibold opacity-90 mb-2">ESTADO DEL SEMESTRE</h3>
                 <div class="flex items-center gap-3">
-                    <h2 class="text-2xl font-bold" id="currentSemesterName">
+                    <h2 class="text-2xl font-bold" id="semestreActual">
                         <i class="fa-solid fa-spinner fa-spin"></i>
                     </h2>
                     <span class="flex items-center gap-2 bg-green-500 px-3 py-1 rounded-full text-sm font-semibold">
                         <i class="fa-solid fa-circle text-xs"></i>
-                        <span id="semesterStatus">ACTIVO</span>
+                        <span id="estadoSemestre">Cargando...</span>
                     </span>
                 </div>
-                <p class="text-sm opacity-80 mt-2">
-                    <span id="semesterPeriod">
-                        <i class="fa-solid fa-spinner fa-spin text-xs"></i> Cargando...
-                    </span>
-                </p>
-            </div>
-            <div class="flex gap-3">
-                <button onclick="handleMenuAction('showScheduleSection')" 
-                        style="background-color: rgba(255, 255, 255, 0.2);" 
-                        class="hover:bg-opacity-30 px-4 py-2 rounded-lg transition font-semibold">
-                    <i class="fa-solid fa-calendar-days mr-2"></i>
-                    VER CRONOGRAMA
-                </button>
             </div>
         </div>
     </div>
@@ -38,7 +25,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-gray-600 text-sm font-semibold">ESTUDIANTES ASIGNADOS</p>
-                    <p class="text-4xl font-bold text-gray-800 mt-2">8</p>
+                    <p class="text-4xl font-bold text-gray-800 mt-2" id="totalEstudiantes">0</p>
                 </div>
                 <div class="text-4xl text-blue-500">
                     <i class="fas fa-users"></i>
@@ -51,7 +38,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-gray-600 text-sm font-semibold">SESIONES ESTE MES</p>
-                    <p class="text-4xl font-bold text-gray-800 mt-2">12</p>
+                    <p class="text-4xl font-bold text-gray-800 mt-2" id="sesionesMesActual">0</p>
                 </div>
                 <div class="text-4xl text-amber-500">
                     <i class="fas fa-calendar-alt"></i>

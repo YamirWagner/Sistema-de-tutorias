@@ -3,117 +3,216 @@
 // Variable global para almacenar datos del dashboard
 let dashboardData = null;
 
+// ============================================
+// INICIALIZACIÓN DEL DASHBOARD
+// ============================================
+
 // Cargar dashboard del tutor
 async function loadTutorDashboard() {
-    console.log('Cargando dashboard de tutor...');
+    console.log('='.repeat(60));
+    console.log('🎯 INICIANDO CARGA DEL DASHBOARD DEL TUTOR');
+    console.log('='.repeat(60));
+    console.log('📍 Ubicación:', window.location.href);
+    console.log('📂 Path:', window.location.pathname);
     
-<<<<<<< HEAD
-    // Primero cargar el HTML del panel
-    await loadTutorPanelHTML();
-    
-    // Luego cargar datos completos del backend
-    await loadTutorStats();
-    
-    // Finalmente renderizar contenido específico
-    renderTutorContent();
+    try {
+        // 1. Cargar el HTML del panel
+        console.log('📄 Paso 1: Cargando HTML del panel...');
+        await loadTutorPanelHTML();
+        
+        // 2. Cargar datos del backend
+        console.log('📊 Paso 2: Cargando datos del backend...');
+        await loadTutorStats();
+        
+        // 3. Renderizar contenido dinámico
+        console.log('🎨 Paso 3: Renderizando contenido...');
+        renderTutorContent();
+        
+        console.log('='.repeat(60));
+        console.log('✅ DASHBOARD DEL TUTOR CARGADO COMPLETAMENTE');
+        console.log('='.repeat(60));
+    } catch (error) {
+        console.error('='.repeat(60));
+        console.error('❌ ERROR AL CARGAR DASHBOARD DEL TUTOR');
+        console.error('Error:', error);
+        console.error('Stack:', error.stack);
+        console.error('='.repeat(60));
+        showNotification('Error al cargar el panel del tutor', 'error');
+    }
 }
 
 // Cargar el HTML del panel del tutor
 async function loadTutorPanelHTML() {
     try {
         const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
-        const panelPath = `${basePath}/frontend/components/tutor/panel.html`;
+        const panelPath = `${basePath}/frontend/components/tutor/tutor.html`;
+        
+        console.log('🔍 Intentando cargar:', panelPath);
         
         const response = await fetch(panelPath);
+        
+        console.log('📡 Respuesta del servidor:', response.status, response.statusText);
+        
         if (!response.ok) {
-            console.error('Error al cargar panel.html del tutor');
+            console.error('❌ Error al cargar tutor.html');
+            console.error('Status:', response.status);
+            console.error('StatusText:', response.statusText);
             return;
         }
         
         const html = await response.text();
+        console.log('📄 HTML recibido, tamaño:', html.length, 'caracteres');
+        
         const dashboardContent = document.getElementById('dashboardContent');
         
         if (dashboardContent) {
             dashboardContent.innerHTML = html;
-            console.log('✅ Panel HTML del tutor cargado');
+            console.log('✅ HTML del tutor insertado en el DOM');
+        } else {
+            console.error('❌ No se encontró el elemento #dashboardContent');
         }
     } catch (error) {
-        console.error('Error al cargar el panel del tutor:', error);
+        console.error('❌ Error al cargar el HTML del tutor:', error);
+        showNotification('Error al cargar el panel', 'error');
     }
 }
 
-// Cargar estadísticas y datos del tutor
+// Cargar estadísticas y datos del tutor desde el backend
 async function loadTutorStats() {
     try {
-        console.log('Cargando datos del dashboard del tutor...');
+        console.log('📊 Cargando datos del dashboard del tutor...');
+        console.log('🔗 Endpoint:', '/PanelTutor?action=dashboard');
+        
+        // Verificar token
+        const token = localStorage.getItem('token');
+        console.log('🔑 Token presente:', token ? 'SÍ' : 'NO');
         
         // Llamar al endpoint del backend
         const response = await apiGet('/PanelTutor?action=dashboard');
         
-        if (response.success && response.data) {
+        console.log('📥 Respuesta completa recibida:', response);
+        
+        if (response && response.success && response.data) {
             dashboardData = response.data;
+            
+            console.log('✅ Datos del dashboard:', dashboardData);
+            console.log('📋 Datos del semestre:', dashboardData.semestre);
+            console.log('   - Nombre:', dashboardData.semestre?.nombre);
+            console.log('   - Estado:', dashboardData.semestre?.estado);
+            
+            // Pequeña espera para asegurar que el DOM esté listo
+            await new Promise(resolve => setTimeout(resolve, 200));
             
             // Actualizar información del semestre
             const semestreElement = document.getElementById('semestreActual');
+            console.log('🔍 Buscando elemento #semestreActual:', semestreElement);
+            
             if (semestreElement) {
-                semestreElement.textContent = dashboardData.semestre.nombre || 'N/A';
+                const nombreSemestre = dashboardData.semestre?.nombre || 'Sin semestre';
+                semestreElement.textContent = nombreSemestre;
+                console.log('✅ Semestre actualizado a:', nombreSemestre);
+            } else {
+                console.error('❌ No se encontró elemento #semestreActual en el DOM');
+                console.log('Elementos disponibles:', document.querySelectorAll('[id]'));
             }
             
             const estadoSemestreElement = document.getElementById('estadoSemestre');
+            console.log('🔍 Buscando elemento #estadoSemestre:', estadoSemestreElement);
+            
             if (estadoSemestreElement) {
-                estadoSemestreElement.textContent = dashboardData.semestre.estado || 'N/A';
+                const estadoSemestre = dashboardData.semestre?.estado || 'N/A';
+                estadoSemestreElement.textContent = estadoSemestre;
+                console.log('✅ Estado semestre actualizado a:', estadoSemestre);
+            } else {
+                console.error('❌ No se encontró elemento #estadoSemestre en el DOM');
             }
             
             // Actualizar estadísticas
             const totalEstudiantesElement = document.getElementById('totalEstudiantes');
             if (totalEstudiantesElement) {
-                totalEstudiantesElement.textContent = dashboardData.estadisticas.totalEstudiantes || 0;
+                const total = dashboardData.estadisticas?.totalEstudiantes || 0;
+                totalEstudiantesElement.textContent = total;
+                console.log('✅ Total estudiantes actualizado a:', total);
+            } else {
+                console.warn('⚠️ No se encontró elemento #totalEstudiantes');
             }
             
             const sesionesMesElement = document.getElementById('sesionesMesActual');
             if (sesionesMesElement) {
-                sesionesMesElement.textContent = dashboardData.estadisticas.sesionesMesActual || 0;
+                const sesiones = dashboardData.estadisticas?.sesionesMesActual || 0;
+                sesionesMesElement.textContent = sesiones;
+                console.log('✅ Sesiones mes actualizado a:', sesiones);
+            } else {
+                console.warn('⚠️ No se encontró elemento #sesionesMesActual');
             }
             
-            console.log('✅ Datos del tutor cargados:', dashboardData);
+            console.log('✅ Todos los datos del tutor cargados correctamente');
         } else {
-            console.warn('⚠️ No se obtuvieron datos del tutor');
-            showNotification('No se pudieron cargar los datos del panel', 'warning');
+            console.error('❌ Respuesta inválida del servidor');
+            console.log('   - response:', response);
+            console.log('   - response.success:', response?.success);
+            console.log('   - response.data:', response?.data);
+            showNotification('No se pudieron cargar los datos del panel', 'error');
         }
     } catch (error) {
         console.error('❌ Error al cargar estadísticas:', error);
+        console.error('Stack trace:', error.stack);
         showNotification('Error al cargar los datos del tutor', 'error');
+        
+        // Mostrar datos de error en el dashboard
+        const dashboardContent = document.getElementById('dashboardContent');
+        if (dashboardContent && !dashboardData) {
+            dashboardContent.innerHTML += `
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4 mt-4">
+                    <h3 class="text-red-800 font-bold mb-2">Error al cargar datos</h3>
+                    <p class="text-red-600">${error.message}</p>
+                </div>
+            `;
+        }
     }
 }
+
+// ============================================
+// RENDERIZADO DE CONTENIDO
+// ============================================
 
 // Renderizar contenido del tutor
 function renderTutorContent() {
     const content = document.getElementById('dashboardContent');
     if (!content) return;
     
-    // Limpiar contenido anterior
-    content.innerHTML = '';
+    // No limpiar el contenido, solo agregar la sección de próximas sesiones
+    const proximasSesionesContainer = content.querySelector('#proximasSesionesContainer');
     
-    // Sección de próximas sesiones
-    const proximasSection = document.createElement('div');
-    proximasSection.className = 'mt-6';
-    proximasSection.innerHTML = `
-        <div class="bg-white rounded-lg shadow-md">
-            <div class="p-6 border-b border-gray-200">
-                <h3 class="text-xl font-bold text-gray-800">Próximas Sesiones</h3>
+    if (!proximasSesionesContainer) {
+        // Si no existe el contenedor, agregar la sección
+        const proximasSection = document.createElement('div');
+        proximasSection.className = 'mt-6';
+        proximasSection.id = 'proximasSesionesContainer';
+        proximasSection.innerHTML = `
+            <div class="bg-white rounded-lg shadow-md">
+                <div class="p-6 border-b border-gray-200">
+                    <h3 class="text-xl font-bold text-gray-800">Próximas Sesiones</h3>
+                </div>
+                <div id="proximasSesionesList" class="p-6">
+                    ${renderProximasSesiones()}
+                </div>
+                <div class="p-4 border-t border-gray-200 text-center">
+                    <button onclick="verAgendamiento()" class="text-blue-600 hover:text-blue-800 font-medium">
+                        Ver agendamiento completo
+                    </button>
+                </div>
             </div>
-            <div id="proximasSesionesList" class="p-6">
-                ${renderProximasSesiones()}
-            </div>
-            <div class="p-4 border-t border-gray-200 text-center">
-                <button onclick="verAgendamiento()" class="text-blue-600 hover:text-blue-800 font-medium">
-                    Ver agendamiento completo
-                </button>
-            </div>
-        </div>
-    `;
-    
-    content.appendChild(proximasSection);
+        `;
+        
+        content.appendChild(proximasSection);
+    } else {
+        // Si ya existe, solo actualizar el contenido de las sesiones
+        const proximasSesionesList = document.getElementById('proximasSesionesList');
+        if (proximasSesionesList) {
+            proximasSesionesList.innerHTML = renderProximasSesiones();
+        }
+    }
 }
 
 // Renderizar lista de próximas sesiones
@@ -129,7 +228,7 @@ function renderProximasSesiones() {
     
     let html = '<div class="space-y-4">';
     
-    dashboardData.proximasSesiones.forEach((sesion, index) => {
+    dashboardData.proximasSesiones.forEach((sesion) => {
         html += `
             <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                 <div class="flex items-start justify-between">
@@ -143,7 +242,7 @@ function renderProximasSesiones() {
                             </h4>
                             <div class="flex items-center space-x-4 mt-2 text-sm text-gray-600">
                                 <span class="bg-orange-100 text-orange-700 px-2 py-1 rounded">
-                                    Última: ${sesion.fechaFormateada}
+                                    Próxima: ${sesion.fechaFormateada}
                                 </span>
                                 <span class="bg-purple-100 text-purple-700 px-2 py-1 rounded">
                                     ${sesion.tipoHistorial}
@@ -170,17 +269,18 @@ function renderProximasSesiones() {
     return html;
 }
 
-// Ver sesiones del tutor (navegación al agendamiento)
+// ============================================
+// NAVEGACIÓN Y ACCIONES
+// ============================================
+
+// Ver agendamiento completo
 function verAgendamiento() {
-    const module = 'agendamientos';
-    const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
-    
-    console.log('Navegando a agendamientos...');
+    console.log('📅 Navegando a agendamientos...');
     
     // Actualizar el estado del sidebar
     const allLinks = document.querySelectorAll('.sidebar-menu a');
     allLinks.forEach(link => {
-        if (link.getAttribute('data-module') === module) {
+        if (link.getAttribute('data-module') === 'agendamientos') {
             link.classList.add('active');
         } else {
             link.classList.remove('active');
@@ -193,146 +293,31 @@ function verAgendamiento() {
     }
     
     showNotification('Función de agendamientos en desarrollo', 'info');
-=======
-    const content = document.getElementById('dashboardContent');
-    content.innerHTML = ''; // Limpiar contenido previo
-    
-    try {
-        const response = await fetch('/Sistema-de-tutorias/frontend/components/tutor/inicio-tutor.html');
-        if (response.ok) {
-            const html = await response.text();
-            content.innerHTML = html;
-            console.log('Dashboard de tutor cargado correctamente');
-            
-            // Cargar estadísticas del semestre
-            await loadTutorStats();
-        } else {
-            throw new Error('No se pudo cargar el archivo');
-        }
-    } catch (error) {
-        console.error('Error al cargar dashboard de tutor:', error);
-        showNotification('Error al cargar el dashboard', 'error');
-    }
-}
-
-// ============= CARGAR ESTADÍSTICAS DEL SEMESTRE =============
-
-// Cargar estadísticas del semestre para el tutor
-async function loadTutorStats() {
-    console.log('📊 Cargando estadísticas del semestre...');
-    try {
-        // Usar el endpoint de calendario para obtener el semestre actual
-        const response = await apiGet('/calendar?action=semester');
-        
-        if (response && response.success) {
-            const semesterInfo = response.data;
-            console.log('✅ Información del semestre recibida:', semesterInfo);
-            updateTutorSemesterInfo({semesterInfo: semesterInfo});
-        } else {
-            console.warn('⚠️ No se obtuvo información del semestre, usando valores por defecto');
-            // Mostrar valores por defecto si no hay datos
-            updateTutorSemesterInfo({semesterInfo: {nombre: 'Semestre Actual', estado: 'ACTIVO'}});
-        }
-    } catch (error) {
-        console.error('❌ Error al cargar estadísticas:', error);
-        console.log('ℹ️ Cargando valores por defecto...');
-        // Usar valores por defecto si hay error
-        updateTutorSemesterInfo({semesterInfo: {nombre: 'Semestre Actual', estado: 'ACTIVO'}});
-    }
-}
-
-// Mostrar error al cargar estadísticas
-function showTutorStatsError(message) {
-    console.error('❌ Error en estadísticas:', message);
-    
-    const updateElement = (id, value) => {
-        const el = document.getElementById(id);
-        if (el) {
-            el.innerHTML = `<span class="text-2xl" title="${message}">⚠️</span>`;
-        }
-    };
-    
-    updateElement('currentSemesterName', 'Error');
-    updateElement('semesterPeriod', message);
-}
-
-// Actualizar información del semestre en el DOM
-function updateTutorSemesterInfo(stats) {
-    console.log('📝 Actualizando información del semestre en el DOM:', stats);
-    
-    // Validar que stats tenga datos
-    if (!stats || typeof stats !== 'object') {
-        console.error('❌ Datos de estadísticas inválidos');
-        showTutorStatsError('Datos inválidos del servidor');
-        return;
-    }
-    
-    // Actualizar información del semestre
-    if (stats.semesterInfo) {
-        const semesterName = document.getElementById('currentSemesterName');
-        const semesterPeriod = document.getElementById('semesterPeriod');
-        const semesterStatus = document.getElementById('semesterStatus');
-        
-        if (semesterName) semesterName.textContent = stats.semesterInfo.nombre || 'Sin semestre activo';
-        if (semesterPeriod && stats.semesterInfo.fechaInicio && stats.semesterInfo.fechaFin) {
-            const inicio = new Date(stats.semesterInfo.fechaInicio).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
-            const fin = new Date(stats.semesterInfo.fechaFin).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
-            const diasRestantes = stats.semesterInfo.diasRestantes || 0;
-            semesterPeriod.textContent = `Periodo: ${inicio} - ${fin} • ${diasRestantes} días restantes`;
-        }
-        if (semesterStatus) semesterStatus.textContent = stats.semesterInfo.estado || 'ACTIVO';
-        
-        console.log('✓ Información del semestre actualizada');
-    }
->>>>>>> 9a6005b5a5bf5c364a5ac21fb6b5b7f0c8a7c5b4
-}
-
-// Ver sesiones del tutor
-async function viewMySessions() {
-    try {
-        const response = await apiGet('/tutor?action=sessions');
-        
-        if (response.success) {
-            console.log('Mis sesiones:', response.data);
-            showNotification('Función de mis sesiones en desarrollo', 'info');
-        }
-    } catch (error) {
-        showNotification('Error al cargar sesiones', 'error');
-    }
 }
 
 // Crear nueva sesión de tutoría
 function nuevaSesion(cronogramaId) {
-    console.log('Crear nueva sesión para cronograma:', cronogramaId);
+    console.log('➕ Crear nueva sesión para cronograma:', cronogramaId);
     showNotification('Función de crear nueva sesión en desarrollo', 'info');
 }
 
-// Crear sesión de tutoría
-async function createSession() {
-    showNotification('Función de crear sesión en desarrollo', 'info');
-}
-
-// Ver historial de un estudiante/cronograma
+// Ver historial de sesiones
 function verHistorial(cronogramaId) {
-    console.log('Ver historial para cronograma:', cronogramaId);
+    console.log('📋 Ver historial para cronograma:', cronogramaId);
     showNotification('Función de ver historial en desarrollo', 'info');
 }
 
-// Ver estudiantes
-async function viewStudents() {
-    try {
-        const response = await apiGet('/tutor?action=students');
-        
-        if (response.success) {
-            console.log('Mis estudiantes:', response.data);
-            showNotification('Función de estudiantes en desarrollo', 'info');
-        }
-    } catch (error) {
-        showNotification('Error al cargar estudiantes', 'error');
-    }
-}
+// ============================================
+// EXPOSICIÓN GLOBAL DE FUNCIONES
+// ============================================
 
-// Subir materiales
-async function uploadMaterials() {
-    showNotification('Función de subir materiales en desarrollo', 'info');
-}
+// Exponer funciones principales globalmente
+window.loadTutorDashboard = loadTutorDashboard;
+window.loadTutorPanelHTML = loadTutorPanelHTML;
+window.loadTutorStats = loadTutorStats;
+window.renderTutorContent = renderTutorContent;
+window.verAgendamiento = verAgendamiento;
+window.nuevaSesion = nuevaSesion;
+window.verHistorial = verHistorial;
+
+console.log('✅ tutor.js cargado - loadTutorDashboard disponible:', typeof window.loadTutorDashboard);
