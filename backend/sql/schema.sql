@@ -103,24 +103,32 @@ CREATE TABLE IF NOT EXISTS cronograma (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
--- 6. TABLA TUTORIA
+-- 6. TABLA TUTORIA (También funciona como Agendamientos)
 -- ============================================
 CREATE TABLE IF NOT EXISTS tutoria (
     id INT AUTO_INCREMENT PRIMARY KEY,
     idAsignacion INT NOT NULL,
-    idCronograma INT NOT NULL,
-    tipo ENUM('Académica', 'Personal', 'Profesional') NOT NULL,
+    idCronograma INT NULL,
+    fecha DATE NULL,
+    horaInicio TIME NULL,
+    horaFin TIME NULL,
+    tipo ENUM('Académica', 'Personal', 'Profesional', 'Economica', 'Psicologica', 'Todos') NOT NULL,
+    modalidad ENUM('Presencial', 'Virtual') NULL,
     fechaRealizada DATE,
     observaciones TEXT,
-    estado ENUM('Pendiente', 'Realizada', 'Cancelada') DEFAULT 'Pendiente',
+    motivoCancelacion TEXT,
+    fechaCancelacion DATETIME,
+    estado ENUM('Pendiente', 'Programada', 'Reprogramada', 'Realizada', 'Cancelada') DEFAULT 'Programada',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (idAsignacion) REFERENCES asignaciontutor(id) ON DELETE CASCADE,
-    FOREIGN KEY (idCronograma) REFERENCES cronograma(id) ON DELETE CASCADE,
+    FOREIGN KEY (idCronograma) REFERENCES cronograma(id) ON DELETE SET NULL,
     INDEX idx_asignacion (idAsignacion),
     INDEX idx_cronograma (idCronograma),
     INDEX idx_tipo (tipo),
-    INDEX idx_estado (estado)
+    INDEX idx_estado (estado),
+    INDEX idx_fecha (fecha),
+    INDEX idx_fecha_estado (fecha, estado)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================

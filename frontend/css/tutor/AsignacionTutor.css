@@ -1,0 +1,1066 @@
+/* AsignacionTutor.css - Estilos para el módulo de agendamiento */
+
+.agendamiento-container {
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* ==================== HEADER ==================== */
+.agendamiento-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.header-left .icon-title {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.icon-title svg {
+    color: #7a0e0e;
+}
+
+.icon-title h1 {
+    color: #7a0e0e;
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0;
+}
+
+/* ==================== BOTONES ==================== */
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-primary {
+    background-color: #d4a574;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #c19560;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(212, 165, 116, 0.3);
+}
+
+.btn-secondary {
+    background-color: #f5f5f5;
+    color: #333;
+    border: 1px solid #ddd;
+}
+
+.btn-secondary:hover {
+    background-color: #e8e8e8;
+}
+
+.btn-cancelar {
+    background-color: #f4a460;
+    color: white;
+    padding: 12px 28px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-cancelar:hover {
+    background-color: #e09450;
+}
+
+.btn-guardar {
+    background-color: #7a0e0e;
+    color: white;
+    padding: 12px 28px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-guardar:hover {
+    background-color: #5a0a0a;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+}
+
+/* ==================== TABS DE VISTAS ==================== */
+.vista-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    background-color: #f8f8f8;
+    padding: 10px;
+    border-radius: 12px;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 12px 20px;
+    background-color: transparent;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    color: #666;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.tab-btn:hover {
+    background-color: rgba(122, 14, 14, 0.05);
+    color: #7a0e0e;
+}
+
+.tab-btn.active {
+    background-color: #7a0e0e;
+    color: white;
+}
+
+.tab-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* ==================== CONTROLES DEL CALENDARIO ==================== */
+.calendario-controles {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 30px;
+    padding: 15px;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.btn-nav {
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-nav:hover {
+    background-color: #d4a574;
+    border-color: #d4a574;
+    color: white;
+    transform: scale(1.1);
+}
+
+.btn-nav svg {
+    width: 20px;
+    height: 20px;
+}
+
+.selector-fecha {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.select-mes,
+.select-anio {
+    padding: 10px 20px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #7a0e0e;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.select-mes {
+    min-width: 150px;
+}
+
+.select-anio {
+    min-width: 100px;
+}
+
+.select-mes:hover,
+.select-anio:hover {
+    border-color: #d4a574;
+    box-shadow: 0 2px 8px rgba(212, 165, 116, 0.2);
+}
+
+.select-mes:focus,
+.select-anio:focus {
+    border-color: #7a0e0e;
+    box-shadow: 0 0 0 3px rgba(122, 14, 14, 0.1);
+}
+
+#tituloMes {
+    font-size: 24px;
+    background-color: #7a0e0e;
+    border-color: #7a0e0e;
+    color: white;
+}
+
+.btn-nav:hover svg {
+    stroke: white;
+}
+
+#tituloMes {
+    font-size: 24px;
+    font-weight: 700;
+    color: #333;
+    margin: 0;
+    min-width: 200px;
+    text-align: center;
+}
+
+/* ==================== VISTA CONTENEDOR ==================== */
+.vista-contenedor {
+    display: none;
+}
+
+.vista-contenedor.active {
+    display: block;
+}
+
+/* ==================== CALENDARIO MES ==================== */
+.calendario-mes {
+    background-color: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.calendario-dias-semana {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.dia-semana {
+    text-align: center;
+    font-weight: 700;
+    color: #7a0e0e;
+    padding: 10px;
+    font-size: 14px;
+}
+
+.calendario-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+}
+
+.calendario-celda {
+    min-height: 120px;
+    background-color: #fafafa;
+    border: 2px solid #e8e8e8;
+    border-radius: 8px;
+    padding: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.calendario-celda:hover {
+    border-color: #d4a574;
+    background-color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.calendario-celda.otro-mes {
+    background-color: #f5f5f5;
+    opacity: 0.5;
+}
+
+.calendario-celda.hoy {
+    border-color: #7a0e0e;
+    background-color: rgba(122, 14, 14, 0.05);
+}
+
+.calendario-celda.seleccionado {
+    border-color: #7a0e0e;
+    background-color: rgba(122, 14, 14, 0.1);
+}
+
+.dia-numero {
+    font-size: 16px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.calendario-celda.hoy .dia-numero {
+    color: #7a0e0e;
+}
+
+.agendamiento-item {
+    background-color: #7a0e0e;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.agendamiento-item:hover {
+    background-color: #5a0808;
+    transform: scale(1.02);
+}
+
+.agendamiento-item.profesional {
+    background-color: #d4a574;
+}
+
+.agendamiento-item.economica {
+    background-color: #4caf50;
+}
+
+.agendamiento-item.psicologica {
+    background-color: #2196f3;
+}
+
+.agendamiento-item.todos {
+    background-color: #9c27b0;
+}
+
+.agendamiento-item.cancelada {
+    background-color: #999;
+    text-decoration: line-through;
+}
+
+.agendamiento-hora {
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.agendamiento-estudiante {
+    font-size: 10px;
+    opacity: 0.9;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ==================== VISTA AGENDA (LISTA) ==================== */
+.agenda-lista {
+    background-color: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.agenda-item {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    border: 2px solid #e8e8e8;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.agenda-item:hover {
+    border-color: #d4a574;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateX(5px);
+}
+
+.agenda-fecha {
+    min-width: 100px;
+    text-align: center;
+    padding-right: 20px;
+    border-right: 2px solid #e8e8e8;
+}
+
+.agenda-fecha-dia {
+    font-size: 32px;
+    font-weight: 700;
+    color: #7a0e0e;
+    line-height: 1;
+}
+
+.agenda-fecha-mes {
+    font-size: 14px;
+    color: #666;
+    text-transform: uppercase;
+}
+
+.agenda-contenido {
+    flex: 1;
+    padding-left: 20px;
+}
+
+.agenda-hora {
+    font-size: 14px;
+    color: #d4a574;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.agenda-estudiante {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.agenda-tipo {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-right: 8px;
+}
+
+.agenda-tipo.profesional {
+    background-color: rgba(212, 165, 116, 0.2);
+    color: #d4a574;
+}
+
+.agenda-tipo.economica {
+    background-color: rgba(76, 175, 80, 0.2);
+    color: #4caf50;
+}
+
+.agenda-tipo.psicologica {
+    background-color: rgba(33, 150, 243, 0.2);
+    color: #2196f3;
+}
+
+.agenda-tipo.todos {
+    background-color: rgba(156, 39, 176, 0.2);
+    color: #9c27b0;
+}
+
+.agenda-modalidad {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    background-color: rgba(122, 14, 14, 0.1);
+    color: #7a0e0e;
+}
+
+.agenda-estado {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-left: 10px;
+}
+
+.agenda-estado.programada {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.agenda-estado.realizada {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.agenda-estado.cancelada {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.agenda-item.cancelada {
+    opacity: 0.6;
+}
+
+.agenda-item.cancelada .agenda-estudiante {
+    text-decoration: line-through;
+}
+
+.agenda-mensaje-vacio {
+    text-align: center;
+    padding: 60px 20px;
+    color: #999;
+    font-size: 18px;
+}
+
+/* ==================== MODALES ==================== */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    overflow-y: auto;
+}
+
+.modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background-color: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    animation: modalSlideIn 0.3s ease;
+}
+
+.modal-small {
+    max-width: 450px;
+}
+
+@keyframes modalSlideIn {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-header {
+    padding: 24px;
+    border-bottom: 2px solid #e8e8e8;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: #7a0e0e;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.btn-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.btn-close:hover {
+    background-color: #f5f5f5;
+}
+
+.btn-close svg {
+    stroke: #666;
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+.modal-footer {
+    padding: 20px 24px;
+    border-top: 2px solid #e8e8e8;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+/* ==================== FORMULARIOS ==================== */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+}
+
+.required {
+    color: #dc3545;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e8e8e8;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #d4a574;
+    box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.1);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.radio-group {
+    display: flex;
+    gap: 20px;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 10px 16px;
+    border: 2px solid #e8e8e8;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.radio-label:hover {
+    border-color: #d4a574;
+    background-color: rgba(212, 165, 116, 0.05);
+}
+
+.radio-label input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.radio-label input[type="radio"]:checked + span {
+    color: #7a0e0e;
+    font-weight: 600;
+}
+
+textarea.form-control {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* ==================== DETALLES DEL AGENDAMIENTO ==================== */
+.detalle-grupo {
+    margin-bottom: 20px;
+}
+
+.detalle-label {
+    font-size: 12px;
+    color: #666;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.detalle-valor {
+    font-size: 16px;
+    color: #333;
+    font-weight: 500;
+}
+
+.detalle-badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 768px) {
+    .agendamiento-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .vista-tabs {
+        flex-direction: column;
+    }
+
+    .calendario-controles {
+        flex-wrap: wrap;
+    }
+
+    #tituloMes {
+        width: 100%;
+        order: -1;
+        margin-bottom: 10px;
+    }
+
+    .calendario-grid {
+        gap: 5px;
+    }
+
+    .calendario-celda {
+        min-height: 80px;
+        padding: 5px;
+    }
+
+    .dia-numero {
+        font-size: 14px;
+    }
+
+    .agendamiento-item {
+        font-size: 10px;
+        padding: 3px 5px;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .agenda-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .agenda-fecha {
+        border-right: none;
+        border-bottom: 2px solid #e8e8e8;
+        padding-right: 0;
+        padding-bottom: 15px;
+        margin-bottom: 15px;
+        width: 100%;
+    }
+
+    .agenda-contenido {
+        padding-left: 0;
+    }
+
+    .modal-content {
+        width: 95%;
+    }
+}
+
+/* ==================== ESTADOS DE CARGA ==================== */
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: #999;
+}
+
+.loading::after {
+    content: "Cargando...";
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+}
+
+/* ==================== VISTA SEMANA ==================== */
+.semana-grid {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.semana-header {
+    display: grid;
+    grid-template-columns: 80px repeat(7, 1fr);
+    background: #f8f8f8;
+    border-bottom: 2px solid #e0e0e0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.semana-hora-col {
+    padding: 15px;
+    font-weight: 600;
+    color: #666;
+    border-right: 1px solid #e0e0e0;
+}
+
+.semana-dia-header {
+    padding: 15px;
+    text-align: center;
+    border-right: 1px solid #e0e0e0;
+}
+
+.semana-dia-header.hoy {
+    background: #7a0e0e;
+    color: white;
+}
+
+.semana-dia-nombre {
+    font-size: 12px;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.semana-dia-numero {
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.semana-fila {
+    display: grid;
+    grid-template-columns: 80px repeat(7, 1fr);
+    min-height: 60px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.semana-hora-label {
+    padding: 10px 15px;
+    font-size: 14px;
+    color: #666;
+    border-right: 1px solid #e0e0e0;
+    background: #fafafa;
+    display: flex;
+    align-items: flex-start;
+}
+
+.semana-celda {
+    border-right: 1px solid #e0e0e0;
+    position: relative;
+    padding: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    min-height: 60px;
+}
+
+.semana-celda:hover {
+    background-color: rgba(212, 165, 116, 0.1);
+}
+
+.semana-celda:hover::after {
+    content: '+';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    color: #d4a574;
+    font-weight: bold;
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.semana-celda:has(.semana-evento):hover::after {
+    display: none;
+}
+
+.semana-evento {
+    padding: 8px;
+    border-radius: 6px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    color: white;
+    font-size: 12px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    overflow: hidden;
+}
+
+.semana-evento:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.semana-evento.profesional {
+    background: #d4a574;
+}
+
+.semana-evento.economica {
+    background: #4caf50;
+}
+
+.semana-evento.psicologica {
+    background: #2196f3;
+}
+
+.semana-evento.academica {
+    background: #ff9800;
+}
+
+.semana-evento.personal {
+    background: #9c27b0;
+}
+
+.semana-evento.todos {
+    background: #795548;
+}
+
+.evento-hora {
+    font-weight: 700;
+    font-size: 11px;
+    margin-bottom: 3px;
+}
+
+.evento-estudiante {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.evento-tipo {
+    font-size: 10px;
+    opacity: 0.9;
+}
+
+/* ==================== VISTA DÍA ==================== */
+.dia-header {
+    background: #7a0e0e;
+    color: white;
+    padding: 20px;
+    border-radius: 12px 12px 0 0;
+    margin-bottom: 0;
+}
+
+.dia-header h3 {
+    margin: 0;
+    font-size: 24px;
+    text-transform: capitalize;
+}
+
+.dia-timeline {
+    background: white;
+    border-radius: 0 0 12px 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dia-hora-bloque {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    border-bottom: 1px solid #f0f0f0;
+    min-height: 80px;
+}
+
+.dia-hora-label {
+    padding: 20px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #666;
+    background: #fafafa;
+    border-right: 2px solid #e0e0e0;
+}
+
+.dia-hora-contenido {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.dia-evento {
+    background: white;
+    border-left: 4px solid;
+    padding: 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.dia-evento:hover {
+    transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.dia-evento.profesional {
+    border-left-color: #d4a574;
+    background: linear-gradient(90deg, rgba(212, 165, 116, 0.1) 0%, white 15%);
+}
+
+.dia-evento.economica {
+    border-left-color: #4caf50;
+    background: linear-gradient(90deg, rgba(76, 175, 80, 0.1) 0%, white 15%);
+}
+
+.dia-evento.psicologica {
+    border-left-color: #2196f3;
+    background: linear-gradient(90deg, rgba(33, 150, 243, 0.1) 0%, white 15%);
+}
+
+.dia-evento.academica {
+    border-left-color: #ff9800;
+    background: linear-gradient(90deg, rgba(255, 152, 0, 0.1) 0%, white 15%);
+}
+
+.dia-evento.personal {
+    border-left-color: #9c27b0;
+    background: linear-gradient(90deg, rgba(156, 39, 176, 0.1) 0%, white 15%);
+}
+
+.dia-evento.todos {
+    border-left-color: #795548;
+    background: linear-gradient(90deg, rgba(121, 85, 72, 0.1) 0%, white 15%);
+}
+
+.dia-evento .evento-hora {
+    color: #d4a574;
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.dia-evento .evento-estudiante {
+    color: #333;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.dia-evento .evento-detalles {
+    color: #666;
+    font-size: 14px;
+}

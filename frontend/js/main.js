@@ -56,11 +56,12 @@ function checkAuth() {
     const isAsignaciones = path.includes('asignaciones');
     const isReportes = path.includes('reportes');
     const isAuditoria = path.includes('auditoria');
+    const isAsignacionTutor = path.includes('asignacionTutor');
     const isLogin = path.includes('login');
     const isVerify = path.includes('verify');
     const isIndex = path.endsWith('/') || path.includes('index');
     
-    const isProtectedPage = isPanel || isTutor || isSemestre || isGestionUsuarios || isAsignaciones || isReportes || isAuditoria;
+    const isProtectedPage = isPanel || isTutor || isSemestre || isGestionUsuarios || isAsignaciones || isReportes || isAuditoria || isAsignacionTutor;
     
     console.log('   - Es página protegida:', isProtectedPage);
     console.log('   - Es tutor:', isTutor);
@@ -320,6 +321,11 @@ async function initDashboard() {
                 paths: ['/tutor', '/Sistema-de-tutorias/tutor'],
                 param: 'tutor',
                 loadFn: 'loadTutorDashboard'
+            },
+            'asignacionTutor': {
+                paths: ['/asignacionTutor', '/Sistema-de-tutorias/asignacionTutor'],
+                param: 'asignacionTutor',
+                loadFn: 'loadAsignacionTutorContent'
             }
         };
         
@@ -510,7 +516,8 @@ document.addEventListener('DOMContentLoaded', () => {
                        path.includes('asignaciones') ||
                        path.includes('reportes') ||
                        path.includes('historial') ||
-                       path.includes('auditoria');
+                       path.includes('auditoria') ||
+                       path.includes('asignacionTutor');
     
     console.log('🔍 Detección de página:');
     console.log('   - isPanelPage:', isPanelPage);

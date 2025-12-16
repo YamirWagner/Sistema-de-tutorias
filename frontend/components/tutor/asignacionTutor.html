@@ -1,0 +1,275 @@
+<!-- asignacionTutor.html - Vista de agendamiento de tutorías -->
+<div class="agendamiento-container">
+    <!-- Header -->
+    <div class="agendamiento-header">
+        <div class="header-left">
+            <div class="icon-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                <h1>Agendamientos</h1>
+            </div>
+        </div>
+        <div class="header-right">
+            <button class="btn btn-primary" id="btnNuevoAgendamiento">
+                + Nuevo Agendamiento
+            </button>
+        </div>
+    </div>
+
+    <!-- Tabs de vistas -->
+    <div class="vista-tabs">
+        <button class="tab-btn active" data-vista="mes">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            </svg>
+            Mes
+        </button>
+        <button class="tab-btn" data-vista="semana">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M8 2v4M16 2v4M3 10h18"></path>
+            </svg>
+            Semana
+        </button>
+        <button class="tab-btn" data-vista="dia">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            Día
+        </button>
+        <button class="tab-btn" data-vista="agenda">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="8" y1="6" x2="21" y2="6"></line>
+                <line x1="8" y1="12" x2="21" y2="12"></line>
+                <line x1="8" y1="18" x2="21" y2="18"></line>
+            </svg>
+            Agenda
+        </button>
+    </div>
+
+    <!-- Controles del calendario -->
+    <div class="calendario-controles">
+        <button class="btn-nav" id="btnAnterior" title="Anterior">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </button>
+        
+        <div class="selector-fecha">
+            <select id="selectorMes" class="select-mes">
+                <option value="0">Enero</option>
+                <option value="1">Febrero</option>
+                <option value="2">Marzo</option>
+                <option value="3">Abril</option>
+                <option value="4">Mayo</option>
+                <option value="5">Junio</option>
+                <option value="6">Julio</option>
+                <option value="7">Agosto</option>
+                <option value="8">Septiembre</option>
+                <option value="9">Octubre</option>
+                <option value="10">Noviembre</option>
+                <option value="11">Diciembre</option>
+            </select>
+            <select id="selectorAnio" class="select-anio">
+                <!-- Se llena dinámicamente -->
+            </select>
+        </div>
+        
+        <button class="btn-nav" id="btnSiguiente" title="Siguiente">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+        </button>
+        <button class="btn btn-secondary" id="btnHoy">Hoy</button>
+    </div>
+
+    <!-- Vista de Mes (Calendario) -->
+    <div class="vista-contenedor active" id="vistaMes">
+        <div class="calendario-mes">
+            <div class="calendario-dias-semana">
+                <div class="dia-semana">Dom</div>
+                <div class="dia-semana">Lun</div>
+                <div class="dia-semana">Mar</div>
+                <div class="dia-semana">Mié</div>
+                <div class="dia-semana">Vie</div>
+                <div class="dia-semana">Jue</div>
+                <div class="dia-semana">Sáb</div>
+            </div>
+            <div class="calendario-grid" id="calendarioGrid">
+                <!-- Se llena dinámicamente con JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Vista de Semana -->
+    <div class="vista-contenedor" id="vistaSemana">
+        <div class="calendario-semana" id="calendarioSemana">
+            <!-- Se llena dinámicamente con JavaScript -->
+        </div>
+    </div>
+
+    <!-- Vista de Día -->
+    <div class="vista-contenedor" id="vistaDia">
+        <div class="calendario-dia" id="calendarioDia">
+            <!-- Se llena dinámicamente con JavaScript -->
+        </div>
+    </div>
+
+    <!-- Vista de Agenda (Lista) -->
+    <div class="vista-contenedor" id="vistaAgenda">
+        <div class="agenda-lista" id="agendaLista">
+            <!-- Se llena dinámicamente con JavaScript -->
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Nuevo/Editar Agendamiento -->
+<div class="modal" id="modalAgendamiento">
+    <div class="modal-content modal-agendamiento">
+        <div class="modal-header">
+            <h2 id="modalTitulo">Nuevo Agendamiento</h2>
+            <button class="btn-close" id="btnCerrarModal">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="formAgendamiento">
+                <input type="hidden" id="agendamientoId" name="id">
+                
+                <!-- Semestre Académico -->
+                <div class="form-group">
+                    <label for="semestreActual">
+                        Semestre Académico
+                    </label>
+                    <input type="text" id="semestreActual" class="form-control" readonly disabled>
+                </div>
+
+                <!-- Estudiante -->
+                <div class="form-group">
+                    <label for="estudianteSelect">
+                        Estudiante a Tutorar <span class="required">*</span>
+                    </label>
+                    <select id="estudianteSelect" name="estudianteId" class="form-control" required>
+                        <option value="">Seleccione Estudiante</option>
+                    </select>
+                </div>
+
+                <!-- Fecha y Hora -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="fechaAgendamiento">
+                            Fecha <span class="required">*</span>
+                        </label>
+                        <input type="date" id="fechaAgendamiento" name="fecha" class="form-control" required placeholder="dd/mm/aaaa">
+                    </div>
+                    <div class="form-group">
+                        <label for="horaInicio">
+                            Hora <span class="required">*</span>
+                        </label>
+                        <input type="time" id="horaInicio" name="horaInicio" class="form-control" required step="1800">
+                    </div>
+                </div>
+
+                <input type="hidden" id="horaFin" name="horaFin">
+
+                <!-- Tipo de Tutoría -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="tipoTutoria">
+                            Tipo de Tutoría <span class="required">*</span>
+                        </label>
+                        <select id="tipoTutoria" name="tipoTutoria" class="form-control" required>
+                            <option value="">Seleccione</option>
+                            <option value="Academica">Académica</option>
+                            <option value="Personal">Personal</option>
+                            <option value="Profesional">Profesional</option>
+                            <option value="Economica">Económica</option>
+                            <option value="Psicologica">Psicológica</option>
+                            <option value="Todos">Todos</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="modalidad">
+                            Modalidad <span class="required">*</span>
+                        </label>
+                        <select id="modalidad" name="modalidad" class="form-control" required>
+                            <option value="">Seleccione</option>
+                            <option value="Presencial">Presencial</option>
+                            <option value="Virtual">Virtual</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Descripción / Observaciones -->
+                <div class="form-group">
+                    <label for="observaciones">Descripción / Observaciones</label>
+                    <textarea id="observaciones" name="observaciones" class="form-control" rows="4" placeholder="Ingrese observaciones o descripción..."></textarea>
+                </div>
+
+                <!-- Botones -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-cancelar" id="btnCancelarModal">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-guardar" id="btnGuardarAgendamiento">
+                        Crear Cronograma
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmación de Cancelación -->
+<div class="modal" id="modalCancelar">
+    <div class="modal-content modal-small">
+        <div class="modal-header">
+            <h2>Cancelar Agendamiento</h2>
+            <button class="btn-close" id="btnCerrarModalCancelar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p>¿Está seguro de que desea cancelar este agendamiento?</p>
+            <div class="form-group">
+                <label for="motivoCancelacion">Motivo de cancelación <span class="required">*</span></label>
+                <textarea id="motivoCancelacion" class="form-control" rows="3" placeholder="Describa el motivo de la cancelación..." required></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="btnCerrarCancelar">No, volver</button>
+                <button type="button" class="btn btn-danger" id="btnConfirmarCancelar">Sí, cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Detalle de Agendamiento -->
+<div class="modal" id="modalDetalle">
+    <div class="modal-content modal-detalle">
+        <div class="modal-header">
+            <h2>Detalle del Agendamiento</h2>
+            <button class="btn-close" id="btnCerrarModalDetalle">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+        <div class="modal-body" id="detalleAgendamientoBody">
+            <!-- Se llena dinámicamente con JavaScript -->
+        </div>
+        <div class="modal-footer" id="detalleAgendamientoFooter">
+            <!-- Se llena dinámicamente con JavaScript -->
+        </div>
+    </div>
+</div>

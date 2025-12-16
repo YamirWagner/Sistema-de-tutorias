@@ -216,7 +216,7 @@ async function loadSidebarMenu() {
         ],
         tutor: [
             { icon: 'fa-solid fa-house', text: 'Inicio', module: 'tutor', active: true },
-            { icon: 'fa-solid fa-calendar-check', text: 'Agendamientos', module: 'agendamientos' },
+            { icon: 'fa-solid fa-calendar-check', text: 'Agendamientos', module: 'asignacionTutor' },
             { icon: 'fa-solid fa-user-graduate', text: 'Mis estudiantes', module: 'mis-estudiantes' },
         ],
         student: [
@@ -310,7 +310,7 @@ function navigateToModule(element) {
         // Tutor
         'tutor': 'loadTutorDashboard',
         'nueva-sesion': 'loadNuevaSesionContent',
-        'agendamientos': 'loadAgendamientosContent',
+        'asignacionTutor': 'loadAsignacionTutorContent',
         'mis-estudiantes': 'loadMisEstudiantesContent',
         // Estudiante
         'mi-tutor': 'loadMiTutorContent',

@@ -273,26 +273,12 @@ function renderProximasSesiones() {
 // NAVEGACIÓN Y ACCIONES
 // ============================================
 
-// Ver agendamiento completo
+// Ver agendamiento completo - Redirigir al módulo de asignación de tutor
 function verAgendamiento() {
-    console.log('📅 Navegando a agendamientos...');
+    console.log('📅 Navegando a asignacionTutor...');
     
-    // Actualizar el estado del sidebar
-    const allLinks = document.querySelectorAll('.sidebar-menu a');
-    allLinks.forEach(link => {
-        if (link.getAttribute('data-module') === 'agendamientos') {
-            link.classList.add('active');
-        } else {
-            link.classList.remove('active');
-        }
-    });
-    
-    // Cerrar sidebar en móvil
-    if (typeof closeSidebarOnNavigation === 'function') {
-        closeSidebarOnNavigation();
-    }
-    
-    showNotification('Función de agendamientos en desarrollo', 'info');
+    const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+    window.location.href = `${basePath}/asignacionTutor`;
 }
 
 // Crear nueva sesión de tutoría

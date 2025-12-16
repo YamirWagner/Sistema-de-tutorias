@@ -14,6 +14,8 @@ DirectoryIndex frontend/index.html
   RewriteCond %{REQUEST_URI} backend/.*\.php$
   RewriteCond %{REQUEST_URI} !backend/routes\.php$
   RewriteCond %{REQUEST_URI} !backend/api/gestionUsuarios\.php$
+  RewriteCond %{REQUEST_URI} !backend/api/asignacionTutor\.php$
+  RewriteCond %{REQUEST_URI} !backend/api/semestre\.php$
   RewriteRule .* - [F,L]
   
   # Todas las rutas /api/* van al enrutador routes.php
@@ -56,6 +58,7 @@ DirectoryIndex frontend/index.html
   
   # Módulo del Tutor
   RewriteRule ^tutor/?$ frontend/panel.html [L,NC]
+  RewriteRule ^asignacionTutor/?$ frontend/panel.html [L,NC]
 
   # ============================================
   # RECURSOS ESTÁTICOS
