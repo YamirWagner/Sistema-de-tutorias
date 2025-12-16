@@ -63,9 +63,14 @@
                 window.CURRENT_SEMESTER_NOMBRE = data.semestreNombre || 'Semestre Activo';
 
                 cargarTutores();
-                if (window.tutores.length > 0) {
-                    seleccionarTutor(window.tutores[0].id);
-                }
+                    if (window.tutores.length > 0) {
+                        // Mantener el tutor seleccionado si sigue disponible, si no seleccionar el primero
+                        let seleccionado = window.tutorSeleccionado;
+                        if (!seleccionado || !window.tutores.some(t => String(t.id) === String(seleccionado))) {
+                            seleccionado = window.tutores[0].id;
+                        }
+                        seleccionarTutor(seleccionado);
+                    }
 
                 // Eventos de búsqueda
                 initAssignmentSearchEvents();
@@ -146,10 +151,10 @@ function seleccionarTutor(tutorID) {
 
     // Resaltar el tutor seleccionado
     document.querySelectorAll(".tutor-btn").forEach(btn => {
-        const isSelected = btn.dataset.id === tutorID;
+        const isSelected = btn.dataset.id == tutorID;
         if (isSelected) {
             btn.classList.remove('bg-white', 'border-gray-300');
-            btn.classList.add('bg-red-200', 'border-red-800');
+            btn.classList.add('bg-red-300', 'border-red-800');
         } else {
             btn.classList.remove('bg-red-200', 'border-red-800');
             btn.classList.add('bg-white', 'border-gray-300');
@@ -256,7 +261,7 @@ function cargarEstudiantesNoAsignados(filtroNombre = "") {
             `;
 
             div.querySelector(".assign-btn").addEventListener("click", () => {
-                asignarEstudiante(estudianteId);
+                asignarEstudiante(est.id);
             });
             
             contenedor.appendChild(div);
