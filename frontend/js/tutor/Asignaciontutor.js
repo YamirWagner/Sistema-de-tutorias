@@ -549,7 +549,7 @@
     async function cargarSemestreActivo() {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`${APP_CONFIG.API.BASE_URL}/semestre.php?action=activo`, {
+            const response = await fetch(`${APP_CONFIG.API.BASE_URL}/semestre.php?action=current`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
