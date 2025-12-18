@@ -109,6 +109,25 @@ $routes = [
 
     // Rutas de auditoría
     'GET|api/auditoria' => 'api/auditoria.php',
+
+    // Rutas de gestión de sesiones de tutoría
+    'GET|api/atencionTutoria' => 'api/atencionTutoria.php',
+    // Rutas de gestión de sesiones de tutoría
+    'GET|api/atenciontutoria' => 'api/atenciontutoria.php',
+    'POST|api/atenciontutoria' => 'api/atenciontutoria.php',
+    'PUT|api/atenciontutoria' => 'api/atenciontutoria.php',
+
+    // Rutas de asignación de tutor
+    'GET|api/asignacionTutor' => 'api/asignacionTutor.php',
+    'POST|api/asignacionTutor' => 'api/asignacionTutor.php',
+    'PUT|api/asignacionTutor' => 'api/asignacionTutor.php',
+    'DELETE|api/asignacionTutor' => 'api/asignacionTutor.php',
+
+    // Rutas de gestión de usuarios
+    'GET|api/gestionUsuarios' => 'api/gestionUsuarios.php',
+    'POST|api/gestionUsuarios' => 'api/gestionUsuarios.php',
+    'PUT|api/gestionUsuarios' => 'api/gestionUsuarios.php',
+    'DELETE|api/gestionUsuarios' => 'api/gestionUsuarios.php',
 ];
 
 // Obtener el método HTTP
