@@ -118,7 +118,17 @@ try {
             $semestre = fetchOne($db, "SELECT * FROM semestre WHERE estado = 'Activo' LIMIT 1");
             
             if (!$semestre) {
-                Response::success(['semester' => null]);
+                Response::success([
+                    'semester' => [
+                        'id' => null,
+                        'nombre' => 'No hay semestre activo',
+                        'name' => 'No hay semestre activo',
+                        'startDate' => null,
+                        'endDate' => null,
+                        'status' => null,
+                        'daysRemaining' => 0
+                    ]
+                ]);
             }
             
             $daysRemaining = calculateDaysRemaining($semestre['fechaFin']);
@@ -126,6 +136,7 @@ try {
             Response::success([
                 'semester' => [
                     'id' => (int)$semestre['id'],
+                    'nombre' => $semestre['nombre'],
                     'name' => $semestre['nombre'],
                     'startDate' => $semestre['fechaInicio'],
                     'endDate' => $semestre['fechaFin'],

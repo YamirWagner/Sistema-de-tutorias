@@ -556,8 +556,8 @@
             });
 
             const data = await response.json();
-            if (data.success && data.data) {
-                document.getElementById('semestreActual').value = data.data.nombre || 'No hay semestre activo';
+            if (data.success && data.data && data.data.semester) {
+                document.getElementById('semestreActual').value = data.data.semester.nombre || data.data.semester.name || 'No hay semestre activo';
             } else {
                 document.getElementById('semestreActual').value = 'No hay semestre activo';
             }
@@ -681,7 +681,7 @@
         if (agendamiento.estado === 'Programada' && fechaAgendamiento >= hoy) {
             footer.innerHTML = `
                 <button type="button" class="btn btn-secondary" id="btnEditarAgendamiento">Modificar</button>
-                <button type="button" class="btn btn-danger" id="btnCancelarAgendamiento">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btnAtenderAgendamiento">Atender</button>
             `;
 
             document.getElementById('btnEditarAgendamiento').addEventListener('click', () => {
@@ -689,9 +689,9 @@
                 abrirModalEditar(agendamiento);
             });
 
-            document.getElementById('btnCancelarAgendamiento').addEventListener('click', () => {
+            document.getElementById('btnAtenderAgendamiento').addEventListener('click', () => {
                 cerrarModalDetalle();
-                abrirModalCancelar(agendamiento);
+                abrirModalSesionTutoria(agendamiento.id);
             });
         } else {
             footer.innerHTML = '';
