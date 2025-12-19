@@ -1,0 +1,162 @@
+<div class="mis-estudiantes-container">
+    <!-- Header  -->
+    <h1 class="mis-estudiantes-header">
+        <div class="icon-title">
+            <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.6144 7.19994c.3479.48981.5999 1.15357.5999 1.80006 0 1.6569-1.3432 3-3 3-1.6569 0-3.00004-1.3431-3.00004-3 0-.67539.22319-1.29865.59983-1.80006M6.21426 6v4m0-4 6.00004-3 6 3-6 2-2.40021-.80006M6.21426 6l3.59983 1.19994M6.21426 19.8013v-2.1525c0-1.6825 1.27251-3.3075 2.95093-3.6488l3.04911 2.9345 3-2.9441c1.7026.3193 3 1.9596 3 3.6584v2.1525c0 .6312-.5373 1.1429-1.2 1.1429H7.41426c-.66274 0-1.2-.5117-1.2-1.1429Z"/>
+            </svg>
+            <h1>Mis estudiantes</h1>
+        </div>
+
+    </h1>
+
+    <div class="filters-card">
+        <div class="filters-row">
+            <!-- Encabezado para el filtro Nombre o código -->
+            <label for="filterSearch">Nombre o código:</label>
+            <input id="filterSearch" type="text" placeholder="Nombre o código" />
+
+            <!-- Encabezado para el filtro Tipo de tutoría -->
+            <label for="filterTipo">Tipo de tutoría:</label>
+            <select id="filterTipo">
+                <option value="">Tipo de tutoría</option>
+                <option value="Academica">Académica</option>
+                <option value="Personal">Personal</option>
+                <option value="Profesional">Profesional</option>
+            </select>
+
+            <!-- Encabezado para el filtro Modalidad -->
+            <label for="filterModalidad">Modalidad:</label>
+            <select id="filterModalidad">
+                <option value="">Modalidad</option>
+                <option value="Presencial">Presencial</option>
+                <option value="Virtual">Virtual</option>
+            </select>
+        </div>
+    </div>
+
+
+    <div class="students-table-card">
+        <table class="students-table">
+            <thead>
+                <tr>
+                    <th>Estudiante</th>
+                    <th>S. Académica</th>
+                    <th>S. Personal</th>
+                    <th>S. Profesional</th>
+                    <th>Modalidad</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="studentsTbody">
+                <!-- Filas generadas dinámicamente -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="actions-row">
+        <button id="btnGenerarReporte" class="btn-primary">Estudiantes que pasaron tutoría</button>
+    </div>
+</div>
+
+<style>
+    .page-title { 
+    font-size: 28px; 
+    color: #7b1f1f; 
+    margin-bottom: 12px; 
+    }
+        
+    .filters-card { 
+        background:#efefef; 
+        padding:12px; 
+        border-radius:10px; 
+        margin-bottom:12px; 
+    }
+        
+    .filters-row { 
+        display:flex; 
+        gap:8px; 
+        align-items:center; 
+    }
+        
+    .filters-row input, .filters-row select { 
+        padding:8px; 
+        border:1px solid #ccc; 
+        border-radius:10px; 
+    }
+        
+    .students-table { 
+        width:100%; 
+        border-collapse:collapse; 
+        background:white; 
+    }
+        
+    .students-table th, .students-table td { 
+        padding:10px; 
+        border:1px solid #ddd; 
+        text-align:left; 
+        vertical-align:middle; 
+    }
+        
+    .students-table td.center { 
+        text-align:center; 
+    }
+        
+    .session-date { 
+        display:block; 
+        font-size:12px; 
+        color:#999; 
+        margin-top:6px; 
+    }
+        
+    .btn-primary { 
+        background:#e59a67;
+        border:none; 
+        padding:10px 14px; 
+        border-radius:10px; 
+        color:#fff; 
+        cursor:pointer; 
+    }
+        
+    .btn-primary[disabled] { 
+        opacity:0.5; 
+        cursor:not-allowed; 
+    }
+        
+    .actions-row { 
+        margin-top:12px; 
+        display:flex; 
+        justify-content:flex-end; 
+    }
+
+   .filters-row {
+    display: flex;
+    justify-content: space-between; /* Para distribuir los filtros de manera uniforme */
+    gap: 20px; /* Espacio entre los filtros */
+    flex-wrap: wrap; /* Permite que los filtros se ajusten a diferentes tamaños de pantalla */
+    }
+
+    .filter-item {
+        width: 30%; /* Establece el ancho de cada filtro */
+        min-width: 200px; /* Ajusta el tamaño mínimo para pantallas pequeñas */
+    }
+
+    label {
+        display: block; /* Hace que el texto del encabezado esté encima del campo */
+        font-weight: bold;
+        margin-bottom: 5px; /* Espacio entre el encabezado y el campo */
+    }
+
+    input, select {
+        width: 100%; /* Hace que el campo ocupe todo el ancho disponible */
+        padding: 8px;
+        box-sizing: border-box; /* Asegura que el padding no cambie el tamaño del campo */
+        border: 1px solid #ccc; /* Establece un borde alrededor del campo */
+        border-radius: 4px; /* Bordes redondeados para los campos */
+    }
+
+    input::placeholder {
+        color: #aaa; /* Color gris para el texto del placeholder */
+    }
+
+</style>
