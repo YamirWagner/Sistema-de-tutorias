@@ -31,3 +31,85 @@
         </div>
     </div>
 </div>
+
+<!-- Modal: Previsualizar Constancia -->
+<div id="previewConstanciaModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content large">
+        <div class="modal-header">
+            <h2>Previsualización - Constancia de Tutoría</h2>
+            <button onclick="closePreviewConstancia()" class="modal-close-btn" title="Cerrar">×</button>
+        </div>
+        <div class="modal-body" style="padding:0;">
+            <iframe id="previewConstanciaIframe" style="width:100%; height:80vh; border:none;"></iframe>
+        </div>
+        <div class="modal-footer">
+            <button onclick="downloadPreviewConstancia()" class="btn-modal-close">Descargar PDF</button>
+            <button onclick="closePreviewConstancia()" class="btn-modal-close">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Previsualizar Reporte -->
+<div id="previewReporteModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content large">
+        <div class="modal-header">
+            <h2>Previsualización - Reporte de Estudiantes</h2>
+            <button onclick="closePreviewReporte()" class="modal-close-btn" title="Cerrar">×</button>
+        </div>
+        <div class="modal-body" style="padding:0;">
+            <iframe id="previewReporteIframe" style="width:100%; height:80vh; border:none;"></iframe>
+        </div>
+        <div class="modal-footer">
+            <button onclick="downloadPreviewReporte()" class="btn-modal-close">Descargar PDF</button>
+            <button onclick="closePreviewReporte()" class="btn-modal-close">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Helpers para modales de previsualización
+    let __lastPreviewBlobUrl = null;
+    function openPreviewModal(modalId) {
+        document.body.style.overflow = 'hidden';
+        const m = document.getElementById(modalId);
+        if (m) m.style.display = 'flex';
+    }
+    function closePreviewModal(modalId) {
+        document.body.style.overflow = '';
+        const m = document.getElementById(modalId);
+        if (m) m.style.display = 'none';
+        if (__lastPreviewBlobUrl) { URL.revokeObjectURL(__lastPreviewBlobUrl); __lastPreviewBlobUrl = null; }
+    }
+
+    function closePreviewConstancia(){ closePreviewModal('previewConstanciaModal'); }
+    function closePreviewReporte(){ closePreviewModal('previewReporteModal'); }
+
+    function setPreviewBlob(iframeId, blob) {
+        if (__lastPreviewBlobUrl) { URL.revokeObjectURL(__lastPreviewBlobUrl); }
+        __lastPreviewBlobUrl = URL.createObjectURL(blob);
+        const iframe = document.getElementById(iframeId);
+        if (iframe) iframe.src = __lastPreviewBlobUrl;
+    }
+
+    function downloadBlob(blob, filename) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(()=>URL.revokeObjectURL(url), 1000);
+    }
+
+    function downloadPreviewConstancia(){
+        const iframe = document.getElementById('previewConstanciaIframe');
+        if (!iframe || !__lastPreviewBlobUrl) return;
+        fetch(__lastPreviewBlobUrl).then(r=>r.blob()).then(b=>downloadBlob(b, 'constancia.pdf'));
+    }
+    function downloadPreviewReporte(){
+        const iframe = document.getElementById('previewReporteIframe');
+        if (!iframe || !__lastPreviewBlobUrl) return;
+        fetch(__lastPreviewBlobUrl).then(r=>r.blob()).then(b=>downloadBlob(b, 'reporte_estudiantes.pdf'));
+    }
+</script>

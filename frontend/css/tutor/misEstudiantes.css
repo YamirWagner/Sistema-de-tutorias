@@ -1,0 +1,68 @@
+.page-title { 
+    font-size: 28px; 
+    color: #7b1f1f; 
+    margin-bottom: 12px; 
+}
+    
+.filters-card { 
+    background:#efefef; 
+    padding:12px; 
+    border-radius:10px; 
+    margin-bottom:12px; 
+}
+    
+.filters-row { 
+    display:flex; 
+    gap:8px; 
+    align-items:center; 
+}
+    
+.filters-row input, .filters-row select { 
+    padding:8px; 
+    border:1px solid #ccc; 
+    border-radius:10px; 
+}
+    
+.students-table { 
+    width:100%; 
+    border-collapse:collapse; 
+    background:white; 
+}
+    
+.students-table th, .students-table td { 
+    padding:10px; 
+    border:1px solid #ddd; 
+    text-align:left; 
+    vertical-align:middle; 
+}
+    
+.students-table td.center { 
+    text-align:center; 
+}
+    
+.session-date { 
+    display:block; 
+    font-size:12px; 
+    color:#999; 
+    margin-top:6px; 
+}
+    
+.btn-primary { 
+    background:#e59a67;
+    border:none; 
+    padding:10px 14px; 
+    border-radius:10px; 
+    color:#fff; 
+    cursor:pointer; 
+}
+    
+.btn-primary[disabled] { 
+    opacity:0.5; 
+    cursor:not-allowed; 
+}
+    
+.actions-row { 
+    margin-top:12px; 
+    display:flex; 
+    justify-content:flex-end; 
+}
