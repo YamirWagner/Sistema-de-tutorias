@@ -1,22 +1,97 @@
-/* MODAL DETALLE DE AGENDAMIENTO CENTRADO Y SIN BORDE INTERIOR */
+/* MODAL DETALLE DE AGENDAMIENTO CENTRADO */
+#modalDetalle {
+    display: none !important;
+    position: fixed !important;
+    z-index: 9999 !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+#modalDetalle.show {
+    display: flex !important;
+}
+
 .modal-detalle {
+    background: #fff !important;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+    max-width: 700px;
+    width: 95%;
+    max-height: 90vh;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
+    animation: modalSlideInDetalle 0.3s ease-out;
+    position: relative;
+}
+
+@keyframes modalSlideInDetalle {
+    from {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.modal-detalle .modal-header {
+    background: linear-gradient(135deg, #7a0e0e 0%, #5a0a0a 100%);
+    color: white;
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: none;
+}
+
+.modal-detalle .modal-header h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.modal-detalle .modal-header .btn-close {
+    background: transparent;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 5px;
+    display: flex;
     align-items: center;
     justify-content: center;
-    border: none !important;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
-    background: #fff;
-    padding: 0;
-    max-width: 600px;
-    width: 100%;
+    border-radius: 4px;
+    transition: background-color 0.2s;
 }
-.modal-detalle .modal-header,
-.modal-detalle .modal-footer {
-    border: none !important;
+
+.modal-detalle .modal-header .btn-close:hover {
+    background-color: rgba(255, 255, 255, 0.1);
 }
+
 .modal-detalle .modal-body {
-    border: none !important;
+    padding: 32px;
+    overflow-y: auto;
+    flex: 1;
+    border: none;
+    min-height: 300px;
+}
+
+.modal-detalle .modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    background-color: #f8f9fa;
+    border: none;
 }
 /* AsignacionTutor.css - Estilos para el módulo de agendamiento */
 
@@ -127,6 +202,69 @@
 
 .btn-danger:hover {
     background-color: #c82333;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+    color: white;
+    padding: 12px 28px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.25);
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.35);
+}
+
+/* Botones específicos del modal de detalle */
+.modal-detalle .modal-footer .btn-secondary {
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+    color: white;
+    padding: 12px 28px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(108, 117, 125, 0.25);
+}
+
+.modal-detalle .modal-footer .btn-secondary:hover {
+    background: linear-gradient(135deg, #5a6268 0%, #4e555b 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.35);
+}
+
+.modal-detalle .modal-footer .btn-success {
+    background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+    padding: 12px 28px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.modal-detalle .modal-footer .btn-success:hover {
+    background: linear-gradient(135deg, #218838 0%, #1e7e34 100%);
+}
+
+.modal-detalle .modal-footer .btn-success::before {
+    content: "✓";
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.modal-detalle .modal-footer .btn-secondary::before {
+    content: "✏";
+    font-size: 16px;
+    margin-right: 4px;
 }
 
 /* ==================== TABS DE VISTAS ==================== */
@@ -325,6 +463,17 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
+.calendario-celda.fecha-pasada {
+    background-color: #f9f9f9;
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.calendario-celda.fecha-pasada .dia-numero {
+    color: #999;
+}
+
 .calendario-celda.otro-mes {
     background-color: #f5f5f5;
     opacity: 0.5;
@@ -367,20 +516,16 @@
     transform: scale(1.02);
 }
 
-.agendamiento-item.profesional {
-    background-color: #d4a574;
-}
-
-.agendamiento-item.economica {
-    background-color: #4caf50;
-}
-
-.agendamiento-item.psicologica {
+.agendamiento-item.academica {
     background-color: #2196f3;
 }
 
-.agendamiento-item.todos {
-    background-color: #9c27b0;
+.agendamiento-item.personal {
+    background-color: #4caf50;
+}
+
+.agendamiento-item.profesional {
+    background-color: #d4a574;
 }
 
 .agendamiento-item.cancelada {
@@ -474,24 +619,19 @@
     margin-right: 8px;
 }
 
-.agenda-tipo.profesional {
-    background-color: rgba(212, 165, 116, 0.2);
-    color: #d4a574;
-}
-
-.agenda-tipo.economica {
-    background-color: rgba(76, 175, 80, 0.2);
-    color: #4caf50;
-}
-
-.agenda-tipo.psicologica {
+.agenda-tipo.academica {
     background-color: rgba(33, 150, 243, 0.2);
     color: #2196f3;
 }
 
-.agenda-tipo.todos {
-    background-color: rgba(156, 39, 176, 0.2);
-    color: #9c27b0;
+.agenda-tipo.personal {
+    background-color: rgba(76, 175, 80, 0.2);
+    color: #4caf50;
+}
+
+.agenda-tipo.profesional {
+    background-color: rgba(212, 165, 116, 0.2);
+    color: #d4a574;
 }
 
 .agenda-modalidad {
@@ -566,7 +706,7 @@
     background-color: white;
     border-radius: 12px;
     width: 90%;
-    max-width: 600px;
+    max-width: 900px;
     max-height: 90vh;
     overflow-y: auto;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
@@ -589,63 +729,76 @@
 }
 
 .modal-header {
-    padding: 24px;
-    border-bottom: 2px solid #e8e8e8;
+    padding: 18px 28px;
+    background: linear-gradient(135deg, #7a0e0e 0%, #5a0a0a 100%);
+    border-radius: 12px 12px 0 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    box-shadow: 0 2px 8px rgba(122, 14, 14, 0.1);
 }
 
 .modal-header h2 {
     margin: 0;
-    color: #7a0e0e;
-    font-size: 24px;
+    color: #ffffff;
+    font-size: 20px;
     font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .btn-close {
-    background: none;
+    background: rgba(255, 255, 255, 0.2);
     border: none;
     cursor: pointer;
-    padding: 5px;
+    padding: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 4px;
+    border-radius: 6px;
     transition: all 0.2s ease;
 }
 
 .btn-close:hover {
-    background-color: #f5f5f5;
+    background-color: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
 }
 
 .btn-close svg {
-    stroke: #666;
+    stroke: #ffffff;
+    stroke-width: 2.5;
 }
 
 .modal-body {
-    padding: 24px;
+    padding: 20px 28px;
+    background: #fafafa;
 }
 
 .modal-footer {
-    padding: 20px 24px;
+    padding: 16px 28px;
+    background: #ffffff;
     border-top: 2px solid #e8e8e8;
+    border-radius: 0 0 12px 12px;
     display: flex;
     justify-content: flex-end;
     gap: 12px;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
 }
 
 /* ==================== FORMULARIOS ==================== */
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 16px;
 }
 
 .form-group label {
     display: block;
     margin-bottom: 8px;
     font-weight: 600;
-    color: #333;
-    font-size: 14px;
+    color: #2c2c2c;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .required {
@@ -654,24 +807,38 @@
 
 .form-control {
     width: 100%;
-    padding: 12px;
-    border: 2px solid #e8e8e8;
+    padding: 10px 14px;
+    border: 2px solid #e0e0e0;
     border-radius: 8px;
     font-size: 14px;
     transition: all 0.3s ease;
     font-family: inherit;
+    background: #ffffff;
 }
 
 .form-control:focus {
     outline: none;
     border-color: #d4a574;
-    box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.1);
+    box-shadow: 0 0 0 4px rgba(212, 165, 116, 0.15);
+    transform: translateY(-1px);
+}
+
+.form-control:hover {
+    border-color: #d0d0d0;
 }
 
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 15px;
+}
+
+.form-row:has(.form-group:nth-child(3)) {
+    grid-template-columns: 1.2fr 1fr 1fr;
+}
+
+.form-row .form-group:first-child {
+    grid-column: span 1;
 }
 
 .radio-group {
@@ -685,56 +852,193 @@
     gap: 8px;
     cursor: pointer;
     padding: 10px 16px;
-    border: 2px solid #e8e8e8;
+    border: 2px solid #e0e0e0;
     border-radius: 8px;
     transition: all 0.3s ease;
+    background: #ffffff;
+    flex: 1;
 }
 
 .radio-label:hover {
     border-color: #d4a574;
-    background-color: rgba(212, 165, 116, 0.05);
+    background-color: rgba(212, 165, 116, 0.08);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(212, 165, 116, 0.15);
 }
 
 .radio-label input[type="radio"] {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     cursor: pointer;
+    accent-color: #7a0e0e;
 }
 
 .radio-label input[type="radio"]:checked + span {
     color: #7a0e0e;
-    font-weight: 600;
+    font-weight: 700;
+}
+
+.radio-label:has(input[type="radio"]:checked) {
+    border-color: #7a0e0e;
+    background: linear-gradient(135deg, rgba(122, 14, 14, 0.05) 0%, rgba(212, 165, 116, 0.05) 100%);
+    box-shadow: 0 4px 12px rgba(122, 14, 14, 0.15);
 }
 
 textarea.form-control {
     resize: vertical;
-    min-height: 80px;
+    min-height: 70px;
+    line-height: 1.5;
+}
+
+.form-text {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    color: #7a0e0e;
+    font-weight: 500;
+}
+
+/* ==================== ESTILOS DIFERENCIADOS ==================== */
+
+/* Tipo de Tutoría - Tema Azul */
+.tipo-tutoria-group {
+    background: linear-gradient(135deg, rgba(33, 150, 243, 0.03) 0%, rgba(33, 150, 243, 0.08) 100%);
+    padding: 14px;
+    border-radius: 10px;
+    border: 2px solid rgba(33, 150, 243, 0.2);
+}
+
+.tipo-tutoria-group label:first-child {
+    color: #1976d2;
+    font-size: 12px;
+    margin-bottom: 10px;
+}
+
+.tipo-tutoria-radios .radio-label {
+    border-color: rgba(33, 150, 243, 0.3);
+    background: #ffffff;
+}
+
+.tipo-tutoria-radios .radio-label:hover {
+    border-color: #2196f3;
+    background-color: rgba(33, 150, 243, 0.1);
+    box-shadow: 0 4px 8px rgba(33, 150, 243, 0.2);
+}
+
+.tipo-tutoria-radios .radio-label input[type="radio"] {
+    accent-color: #2196f3;
+}
+
+.tipo-tutoria-radios .radio-label:has(input[type="radio"]:checked) {
+    border-color: #2196f3;
+    background: linear-gradient(135deg, rgba(33, 150, 243, 0.15) 0%, rgba(33, 150, 243, 0.05) 100%);
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.25);
+}
+
+.tipo-tutoria-radios .radio-label input[type="radio"]:checked + span {
+    color: #1976d2;
+}
+
+/* Modalidad - Tema Verde */
+.modalidad-group {
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.03) 0%, rgba(76, 175, 80, 0.08) 100%);
+    padding: 14px;
+    border-radius: 10px;
+    border: 2px solid rgba(76, 175, 80, 0.2);
+}
+
+.modalidad-group label:first-child {
+    color: #388e3c;
+    font-size: 12px;
+    margin-bottom: 10px;
+}
+
+.modalidad-radios .radio-label {
+    border-color: rgba(76, 175, 80, 0.3);
+    background: #ffffff;
+}
+
+.modalidad-radios .radio-label:hover {
+    border-color: #4caf50;
+    background-color: rgba(76, 175, 80, 0.1);
+    box-shadow: 0 4px 8px rgba(76, 175, 80, 0.2);
+}
+
+.modalidad-radios .radio-label input[type="radio"] {
+    accent-color: #4caf50;
+}
+
+.modalidad-radios .radio-label:has(input[type="radio"]:checked) {
+    border-color: #4caf50;
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.15) 0%, rgba(76, 175, 80, 0.05) 100%);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.25);
+}
+
+.modalidad-radios .radio-label input[type="radio"]:checked + span {
+    color: #388e3c;
 }
 
 /* ==================== DETALLES DEL AGENDAMIENTO ==================== */
-.detalle-grupo {
-    margin-bottom: 20px;
+.detalle-fila {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 28px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid #e8e8e8;
+}
+
+.detalle-fila:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.detalle-columna {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.detalle-fila-completa {
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e8e8e8;
+}
+
+.detalle-fila-completa:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
 }
 
 .detalle-label {
     font-size: 12px;
-    color: #666;
+    color: #888;
     text-transform: uppercase;
     font-weight: 600;
-    margin-bottom: 5px;
+    letter-spacing: 0.8px;
+    margin-bottom: 4px;
 }
 
 .detalle-valor {
     font-size: 16px;
-    color: #333;
-    font-weight: 500;
+    color: #2c3e50;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.detalle-valor-secundario {
+    font-size: 14px;
+    color: #666;
+    font-weight: 400;
+    line-height: 1.4;
 }
 
 .detalle-badge {
     display: inline-block;
-    padding: 6px 14px;
+    padding: 8px 16px;
     border-radius: 20px;
     font-size: 14px;
+    margin-right: 8px;
     font-weight: 600;
 }
 
@@ -933,28 +1237,22 @@ textarea.form-control {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
+.semana-evento.academica {
+    background: #2196f3;
+}
+
+.semana-evento.personal {
+    background: #4caf50;
+}
+
 .semana-evento.profesional {
     background: #d4a574;
 }
 
-.semana-evento.economica {
-    background: #4caf50;
-}
-
-.semana-evento.psicologica {
-    background: #2196f3;
-}
-
-.semana-evento.academica {
-    background: #ff9800;
-}
-
-.semana-evento.personal {
-    background: #9c27b0;
-}
-
-.semana-evento.todos {
-    background: #795548;
+.semana-evento.cancelada {
+    background: #999;
+    opacity: 0.6;
+    text-decoration: line-through;
 }
 
 .evento-hora {
@@ -1042,28 +1340,25 @@ textarea.form-control {
 }
 
 .dia-evento.economica {
-    border-left-color: #4caf50;
-    background: linear-gradient(90deg, rgba(76, 175, 80, 0.1) 0%, white 15%);
+border-left-color: #d4a574;
+    background: linear-gradient(90deg, rgba(212, 165, 116, 0.1) 0%, white 15%);
 }
 
-.dia-evento.psicologica {
+.dia-evento.academica {
     border-left-color: #2196f3;
     background: linear-gradient(90deg, rgba(33, 150, 243, 0.1) 0%, white 15%);
 }
 
-.dia-evento.academica {
-    border-left-color: #ff9800;
-    background: linear-gradient(90deg, rgba(255, 152, 0, 0.1) 0%, white 15%);
-}
-
 .dia-evento.personal {
-    border-left-color: #9c27b0;
-    background: linear-gradient(90deg, rgba(156, 39, 176, 0.1) 0%, white 15%);
+    border-left-color: #4caf50;
+    background: linear-gradient(90deg, rgba(76, 175, 80, 0.1) 0%, white 15%);
 }
 
-.dia-evento.todos {
-    border-left-color: #795548;
-    background: linear-gradient(90deg, rgba(121, 85, 72, 0.1) 0%, white 15%);
+.dia-evento.cancelada {
+    border-left-color: #999;
+    background: linear-gradient(90deg, rgba(153, 153, 153, 0.1) 0%, white 15%);
+    opacity: 0.6;
+    text-decoration: line-through;
 }
 
 .dia-evento .evento-hora {
