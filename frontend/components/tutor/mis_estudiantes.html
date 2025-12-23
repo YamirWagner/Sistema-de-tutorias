@@ -44,8 +44,8 @@
                     <th>S. Académica</th>
                     <th>S. Personal</th>
                     <th>S. Profesional</th>
-                    <th>Modalidad</th>
-                    <th></th>
+                    <th>Completas</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody id="studentsTbody">
@@ -116,6 +116,24 @@
         border-radius:10px; 
         color:#fff; 
         cursor:pointer; 
+    }
+
+    /* Botones generar constancia */
+    .btn-generate-disabled {
+        background: #ddd;
+        color: #666;
+        border: 1px solid #ccc;
+        cursor: not-allowed;
+        padding: 6px 10px;
+        border-radius: 6px;
+    }
+    .btn-generate-enabled {
+        background: #7b1f1f;
+        color: #fff;
+        border: none;
+        padding: 6px 10px;
+        border-radius: 6px;
+        cursor: pointer;
     }
         
     .btn-primary[disabled] { 

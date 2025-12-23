@@ -96,7 +96,7 @@ function getUserFromToken() {
     if (!token) return null;
     
     try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
+        const payload = window.decodeJwtPayload ? window.decodeJwtPayload(token) : JSON.parse(atob(token.split('.')[1]));
         return payload;
     } catch (e) {
         console.error('Error al decodificar token:', e);

@@ -1,167 +1,3 @@
-// mis_estudiantes.js - Módulo para "Mis estudiantes"
-(function(){
-    'use strict';
-
-    window.loadMisEstudiantesContent = async function() {
-        try {
-            const basePath = window.APP_BASE_PATH || '';
-            const componentPath = `${basePath}/frontend/components/tutor/mis_estudiantes.html`;
-            const resp = await fetch(componentPath);
-            const html = await resp.text();
-            const target = document.getElementById('dashboardContent');
-            if (!target) return;
-            target.innerHTML = html;
-
-            // Inicializar eventos
-            document.getElementById('filterSearch').addEventListener('input', aplicarFiltros);
-            document.getElementById('filterTipo').addEventListener('change', aplicarFiltros);
-            document.getElementById('filterModalidad').addEventListener('change', aplicarFiltros);
-            document.getElementById('btnGenerarReporte').addEventListener('click', generarReporteLista);
-
-            // Cargar datos
-            await cargarEstudiantes();
-        } catch (err) {
-            console.error('Error cargando Mis estudiantes:', err);
-        }
-    };
-
-    let estudiantes = [];
-
-    async function cargarEstudiantes(){
-        try {
-            const token = localStorage.getItem('token');
-            const res = await fetch(`${APP_CONFIG.API.BASE_URL}/asignacionTutor.php?action=estudiantes`, { headers: { 'Authorization': `Bearer ${token}` } });
-            const data = await res.json();
-            if (!data.success) return alert('Error al obtener estudiantes: '+(data.message || ''));
-            estudiantes = data.data || [];
-            renderizarTabla(estudiantes);
-        } catch (e) { console.error(e); alert('Error de conexión al cargar estudiantes'); }
-    }
-
-    async function obtenerSesionesPorEstudiante(estudianteId){
-        try {
-            const token = localStorage.getItem('token');
-            const res = await fetch(`${APP_CONFIG.API.BASE_URL}/asignacionTutor.php?action=agendamientos&estudiante=${estudianteId}`, { headers: { 'Authorization': `Bearer ${token}` } });
-            const json = await res.json();
-            if (!json.success) return [];
-            return json.data || [];
-        } catch (e) { console.error(e); return []; }
-    }
-
-    async function renderizarTabla(list){
-        const tbody = document.getElementById('studentsTbody');
-        if (!tbody) return;
-        tbody.innerHTML = '';
-
-        for (const est of list) {
-            const sesiones = await obtenerSesionesPorEstudiante(est.id);
-
-            // Buscar por tipo
-            const tipos = { 'Académica': null, 'Personal': null, 'Profesional': null };
-            sesiones.filter(s=>s.estado==='Realizada').forEach(s=>{
-                const tipo = s.tipoTutoria || s.tipo || s.tipoTutoria || s.tipo;
-                if (tipo && tipos[tipo] === null) tipos[tipo] = s.fecha;
-            });
-
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${est.nombres} ${est.apellidos}<br><small>${est.codigo || ''}</small></td>
-                <td class="center">${checkboxHtml(tipos['Académica'])}</td>
-                <td class="center">${checkboxHtml(tipos['Personal'])}</td>
-                <td class="center">${checkboxHtml(tipos['Profesional'])}</td>
-                <td>${determineModalidadFromSessions(sesiones)}</td>
-                <td class="center"><button class="btn-primary btn-generate" data-id="${est.id}">Generar constancia</button></td>
-            `;
-
-            tbody.appendChild(tr);
-        }
-
-        // attach listeners
-        document.querySelectorAll('.btn-generate').forEach(b => {
-            b.addEventListener('click', async function(){
-                const id = this.dataset.id;
-                await previewConstancia(id);
-            });
-        });
-    }
-
-    function checkboxHtml(fecha){
-        if (!fecha) return `<div style="opacity:0.35">☐<span class="session-date">DD/MM/YY</span></div>`;
-        const d = formatDate(fecha);
-        return `<div>☑<span class="session-date">${d}</span></div>`;
-    }
-
-    function formatDate(fecha){
-        if (!fecha) return '';
-        const dt = new Date(fecha);
-        if (isNaN(dt)) return fecha;
-        return `${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')}/${String(dt.getFullYear()).slice(-2)}`;
-    }
-
-    function determineModalidadFromSessions(sesiones){
-        if (!sesiones || sesiones.length===0) return 'N/A';
-        const m = sesiones.find(s=>s.modalidad);
-        return m ? m.modalidad : 'N/A';
-    }
-
-    function aplicarFiltros(){
-        const q = document.getElementById('filterSearch').value.toLowerCase();
-        const tipo = document.getElementById('filterTipo').value;
-        const mod = document.getElementById('filterModalidad').value;
-
-        const filtered = estudiantes.filter(e=>{
-            const name = (e.nombres+' '+e.apellidos+' '+(e.codigo||'')).toLowerCase();
-            if (q && !name.includes(q)) return false;
-            return true; // tipo/modalidad deben aplicarse por sesiones (omitir server-side hacia atrás)
-        });
-
-        renderizarTabla(filtered);
-    }
-
-    // Preview constancia: fetch PDF blob and show in modal
-    async function previewConstancia(estudianteId){
-        try {
-            const token = localStorage.getItem('token');
-            const url = `${APP_CONFIG.API.BASE_URL}/tutorReports.php?action=constancia&estudianteId=${encodeURIComponent(estudianteId)}`;
-            const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
-            if (!res.ok) { const txt = await res.text(); throw new Error(txt || 'Error generando constancia'); }
-            const blob = await res.blob();
-            setPreviewBlob('previewConstanciaIframe', blob);
-            openPreviewModal('previewConstanciaModal');
-        } catch (e) { console.error(e); alert('Error al previsualizar constancia: '+e.message); }
-    }
-
-    // Generar reporte lista y previsualizar
-    async function generarReporteLista(){
-        try {
-            const token = localStorage.getItem('token');
-            const url = `${APP_CONFIG.API.BASE_URL}/tutorReports.php?action=list`;
-            const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
-            if (!res.ok) { const txt = await res.text(); throw new Error(txt || 'Error generando reporte'); }
-            const blob = await res.blob();
-            setPreviewBlob('previewReporteIframe', blob);
-            openPreviewModal('previewReporteModal');
-        } catch (e) { console.error(e); alert('Error al generar reporte: '+e.message); }
-    }
-
-    // Reexport helpers used by modals
-    window.setPreviewBlob = function(iframeId, blob){
-        if (window.setPreviewBlobGlobal) return window.setPreviewBlobGlobal(iframeId, blob);
-        const script = document.createElement('script'); // fallback no-op
-    };
-
-    // When module loads, ensure helper setPreviewBlob from modals is available
-    function hookupPreviewSetter(){
-        if (typeof setPreviewBlob === 'function') {
-            window.setPreviewBlobGlobal = setPreviewBlob;
-            window.setPreviewBlob = setPreviewBlob;
-        } else {
-            setTimeout(hookupPreviewSetter, 200);
-        }
-    }
-    hookupPreviewSetter();
-
-})();
 // mis_estudiantes.js - Módulo "Mis estudiantes" para el tutor
 (function(){
     'use strict';
@@ -221,20 +57,61 @@
         agendamientos.forEach(a => {
             const idEst = parseInt(a.idEstudiante || a.estudianteId || 0);
             if (!idEst) return;
-            if (!map[idEst]) map[idEst] = { Academica: null, Personal: null, Profesional: null, modalidades: new Set() };
+            if (!map[idEst]) map[idEst] = {
+                Academica: {date: null, modalidad: null},
+                Personal: {date: null, modalidad: null},
+                Profesional: {date: null, modalidad: null},
+                modalidades: new Set(),
+                count: 0,
+                lastDateTime: null,
+                lastModalidad: null
+            };
 
-            const estado = (a.estado || '').toLowerCase();
-            const tipo = (a.tipoTutoria || a.tipo || '').toLowerCase();
+            const estado = String(a.estado || '').toLowerCase();
+            // considerar solo sesiones registradas como realizadas
             if (estado === 'realizada' || estado === 'realizado' || estado === 'realizada') {
+                // construir fechaHora para comparaciones: preferir fecha + horaInicio
+                let fechaHora = null;
+                if (a.fecha) {
+                    fechaHora = a.fecha;
+                    if (a.horaInicio) fechaHora = `${a.fecha} ${a.horaInicio}`;
+                }
+
+                // incrementar contador
+                map[idEst].count += 1;
+
+                // actualizar lastDateTime / lastModalidad
+                if (fechaHora) {
+                    const prev = map[idEst].lastDateTime;
+                    if (!prev || (new Date(fechaHora) > new Date(prev))) {
+                        map[idEst].lastDateTime = fechaHora;
+                        map[idEst].lastModalidad = a.modalidad || null;
+                    }
+                } else {
+                    // si no hay fecha, aún podemos usar modalidad
+                    if (!map[idEst].lastModalidad && a.modalidad) map[idEst].lastModalidad = a.modalidad;
+                }
+
+                const tipo = String(a.tipoTutoria || a.tipo || '').toLowerCase();
                 let key = null;
                 if (tipo.includes('acad')) key = 'Academica';
                 else if (tipo.includes('personal')) key = 'Personal';
                 else if (tipo.includes('profesional')) key = 'Profesional';
 
                 if (key) {
-                    // guardar la fecha más reciente si hay varias
-                    const fecha = a.fecha;
-                    if (!map[idEst][key] || map[idEst][key] < fecha) map[idEst][key] = fecha;
+                    // si ya existe una fecha para el area, comparar y mantener la más reciente
+                    const area = map[idEst][key];
+                    const areaFecha = area.date;
+                    if (fechaHora) {
+                        if (!areaFecha || (new Date(fechaHora) > new Date(areaFecha))) {
+                            area.date = fechaHora;
+                            area.modalidad = a.modalidad || null;
+                        }
+                    } else {
+                        if (!area.date) {
+                            area.modalidad = a.modalidad || null;
+                        }
+                    }
                 }
             }
 
@@ -244,14 +121,37 @@
     }
 
     function formatDateShort(isoDate){
-        if (!isoDate) return 'DD/MM/YY';
+        if (!isoDate) return '';
         try {
             const d = new Date(isoDate);
+            if (isNaN(d)) return '';
             const day = String(d.getDate()).padStart(2,'0');
             const mon = String(d.getMonth()+1).padStart(2,'0');
             const year = String(d.getFullYear()).slice(-2);
             return `${day}/${mon}/${year}`;
-        } catch(e){ return 'DD/MM/YY'; }
+        } catch(e){ return ''; }
+    }
+
+    function formatDateTime(isoDateTime){
+        if (!isoDateTime) return '';
+        try {
+            const d = new Date(isoDateTime);
+            if (isNaN(d)) return '';
+            const day = String(d.getDate()).padStart(2,'0');
+            const mon = String(d.getMonth()+1).padStart(2,'0');
+            const year = String(d.getFullYear()).slice(-2);
+            const hh = String(d.getHours()).padStart(2,'0');
+            const mm = String(d.getMinutes()).padStart(2,'0');
+            return `${day}/${mon}/${year} ${hh}:${mm}`;
+        } catch(e){ return ''; }
+    }
+
+    function shortModal(mod) {
+        if (!mod) return '';
+        const m = String(mod).toLowerCase();
+        if (m.includes('pres')) return 'Pres';
+        if (m.includes('virt')) return 'Virt';
+        return mod.substring(0,3).toUpperCase();
     }
 
     function renderTabla(estudiantesList, agendamientosList){
@@ -265,9 +165,9 @@
             const sid = est.id;
             const nombre = `${est.nombres || ''} ${est.apellidos || ''}`.trim();
             const codigo = est.codigo || '';
-            const map = sessionsMap[sid] || { Academica: null, Personal: null, Profesional: null, modalidades: new Set() };
+            const map = sessionsMap[sid] || { Academica:{date:null,modalidad:null}, Personal:{date:null,modalidad:null}, Profesional:{date:null,modalidad:null}, modalidades:new Set(), count:0, lastDateTime:null, lastModalidad:null };
 
-            const modal = [...map.modalidades][0] || 'Presencial';
+            const modal = map.lastModalidad || [...map.modalidades][0] || '';
             const row = document.createElement('tr');
 
             const tdEst = document.createElement('td');
@@ -275,35 +175,47 @@
 
             const tdA = document.createElement('td');
             tdA.className = 'center';
-            tdA.innerHTML = `<input type="checkbox" disabled ${map.Academica ? 'checked' : ''}><span class="session-date">${formatDateShort(map.Academica)}</span>`;
+            const aDate = map.Academica.date || null;
+            const aMod = map.Academica.modalidad || '';
+            tdA.innerHTML = `<div><span class="session-date">${aDate ? formatDateShort(aDate) : '--/--/--'} - ${aMod ? shortModal(aMod) : 'Mod'}</span></div>`;
 
             const tdP = document.createElement('td');
             tdP.className = 'center';
-            tdP.innerHTML = `<input type="checkbox" disabled ${map.Personal ? 'checked' : ''}><span class="session-date">${formatDateShort(map.Personal)}</span>`;
+            const pDate = map.Personal.date || null;
+            const pMod = map.Personal.modalidad || '';
+            tdP.innerHTML = `<div><span class="session-date">${pDate ? formatDateShort(pDate) : '--/--/--'} - ${pMod ? shortModal(pMod) : 'Mod'}</span></div>`;
 
             const tdPr = document.createElement('td');
             tdPr.className = 'center';
-            tdPr.innerHTML = `<input type="checkbox" disabled ${map.Profesional ? 'checked' : ''}><span class="session-date">${formatDateShort(map.Profesional)}</span>`;
+            const prDate = map.Profesional.date || null;
+            const prMod = map.Profesional.modalidad || '';
+            tdPr.innerHTML = `<div><span class="session-date">${prDate ? formatDateShort(prDate) : '--/--/--'} - ${prMod ? shortModal(prMod) : 'Mod'}</span></div>`;
 
-            const tdModal = document.createElement('td');
-            tdModal.textContent = modal;
+            const tdCount = document.createElement('td');
+            tdCount.className = 'center';
+            const count = map.count || 0;
+            tdCount.textContent = `${count}/3`;
 
             const tdAction = document.createElement('td');
             tdAction.className = 'center';
-            const allThree = map.Academica && map.Personal && map.Profesional;
             const btn = document.createElement('button');
             btn.textContent = 'Generar constancia';
-            btn.className = 'btn-primary';
-            btn.disabled = !allThree;
             btn.dataset.estudianteId = sid;
-            btn.addEventListener('click', () => generarConstancia(sid));
+            if (count >= 3) {
+                btn.className = 'btn-generate-enabled';
+                btn.disabled = false;
+                btn.addEventListener('click', () => generarConstancia(sid));
+            } else {
+                btn.className = 'btn-generate-disabled';
+                btn.disabled = true;
+            }
             tdAction.appendChild(btn);
 
             row.appendChild(tdEst);
             row.appendChild(tdA);
             row.appendChild(tdP);
             row.appendChild(tdPr);
-            row.appendChild(tdModal);
+            row.appendChild(tdCount);
             row.appendChild(tdAction);
 
             tbody.appendChild(row);
@@ -341,7 +253,7 @@
                 const m = sessionsMap[e.id] || { modalidades: new Set() };
                 if (tipo) {
                     const key = tipo === 'Academica' ? 'Academica' : tipo;
-                    if (!m[key]) return false;
+                    if (!m[key] || !m[key].date) return false;
                 }
                 if (modalidad) {
                     if (![...m.modalidades].includes(modalidad)) return false;
@@ -354,20 +266,38 @@
     }
 
     function generarReporteLista(){
-        // Placeholder: el backend TCPDF se implementará más adelante
-        const passed = [];
-        const map = mapSessionsByStudent();
-        estudiantes.forEach(e => { if (map[e.id] && map[e.id].Academica && map[e.id].Personal && map[e.id].Profesional) passed.push(e); });
-        if (passed.length === 0) return alert('No hay estudiantes que cumplan las 3 sesiones');
-        // Abrir nueva ventana con listado (temporal)
-        const content = passed.map(p => `${p.nombres} ${p.apellidos} (${p.codigo})`).join('\n');
-        const w = window.open('', '_blank');
-        w.document.write('<pre>' + content + '</pre>');
+        // Generar reporte via backend (TCPDF) y previsualizar
+        (async ()=>{
+            try {
+                const token = localStorage.getItem('token');
+                const url = `${APP_CONFIG.API.BASE_URL}/tutorReports.php?action=list`;
+                const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) { const txt = await res.text(); throw new Error(txt || 'Error generando reporte'); }
+                const blob = await res.blob();
+                if (typeof setPreviewBlob === 'function') setPreviewBlob('previewReporteIframe', blob);
+                if (typeof openPreviewModal === 'function') openPreviewModal('previewReporteModal');
+            } catch (e) {
+                console.error(e);
+                alert('Error al generar reporte: ' + e.message);
+            }
+        })();
     }
 
     function generarConstancia(estudianteId){
-        // Placeholder: se implementará generación PDF con TCPDF posteriormente
-        alert('Generar constancia (pendiente backend). Estudiante ID: ' + estudianteId);
+        (async ()=>{
+            try {
+                const token = localStorage.getItem('token');
+                const url = `${APP_CONFIG.API.BASE_URL}/tutorReports.php?action=constancia&estudianteId=${encodeURIComponent(estudianteId)}`;
+                const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) { const txt = await res.text(); throw new Error(txt || 'Error generando constancia'); }
+                const blob = await res.blob();
+                if (typeof setPreviewBlob === 'function') setPreviewBlob('previewConstanciaIframe', blob);
+                if (typeof openPreviewModal === 'function') openPreviewModal('previewConstanciaModal');
+            } catch (e) {
+                console.error(e);
+                alert('Error al generar constancia: ' + e.message);
+            }
+        })();
     }
 
 })();
