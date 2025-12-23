@@ -515,7 +515,7 @@ function actualizarAgendamiento($db, $tutorId, $data) {
         }
         
         if (isset($data['tipoTutoria'])) {
-            $camposActualizables[] = "tipoTutoria = :tipo_tutoria";
+            $camposActualizables[] = "tipo = :tipo_tutoria";
             $params[':tipo_tutoria'] = $data['tipoTutoria'];
         }
         
