@@ -840,7 +840,7 @@
                     <div class="detalle-valor">${agendamiento.motivoCancelacion}</div>
                 </div>
             ` : ''}
-            ${generarDetalleAtencion(agendamiento)}
+            ${esJSONDeAtencion(agendamiento.observaciones) ? generarDetalleAtencion(agendamiento) : ''}
         `;
 
         // Mostrar botones según el estado del agendamiento

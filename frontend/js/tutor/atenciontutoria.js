@@ -137,55 +137,68 @@ function mostrarSeccionesSegunTipo(tipoTutoria) {
 
 function cargarDatosGuardados(agendamiento) {
     if (!agendamiento.observaciones) return;
-    
-    try {
-        const datos = typeof agendamiento.observaciones === 'string' 
-            ? JSON.parse(agendamiento.observaciones) 
-            : agendamiento.observaciones;
-        
-        if (!datos || typeof datos !== 'object') return;
-        
-        // Cargar datos según el tipo de tutoría
-        const camposPorTipo = {
-            'Academica': [
-                ['temaPrincipalAtencion', 'temaPrincipal'],
-                ['contenidoEspecificoAtencion', 'contenidoEspecifico'],
-                ['observacionesDesempenoAtencion', 'observacionesDesempeno'],
-                ['actividadesRealizadasAtencion', 'actividadesRealizadas'],
-                ['tareasAsignadasAtencion', 'tareasAsignadas'],
-                ['recursosRecomendadosAtencion', 'recursosRecomendados']
-            ],
-            'Personal': [
-                ['situacionPersonal', 'situacionPersonal'],
-                ['estadoEmocional', 'estadoEmocional'],
-                ['observacionesPersonales', 'observacionesPersonales'],
-                ['accionesTomadas', 'accionesTomadas'],
-                ['requiereDerivacion', 'requiereDerivacion'],
-                ['motivoDerivacion', 'motivoDerivacion']
-            ],
-            'Profesional': [
-                ['temaProfesional', 'temaProfesional'],
-                ['descripcionTema', 'descripcionTema'],
-                ['avancesLogros', 'avancesLogros'],
-                ['observacionesProfesionales', 'observacionesProfesionales'],
-                ['recursosContactos', 'recursosContactos']
-            ]
-        };
-        
-        const campos = camposPorTipo[agendamiento.tipoTutoria];
-        if (campos) {
-            campos.forEach(([elementId, dataProp]) => {
-                asignarValorSeguro(elementId, datos[dataProp]);
-            });
+
+    let datos = agendamiento.observaciones;
+
+    // Si es texto plano (no parece JSON), no intentamos parsear ni mostramos error
+    if (typeof datos === 'string') {
+        const trimmed = datos.trim();
+
+        const pareceObjetoJSON = trimmed.startsWith('{') && trimmed.endsWith('}');
+        const pareceArrayJSON = trimmed.startsWith('[') && trimmed.endsWith(']');
+
+        if (!pareceObjetoJSON && !pareceArrayJSON) {
+            // Observaciones antiguas en texto libre: no hay datos estructurados que cargar
+            return;
         }
-        
-        // Cargar notas adicionales (común para todos)
-        asignarValorSeguro('notasComentarios', datos.notasAdicionales);
-        
-    } catch (error) {
-        console.error('Error al cargar datos guardados:', error);
-        mostrarError('Error al cargar datos previamente guardados');
+
+        try {
+            datos = JSON.parse(trimmed);
+        } catch (e) {
+            // Si falla el parseo, simplemente ignoramos los datos guardados
+            console.warn('Observaciones no son JSON válido, se omite carga estructurada:', e);
+            return;
+        }
     }
+
+    if (!datos || typeof datos !== 'object') return;
+
+    // Cargar datos según el tipo de tutoría
+    const camposPorTipo = {
+        'Academica': [
+            ['temaPrincipalAtencion', 'temaPrincipal'],
+            ['contenidoEspecificoAtencion', 'contenidoEspecifico'],
+            ['observacionesDesempenoAtencion', 'observacionesDesempeno'],
+            ['actividadesRealizadasAtencion', 'actividadesRealizadas'],
+            ['tareasAsignadasAtencion', 'tareasAsignadas'],
+            ['recursosRecomendadosAtencion', 'recursosRecomendados']
+        ],
+        'Personal': [
+            ['situacionPersonal', 'situacionPersonal'],
+            ['estadoEmocional', 'estadoEmocional'],
+            ['observacionesPersonales', 'observacionesPersonales'],
+            ['accionesTomadas', 'accionesTomadas'],
+            ['requiereDerivacion', 'requiereDerivacion'],
+            ['motivoDerivacion', 'motivoDerivacion']
+        ],
+        'Profesional': [
+            ['temaProfesional', 'temaProfesional'],
+            ['descripcionTema', 'descripcionTema'],
+            ['avancesLogros', 'avancesLogros'],
+            ['observacionesProfesionales', 'observacionesProfesionales'],
+            ['recursosContactos', 'recursosContactos']
+        ]
+    };
+
+    const campos = camposPorTipo[agendamiento.tipoTutoria];
+    if (campos) {
+        campos.forEach(([elementId, dataProp]) => {
+            asignarValorSeguro(elementId, datos[dataProp]);
+        });
+    }
+
+    // Cargar notas adicionales (común para todos)
+    asignarValorSeguro('notasComentarios', datos.notasAdicionales);
 }
 
 function bloquearCamposFormulario() {
