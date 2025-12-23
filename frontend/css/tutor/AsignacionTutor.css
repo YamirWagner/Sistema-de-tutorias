@@ -101,6 +101,37 @@
     margin: 0 auto;
 }
 
+/* Toast de notificación del módulo de agendamiento */
+.agendamiento-toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9999;
+    padding: 10px 16px;
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 14px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.agendamiento-toast-success {
+    background-color: #16a34a;
+}
+
+.agendamiento-toast-error {
+    background-color: #dc2626;
+}
+
+.agendamiento-toast-warning {
+    background-color: #f97316;
+}
+
+.agendamiento-toast-info {
+    background-color: #2563eb;
+}
+
 /* ==================== HEADER ==================== */
 .agendamiento-header {
     display: flex;

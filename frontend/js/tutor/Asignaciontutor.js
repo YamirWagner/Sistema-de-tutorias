@@ -1234,12 +1234,42 @@
         return hora.substring(0, 5);
     }
 
+    // Toast propio del módulo de agendamiento
+    function mostrarNotificacionAgendamiento(mensaje, tipo = 'info') {
+        const container = document.querySelector('.agendamiento-container') || document.body;
+
+        const notif = document.createElement('div');
+        notif.className = `agendamiento-toast agendamiento-toast-${tipo}`;
+        notif.textContent = mensaje;
+
+        container.appendChild(notif);
+
+        setTimeout(() => {
+            notif.style.opacity = '0';
+            setTimeout(() => notif.remove(), 300);
+        }, 3000);
+    }
+
     function mostrarError(mensaje) {
-        alert('Error: ' + mensaje);
+        // Siempre mostrar un toast visible del módulo
+        mostrarNotificacionAgendamiento(mensaje, 'error');
+
+        // Además, si existe el sistema global de notificaciones, úsalo también
+        if (typeof showNotification === 'function') {
+            showNotification(mensaje, 'error');
+        } else if (typeof mostrarNotificacion === 'function') {
+            mostrarNotificacion(mensaje, 'error');
+        }
     }
 
     function mostrarExito(mensaje) {
-        alert(mensaje);
+        mostrarNotificacionAgendamiento(mensaje, 'success');
+
+        if (typeof showNotification === 'function') {
+            showNotification(mensaje, 'success');
+        } else if (typeof mostrarNotificacion === 'function') {
+            mostrarNotificacion(mensaje, 'success');
+        }
     }
 
 })();
