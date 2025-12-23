@@ -34,9 +34,30 @@
                 throw new Error('No se encontró el contenedor dashboardContent');
             }
             
+            console.log('📦 Tamaño del HTML cargado:', html.length, 'caracteres');
+            
             dashboardContent.innerHTML = html;
             
             console.log('✅ HTML del módulo cargado correctamente');
+            
+            // Cargar el CSS de atención de tutoría si no está cargado
+            if (!document.querySelector('link[href*="atenciontutoria.css"]')) {
+                const linkCSS = document.createElement('link');
+                linkCSS.rel = 'stylesheet';
+                linkCSS.href = `${basePath}/frontend/css/tutor/atenciontutoria.css`;
+                document.head.appendChild(linkCSS);
+                console.log('✅ CSS de atención de tutoría cargado');
+            }
+            
+            // Cargar el JS de atención de tutoría si no está cargado
+            if (typeof window.abrirModalAtencionTutoria !== 'function') {
+                const scriptJS = document.createElement('script');
+                scriptJS.src = `${basePath}/frontend/js/tutor/atenciontutoria.js`;
+                scriptJS.onload = () => {
+                    console.log('✅ JS de atención de tutoría cargado');
+                };
+                document.body.appendChild(scriptJS);
+            }
             
             // Inicializar el módulo
             setTimeout(() => {
@@ -689,9 +710,22 @@
                 abrirModalEditar(agendamiento);
             });
 
-            document.getElementById('btnAtenderAgendamiento').addEventListener('click', () => {
+            document.getElementById('btnAtenderAgendamiento').addEventListener('click', async () => {
                 cerrarModalDetalle();
-                abrirModalSesionTutoria(agendamiento.id);
+                
+                // Asegurar que el modal esté inicializado
+                if (typeof window.inicializarModalAtencion === 'function') {
+                    window.inicializarModalAtencion();
+                }
+                
+                // Esperar un momento para que el modal se cree
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                if (typeof abrirModalAtencionTutoria === 'function') {
+                    abrirModalAtencionTutoria(agendamiento);
+                } else {
+                    alert('Error: La función de atención no está disponible. Por favor, recarga la página.');
+                }
             });
         } else {
             footer.innerHTML = '';
@@ -1003,3 +1037,4 @@
     }
 
 })();
+
