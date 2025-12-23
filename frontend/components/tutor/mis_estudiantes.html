@@ -12,26 +12,29 @@
 
     <div class="filters-card">
         <div class="filters-row">
-            <!-- Encabezado para el filtro Nombre o código -->
-            <label for="filterSearch">Nombre o código:</label>
-            <input id="filterSearch" type="text" placeholder="Nombre o código" />
+            <div class="filter-group">
+                <label for="filterSearch">Nombre o código:</label>
+                <input id="filterSearch" type="text" placeholder="Buscar estudiante..." />
+            </div>
 
-            <!-- Encabezado para el filtro Tipo de tutoría -->
-            <label for="filterTipo">Tipo de tutoría:</label>
-            <select id="filterTipo">
-                <option value="">Tipo de tutoría</option>
-                <option value="Academica">Académica</option>
-                <option value="Personal">Personal</option>
-                <option value="Profesional">Profesional</option>
-            </select>
+            <div class="filter-group">
+                <label for="filterTipo">Tipo de tutoría:</label>
+                <select id="filterTipo">
+                    <option value="">Todos</option>
+                    <option value="Academica">Académica</option>
+                    <option value="Personal">Personal</option>
+                    <option value="Profesional">Profesional</option>
+                </select>
+            </div>
 
-            <!-- Encabezado para el filtro Modalidad -->
-            <label for="filterModalidad">Modalidad:</label>
-            <select id="filterModalidad">
-                <option value="">Modalidad</option>
-                <option value="Presencial">Presencial</option>
-                <option value="Virtual">Virtual</option>
-            </select>
+            <div class="filter-group">
+                <label for="filterModalidad">Modalidad:</label>
+                <select id="filterModalidad">
+                    <option value="">Todas</option>
+                    <option value="Presencial">Presencial</option>
+                    <option value="Virtual">Virtual</option>
+                </select>
+            </div>
         </div>
     </div>
 
@@ -116,24 +119,6 @@
         border-radius:10px; 
         color:#fff; 
         cursor:pointer; 
-    }
-
-    /* Botones generar constancia */
-    .btn-generate-disabled {
-        background: #ddd;
-        color: #666;
-        border: 1px solid #ccc;
-        cursor: not-allowed;
-        padding: 6px 10px;
-        border-radius: 6px;
-    }
-    .btn-generate-enabled {
-        background: #7b1f1f;
-        color: #fff;
-        border: none;
-        padding: 6px 10px;
-        border-radius: 6px;
-        cursor: pointer;
     }
         
     .btn-primary[disabled] { 

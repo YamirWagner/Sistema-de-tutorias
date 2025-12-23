@@ -250,14 +250,10 @@ function renderProximasSesiones() {
                             </div>
                         </div>
                     </div>
-                    <div class="flex space-x-2">
-                        <button onclick="nuevaSesion(${sesion.id})" 
-                                class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded text-sm font-medium transition-colors">
-                            <i class="fas fa-plus mr-1"></i> Nueva sesión
-                        </button>
-                        <button onclick="verHistorial(${sesion.id})" 
-                                class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded text-sm font-medium transition-colors">
-                            Ver Historial
+                    <div class="flex">
+                        <button onclick="verAgendamiento()" 
+                                class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm font-medium transition-colors">
+                            Ver
                         </button>
                     </div>
                 </div>

@@ -1,414 +1,257 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../../css/tutor/sesiontutoria.css">
-</head>
-<body>
-    <!-- Modal Principal de Sesión de Tutoría -->
-    <div id="modalSesionTutoria" class="modal-overlay" style="display: none;">
-        <div class="modal-container">
-            <div class="modal-header">
-                <h2 id="tituloModal">📚 Sesión de Tutoría</h2>
-                <button class="btn-close" onclick="cerrarModalSesion()">✕</button>
-            </div>
+<!-- Modal Dinámico de Atención de Tutoría (Académica, Personal, Profesional) -->
+<div id="modalAtencionTutoria" class="modal-atencion-overlay" style="display: none;">
+    <div class="modal-atencion-container">
+        <div class="modal-atencion-header">
+            <h2 id="tituloModalAtencion">📚 Registrar Sesión de Tutoría</h2>
+            <button class="btn-close-atencion" onclick="cerrarModalAtencion()">✕</button>
+        </div>
 
-            <!-- Vista 1: Información y Opciones (Atender o Posponer) -->
-            <div id="vistaInicial" class="modal-content">
-                <div class="info-sesion">
-                    <div class="info-card">
-                        <div class="info-row">
-                            <span class="info-label">👤 Estudiante:</span>
-                            <span class="info-value" id="nombreEstudiante">-</span>
+        <div id="vistaFormularioAtencion" class="modal-atencion-content">
+            <form id="formRegistroAtencion">
+                <input type="hidden" id="idTutoriaAtencion">
+                <input type="hidden" id="tipoTutoriaSeleccionada">
+
+                <!-- ========== INFORMACIÓN BÁSICA (COMÚN PARA TODOS) ========== -->
+                <div class="form-section-atencion">
+                    <h3 class="section-title-atencion">📋 Información Básica de la Sesión</h3>
+                    
+                    <div class="form-group-atencion">
+                        <label for="estudianteNombreAtencion">👤 Estudiante <span class="required">*</span></label>
+                        <input type="text" id="estudianteNombreAtencion" class="form-control-atencion" readonly>
+                    </div>
+
+                    <div class="form-row-atencion">
+                        <div class="form-group-atencion">
+                            <label for="fechaSesionRegistro">📅 Fecha de la Sesión <span class="required">*</span></label>
+                            <input type="date" id="fechaSesionRegistro" class="form-control-atencion" readonly>
                         </div>
-                        <div class="info-row">
-                            <span class="info-label">📋 Código:</span>
-                            <span class="info-value" id="codigoEstudiante">-</span>
+                        <div class="form-group-atencion">
+                            <label for="horaSesionRegistro">🕐 Hora de la Sesión <span class="required">*</span></label>
+                            <input type="text" id="horaSesionRegistro" class="form-control-atencion" readonly>
                         </div>
-                        <div class="info-row">
-                            <span class="info-label">📖 Tipo de Tutoría:</span>
-                            <span class="info-value badge" id="tipoTutoria">-</span>
+                    </div>
+
+                    <div class="form-row-atencion">
+                        <div class="form-group-atencion">
+                            <label for="tipoTutoriaDisplay">📚 Tipo de Tutoría</label>
+                            <input type="text" id="tipoTutoriaDisplay" class="form-control-atencion" readonly>
                         </div>
-                        <div class="info-row">
-                            <span class="info-label">📅 Fecha:</span>
-                            <span class="info-value" id="fechaSesion">-</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">🕐 Horario:</span>
-                            <span class="info-value" id="horarioSesion">-</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">🏫 Modalidad:</span>
-                            <span class="info-value" id="modalidadSesion">-</span>
+                        <div class="form-group-atencion">
+                            <label for="modalidadSesionRegistro">🏫 Modalidad de la Sesión</label>
+                            <input type="text" id="modalidadSesionRegistro" class="form-control-atencion" readonly>
                         </div>
                     </div>
                 </div>
 
-                <div class="modal-actions">
-                    <button class="btn btn-primary" onclick="mostrarFormularioAtender()">
-                        ✅ Atender Sesión
+                <!-- ========== SECCIÓN ACADÉMICA ========== -->
+                <div id="seccionAcademica" class="form-section-atencion" style="display: none;">
+                    <h3 class="section-title-atencion">📚 TUTORÍA ACADÉMICA</h3>
+                    <p class="section-description-atencion">Registra los temas académicos, contenido trabajado y progreso del estudiante.</p>
+                    
+                    <div class="form-group-atencion">
+                        <label for="temaPrincipalAtencion">📖 Tema Principal Tratado <span class="required">*</span></label>
+                        <input type="text" id="temaPrincipalAtencion" class="form-control-atencion" 
+                               placeholder="Ej: Programación Orientada a Objetos, Cálculo Diferencial...">
+                    </div>
+
+                    <div class="form-group-atencion">
+                        <label for="contenidoEspecificoAtencion">📝 Contenido Específico <span class="required">*</span></label>
+                        <textarea id="contenidoEspecificoAtencion" class="form-control-atencion" rows="4"
+                                  placeholder="Describe el contenido específico trabajado durante la sesión..."></textarea>
+                    </div>
+
+                    <div class="form-group-atencion">
+                        <label for="observacionesDesempenoAtencion">💬 Observaciones de Desempeño Académico <span class="required">*</span></label>
+                        <textarea id="observacionesDesempenoAtencion" class="form-control-atencion" rows="5"
+                                  placeholder="• Fortalezas identificadas&#10;• Dificultades encontradas&#10;• Nivel de comprensión de los temas&#10;• Recomendaciones académicas"></textarea>
+                    </div>
+
+                    <div class="form-group-atencion">
+                        <label for="actividadesRealizadasAtencion">✏️ Actividades Realizadas</label>
+                        <textarea id="actividadesRealizadasAtencion" class="form-control-atencion" rows="3"
+                                  placeholder="Lista los ejercicios, problemas o actividades trabajadas..."></textarea>
+                    </div>
+
+                    <div class="form-group-atencion">
+                        <label for="tareasAsignadasAtencion">📋 Tareas Asignadas para la Próxima Sesión</label>
+                        <textarea id="tareasAsignadasAtencion" class="form-control-atencion" rows="4"
+                                  placeholder="• Resolver ejercicios del 1 al 13 de la pág. 23&#10;• Preparar preguntas sobre el tema&#10;• Revisar material complementario..."></textarea>
+                    </div>
+
+                    <div class="form-group-atencion">
+                        <label for="recursosRecomendadosAtencion">🔗 Recursos Recomendados (Enlaces, libros, videos)</label>
+                        <textarea id="recursosRecomendadosAtencion" class="form-control-atencion" rows="3"
+                                  placeholder="Agrega enlaces, títulos de libros, videos o recursos que el estudiante pueda consultar..."></textarea>
+                    </div>
+
+                    <div style="text-align: right; margin-top: 15px;">
+                        <button type="button" class="btn-atencion btn-success-atencion" onclick="guardarSeccionAcademica()">
+                            💾 Guardar Tutoría Académica
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ========== SECCIÓN PERSONAL ========== -->
+                <div id="seccionPersonal" class="form-section-atencion" style="display: none;">
+                    <h3 class="section-title-atencion">💬 TUTORÍA PERSONAL</h3>
+                    <p class="section-description-atencion">Registra aspectos personales, emocionales y de desarrollo integral del estudiante.</p>
+                    
+                    <div class="form-group-atencion">
+                        <label for="situacionPersonal">🗣️ Situación Personal Abordada <span class="required">*</span></label>
+                        <textarea id="situacionPersonal" class="form-control-atencion" rows="4"
+                                  placeholder="Describe brevemente la situación o inquietud personal del estudiante..."></textarea>
+                    </div>
+
+                    <div class="form-group-atencion">
+                        <label for="estadoEmocional">😊 Estado Emocional Observado <span class="required">*</span></label>
+                        <select id="estadoEmocional" class="form-control-atencion">
+                            <option value="">--Seleccionar--</option>
+                            <option value="Muy positivo">Muy positivo</option>
+                            <option value="Positivo">Positivo</option>
+                            <option value="Neutral">Neutral</option>
+                            <option value="Preocupado">Preocupado</option>
+                            <option value="Ansioso">Ansioso</option>
+                            <option value="Deprimido">Deprimido</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group-atencion">
+                        <label for="observacionesPersonales">💭 Observaciones y Recomendaciones <span class="required">*</span></label>
+                        <textarea id="observacionesPersonales" class="form-control-atencion" rows="5"
+                                  placeholder="• Observaciones sobre la situación&#10;• Consejos y orientaciones brindadas&#10;• Recomendaciones para el estudiante&#10;• Acuerdos establecidos"></textarea>
+                    </div>
+
+                    <div class="form-group-atencion">
+                        <label for="accionesTomadas">✅ Acciones y Acuerdos</label>
+                        <textarea id="accionesTomadas" class="form-control-atencion" rows="3"
+                                  placeholder="Describe las acciones tomadas o acuerdos establecidos con el estudiante..."></textarea>
+                    </div>
+
+                    <div class="form-group-atencion">
+                        <label for="requiereDerivacion">⚕️ ¿Requiere Derivación Psicológica?</label>
+                        <select id="requiereDerivacion" class="form-control-atencion">
+                            <option value="No">No</option>
+                            <option value="Si">Sí, requiere atención psicológica</option>
+                        </select>
+                    </div>
+
+                    <div id="divMotivoDerivacion" class="form-group-atencion" style="display: none;">
+                        <label for="motivoDerivacion">📝 Motivo de Derivación</label>
+                        <textarea id="motivoDerivacion" class="form-control-atencion" rows="3"
+                                  placeholder="Explica el motivo por el cual se deriva al estudiante a atención psicológica..."></textarea>
+                    </div>
+
+                    <div style="text-align: right; margin-top: 15px;">
+                        <button type="button" class="btn-atencion btn-success-atencion" onclick="guardarSeccionPersonal()">
+                            💾 Guardar Tutoría Personal
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ========== SECCIÓN PROFESIONAL ========== -->
+                <div id="seccionProfesional" class="form-section-atencion" style="display: none;">
+                    <h3 class="section-title-atencion">💼 TUTORÍA PROFESIONAL</h3>
+                    <p class="section-description-atencion">Registra aspectos de orientación vocacional, desarrollo profesional y planificación de carrera.</p>
+                    
+                    <div class="form-group-atencion">
+                        <label for="temaProfesional">🎯 Tema Profesional Abordado <span class="required">*</span></label>
+                        <select id="temaProfesional" class="form-control-atencion">
+                            <option value="">--Seleccionar--</option>
+                            <option value="Orientación vocacional">Orientación vocacional</option>
+                            <option value="Prácticas profesionales">Prácticas profesionales</option>
+                            <option value="Elaboración de CV">Elaboración de CV</option>
+                            <option value="Entrevistas laborales">Entrevistas laborales</option>
+                            <option value="Desarrollo de habilidades">Desarrollo de habilidades blandas</option>
+                            <option value="Proyecto de tesis">Proyecto de tesis</option>
+                            <option value="Planificación de carrera">Planificación de carrera</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group-atencion">
+                        <label for="descripcionTema">📄 Descripción del Tema <span class="required">*</span></label>
+                        <textarea id="descripcionTema" class="form-control-atencion" rows="4"
+                                  placeholder="Describe el tema profesional tratado durante la sesión..."></textarea>
+                    </div>
+
+                    <div class="form-group-atencion">
+                        <label for="avancesLogros">🏆 Avances y Logros</label>
+                        <textarea id="avancesLogros" class="form-control-atencion" rows="3"
+                                  placeholder="Describe los avances, logros o progresos del estudiante..."></textarea>
+                    </div>
+
+                    <div class="form-group-atencion">
+                        <label for="observacionesProfesionales">💼 Observaciones y Orientaciones <span class="required">*</span></label>
+                        <textarea id="observacionesProfesionales" class="form-control-atencion" rows="5"
+                                  placeholder="• Orientaciones brindadas&#10;• Recomendaciones profesionales&#10;• Áreas de mejora identificadas&#10;• Próximos pasos a seguir"></textarea>
+                    </div>
+
+                    <div class="form-group-atencion">
+                        <label for="recursosContactos">📞 Recursos y Contactos Proporcionados</label>
+                        <textarea id="recursosContactos" class="form-control-atencion" rows="3"
+                                  placeholder="Enlaces, contactos, empresas recomendadas, eventos, etc..."></textarea>
+                    </div>
+
+                    <div style="text-align: right; margin-top: 15px;">
+                        <button type="button" class="btn-atencion btn-success-atencion" onclick="guardarSeccionProfesional()">
+                            💾 Guardar Tutoría Profesional
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ========== MATERIALES Y TAREAS (COMÚN) ========== -->
+                <div class="form-section-atencion">
+                    <h3 class="section-title-atencion">📚 MATERIALES Y TAREAS</h3>
+                    
+                    <div class="form-group-atencion">
+                        <label for="materialesApoyo">📎 Materiales de Apoyo (opcional)</label>
+                        <div class="materiales-container">
+                            <div class="file-upload-zone" onclick="document.getElementById('archivosMateriales').click()">
+                                <div class="file-upload-icon">📁</div>
+                                <p><strong>Haz clic para subir archivos</strong></p>
+                                <small>PDF, Word, Excel, PowerPoint, imágenes (Máx. 10MB por archivo)</small>
+                            </div>
+                            <input type="file" id="archivosMateriales" class="file-input-hidden" 
+                                   accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png" multiple 
+                                   onchange="procesarArchivos(this)">
+                            
+                            <div id="listaArchivosCargados" class="lista-archivos"></div>
+                        </div>
+                        <textarea id="descripcionMateriales" class="form-control-atencion" rows="2" style="margin-top: 10px;"
+                                  placeholder="Lista las tareas, ejercicios o actividades que el estudiante debe completar antes de la próxima sesión...&#10;&#10;1. Resolver ejercicios del 1 al 13 de la pág. 23&#10;2. Preparar preguntas sobre el tema&#10;3. Saludar a todas las personas..."></textarea>
+                    </div>
+
+                    <div class="form-group-atencion">
+                        <label for="recursosRecomendados">🔗 Recursos Recomendados (Enlaces, libros, videos)</label>
+                        <textarea id="recursosRecomendados" class="form-control-atencion" rows="3"
+                                  placeholder="Agrega enlaces, títulos de libros, videos de YouTube o cualquier recurso que el estudiante pueda consultar..."></textarea>
+                    </div>
+
+                    <div class="form-group-atencion">
+                        <label for="notasComentarios">📌 Notas o Comentarios Adicionales</label>
+                        <textarea id="notasComentarios" class="form-control-atencion" rows="3"
+                                  placeholder="Cualquier información adicional relevante que quieras registrar sobre esta sesión..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Alerta Importante -->
+                <div class="alert-warning-atencion">
+                    <strong>📌 NOTA IMPORTANTE:</strong> Toda la información registrada será visible para el estudiante en su panel. Sé claro, constructivo y profesional en tus observaciones.
+                </div>
+
+                <div class="modal-actions-atencion">
+                    <button type="button" class="btn-atencion btn-secondary-atencion" onclick="cerrarModalAtencion()">
+                        Cancelar
                     </button>
-                    <button class="btn btn-secondary" onclick="mostrarFormularioPosponer()">
-                        ⏰ Posponer Sesión
+                    <button type="button" class="btn-atencion btn-success-atencion" onclick="finalizarTutoria()">
+                        ✅ Finalizar Tutoría
                     </button>
                 </div>
-            </div>
-
-            <!-- Vista 2: Formulario para Posponer -->
-            <div id="vistaPosponer" class="modal-content" style="display: none;">
-                <div class="form-container">
-                    <div class="alert alert-info">
-                        <strong>ℹ️ Información:</strong> Seleccione la nueva fecha y horario para la sesión de tutoría.
-                    </div>
-
-                    <form id="formPosponer">
-                        <div class="form-group">
-                            <label for="nuevaFecha">📅 Nueva Fecha <span class="required">*</span></label>
-                            <input type="date" id="nuevaFecha" class="form-control" required>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="nuevaHoraInicio">🕐 Hora de Inicio <span class="required">*</span></label>
-                                <input type="time" id="nuevaHoraInicio" class="form-control" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="nuevaHoraFin">🕐 Hora de Fin <span class="required">*</span></label>
-                                <input type="time" id="nuevaHoraFin" class="form-control" required>
-                            </div>
-                        </div>
-
-                        <div class="modal-actions">
-                            <button type="button" class="btn btn-secondary" onclick="volverVistaInicial()">
-                                ← Volver
-                            </button>
-                            <button type="submit" class="btn btn-primary">
-                                💾 Confirmar Postergación
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Vista 3: Formulario de Registro de Sesión -->
-            <div id="vistaFormulario" class="modal-content" style="display: none;">
-                <!-- Formulario Académico -->
-                <div id="formularioAcademico" class="formulario-sesion" style="display: none;">
-                    <div class="alert alert-success">
-                        <strong>📚 Sesión Académica:</strong> Registra los temas académicos abordados durante la sesión.
-                    </div>
-
-                    <form id="formAcademico">
-                        <input type="hidden" id="idTutoriaAcademica">
-
-                        <div class="form-section">
-                            <h3 class="section-title">📋 Información Básica</h3>
-                            
-                            <div class="form-group">
-                                <label for="estudianteNombreAcad">👤 Estudiante</label>
-                                <input type="text" id="estudianteNombreAcad" class="form-control" readonly>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="temaPrincipalAcad">📖 Tema Principal Tratado <span class="required">*</span></label>
-                                <input type="text" id="temaPrincipalAcad" class="form-control" 
-                                       placeholder="Ej: Programación Orientada a Objetos" required>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="contenidoEspecificoAcad">📝 Contenido Específico</label>
-                                <textarea id="contenidoEspecificoAcad" class="form-control" rows="3"
-                                          placeholder="Ej: Herencia, polimorfismo, encapsulación..."></textarea>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="porcentajeAvanceAcad">📊 Porcentaje de Avance (%)</label>
-                                <input type="number" id="porcentajeAvanceAcad" class="form-control" 
-                                       min="0" max="100" value="0">
-                                <div class="progress-bar">
-                                    <div id="progressBarAcad" class="progress-fill" style="width: 0%"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-section">
-                            <h3 class="section-title">📝 Observaciones y Desempeño</h3>
-                            
-                            <div class="form-group">
-                                <label for="observacionesAcad">💬 Observaciones de Desempeño Académico</label>
-                                <textarea id="observacionesAcad" class="form-control" rows="4"
-                                          placeholder="Describe el desempeño del estudiante durante la sesión...&#10;• Fortalezas identificadas&#10;• Dificultades encontradas&#10;• Nivel de comprensión de los temas&#10;• Recomendaciones académicas"></textarea>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="actividadesRealizadasAcad">✏️ Actividades Realizadas</label>
-                                <textarea id="actividadesRealizadasAcad" class="form-control" rows="3"
-                                          placeholder="Lista los ejercicios, problemas o actividades que se trabajaron durante la sesión..."></textarea>
-                            </div>
-                        </div>
-
-                        <div class="form-section">
-                            <h3 class="section-title">📚 Materiales y Tareas</h3>
-                            
-                            <div class="form-group">
-                                <label for="materialesApoyoAcad">📎 Materiales de Apoyo (opcional)</label>
-                                <textarea id="materialesApoyoAcad" class="form-control" rows="2"
-                                          placeholder="PDF, presentaciones, código de ejemplo, etc."></textarea>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="tareasAsignadasAcad">📋 Tareas Asignadas</label>
-                                <textarea id="tareasAsignadasAcad" class="form-control" rows="3"
-                                          placeholder="Lista las tareas o ejercicios que el estudiante debe completar antes de la próxima sesión..."></textarea>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="recursosRecomendadosAcad">🔗 Recursos Recomendados</label>
-                                <textarea id="recursosRecomendadosAcad" class="form-control" rows="2"
-                                          placeholder="Enlaces, libros, videos, plataformas recomendadas..."></textarea>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="notasAdicionalesAcad">📌 Notas Adicionales</label>
-                                <textarea id="notasAdicionalesAcad" class="form-control" rows="2"
-                                          placeholder="Cualquier información adicional relevante..."></textarea>
-                            </div>
-                        </div>
-
-                        <div class="modal-actions">
-                            <button type="button" class="btn btn-secondary" onclick="volverVistaInicial()">
-                                ← Volver
-                            </button>
-                            <button type="submit" class="btn btn-success">
-                                💾 Guardar Registro Académico
-                            </button>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- Formulario Personal -->
-                <div id="formularioPersonal" class="formulario-sesion" style="display: none;">
-                    <div class="alert alert-warning">
-                        <strong>👤 Sesión Personal:</strong> Documenta aspectos personales, emocionales y motivación del estudiante.
-                    </div>
-
-                    <form id="formPersonal">
-                        <input type="hidden" id="idTutoriaPersonal">
-
-                        <div class="form-section">
-                            <h3 class="section-title">📋 Información Básica</h3>
-                            
-                            <div class="form-group">
-                                <label for="estudianteNombrePers">👤 Estudiante</label>
-                                <input type="text" id="estudianteNombrePers" class="form-control" readonly>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="temaPersonal">💭 Tema o Aspecto Personal Abordado <span class="required">*</span></label>
-                                <input type="text" id="temaPersonal" class="form-control" 
-                                       placeholder="Ej: Gestión del tiempo, Motivación académica, Adaptación universitaria" required>
-                            </div>
-                        </div>
-
-                        <div class="form-section">
-                            <h3 class="section-title">😊 Estado Emocional y Motivación</h3>
-                            
-                            <div class="form-group">
-                                <label for="estadoEmocional">😊 Estado Emocional del Estudiante</label>
-                                <input type="text" id="estadoEmocional" class="form-control" 
-                                       placeholder="Ej: Ansioso, Motivado, Estresado, Confiado...">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="nivelMotivacion">🎯 Nivel de Motivación</label>
-                                <select id="nivelMotivacion" class="form-control">
-                                    <option value="">--Seleccionar--</option>
-                                    <option value="Muy Alto">Muy Alto</option>
-                                    <option value="Alto">Alto</option>
-                                    <option value="Medio">Medio</option>
-                                    <option value="Bajo">Bajo</option>
-                                    <option value="Muy Bajo">Muy Bajo</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-section">
-                            <h3 class="section-title">💪 Fortalezas y Dificultades</h3>
-                            
-                            <div class="form-group">
-                                <label for="fortalezasPersonales">✨ Fortalezas Personales Identificadas</label>
-                                <textarea id="fortalezasPersonales" class="form-control" rows="3"
-                                          placeholder="Describe las fortalezas y capacidades personales del estudiante...&#10;• Responsabilidad&#10;• Compromiso&#10;• Habilidades sociales&#10;• Resiliencia"></textarea>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="dificultadesIdentificadas">⚠️ Dificultades Identificadas</label>
-                                <textarea id="dificultadesIdentificadas" class="form-control" rows="3"
-                                          placeholder="Identifica las dificultades o retos personales del estudiante...&#10;• Gestión del tiempo&#10;• Procrastinación&#10;• Problemas de adaptación&#10;• Estrés académico"></textarea>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="necesidadesApoyo">🤝 Necesidades de Apoyo</label>
-                                <textarea id="necesidadesApoyo" class="form-control" rows="3"
-                                          placeholder="¿Qué tipo de apoyo necesita el estudiante?&#10;• Técnicas de estudio&#10;• Manejo de estrés&#10;• Orientación psicológica&#10;• Apoyo académico"></textarea>
-                            </div>
-                        </div>
-
-                        <div class="form-section">
-                            <h3 class="section-title">📝 Observaciones y Actividades</h3>
-                            
-                            <div class="form-group">
-                                <label for="observacionesPersonales">💬 Observaciones Personales</label>
-                                <textarea id="observacionesPersonales" class="form-control" rows="4"
-                                          placeholder="Registra observaciones sobre:&#10;• Estado emocional y actitud&#10;• Nivel de motivación y actitud&#10;• Interacción durante la sesión&#10;• Necesidades identificadas"></textarea>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="actividadesRealizadasPers">✏️ Actividades Realizadas</label>
-                                <textarea id="actividadesRealizadasPers" class="form-control" rows="3"
-                                          placeholder="Describe las actividades o dinámicas realizadas durante la sesión..."></textarea>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="materialesApoyoPers">📎 Materiales de Apoyo (opcional)</label>
-                                <textarea id="materialesApoyoPers" class="form-control" rows="2"
-                                          placeholder="Folletos, guías, plantillas utilizadas..."></textarea>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="recursosRecomendadosPers">🔗 Recursos Recomendados</label>
-                                <textarea id="recursosRecomendadosPers" class="form-control" rows="2"
-                                          placeholder="Apps, videos, artículos, servicios de apoyo..."></textarea>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="notasAdicionalesPers">📌 Notas Adicionales</label>
-                                <textarea id="notasAdicionalesPers" class="form-control" rows="2"
-                                          placeholder="Información adicional relevante..."></textarea>
-                            </div>
-                        </div>
-
-                        <div class="modal-actions">
-                            <button type="button" class="btn btn-secondary" onclick="volverVistaInicial()">
-                                ← Volver
-                            </button>
-                            <button type="submit" class="btn btn-success">
-                                💾 Guardar Registro Personal
-                            </button>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- Formulario Profesional -->
-                <div id="formularioProfesional" class="formulario-sesion" style="display: none;">
-                    <div class="alert alert-info">
-                        <strong>💼 Sesión Profesional:</strong> Registra el desarrollo de competencias profesionales y orientación vocacional.
-                    </div>
-
-                    <form id="formProfesional">
-                        <input type="hidden" id="idTutoriaProf">
-
-                        <div class="form-section">
-                            <h3 class="section-title">📋 Información Básica</h3>
-                            
-                            <div class="form-group">
-                                <label for="estudianteNombreProf">👤 Estudiante</label>
-                                <input type="text" id="estudianteNombreProf" class="form-control" readonly>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="temaProfesional">💼 Tema Profesional Tratado <span class="required">*</span></label>
-                                <input type="text" id="temaProfesional" class="form-control" 
-                                       placeholder="Ej: Preparación de CV, Técnicas de entrevista, Portafolio profesional" required>
-                            </div>
-                        </div>
-
-                        <div class="form-section">
-                            <h3 class="section-title">🎯 Competencias y Habilidades</h3>
-                            
-                            <div class="form-group">
-                                <label for="avancesCompetencias">📈 Avances en Competencias Profesionales</label>
-                                <textarea id="avancesCompetencias" class="form-control" rows="3"
-                                          placeholder="Describe los avances en competencias profesionales...&#10;• Competencias técnicas&#10;• Competencias blandas&#10;• Habilidades específicas"></textarea>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="habilidadesDesarrolladas">✨ Habilidades Desarrolladas</label>
-                                <textarea id="habilidadesDesarrolladas" class="form-control" rows="3"
-                                          placeholder="Lista las habilidades trabajadas o desarrolladas...&#10;• Comunicación efectiva&#10;• Trabajo en equipo&#10;• Liderazgo&#10;• Presentación profesional"></textarea>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="recomendacionesDesarrollo">💡 Recomendaciones para Desarrollo Laboral</label>
-                                <textarea id="recomendacionesDesarrollo" class="form-control" rows="3"
-                                          placeholder="Proporciona recomendaciones para mejorar el perfil profesional...&#10;• Áreas de mejora&#10;• Certificaciones recomendadas&#10;• Experiencias prácticas"></textarea>
-                            </div>
-                        </div>
-
-                        <div class="form-section">
-                            <h3 class="section-title">🎓 Orientación Vocacional</h3>
-                            
-                            <div class="form-group">
-                                <label for="orientacionVocacional">🧭 Orientación Vocacional y Profesional</label>
-                                <textarea id="orientacionVocacional" class="form-control" rows="4"
-                                          placeholder="Documenta la orientación vocacional brindada...&#10;• Intereses profesionales&#10;• Áreas de especialización&#10;• Oportunidades laborales&#10;• Rutas profesionales"></textarea>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="observacionesProfesionales">💬 Observaciones Profesionales</label>
-                                <textarea id="observacionesProfesionales" class="form-control" rows="3"
-                                          placeholder="Observaciones sobre el desarrollo profesional del estudiante..."></textarea>
-                            </div>
-                        </div>
-
-                        <div class="form-section">
-                            <h3 class="section-title">📚 Actividades y Recursos</h3>
-                            
-                            <div class="form-group">
-                                <label for="actividadesRealizadasProf">✏️ Actividades Realizadas</label>
-                                <textarea id="actividadesRealizadasProf" class="form-control" rows="3"
-                                          placeholder="Describe las actividades profesionales realizadas...&#10;• Simulaciones de entrevista&#10;• Revisión de CV&#10;• Análisis de casos"></textarea>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="materialesApoyoProf">📎 Materiales de Apoyo (opcional)</label>
-                                <textarea id="materialesApoyoProf" class="form-control" rows="2"
-                                          placeholder="Plantillas, guías, ejemplos utilizados..."></textarea>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="recursosRecomendadosProf">🔗 Recursos Recomendados</label>
-                                <textarea id="recursosRecomendadosProf" class="form-control" rows="2"
-                                          placeholder="LinkedIn, portales de empleo, cursos, plataformas..."></textarea>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="notasAdicionalesProf">📌 Notas Adicionales</label>
-                                <textarea id="notasAdicionalesProf" class="form-control" rows="2"
-                                          placeholder="Información adicional relevante..."></textarea>
-                            </div>
-                        </div>
-
-                        <div class="modal-actions">
-                            <button type="button" class="btn btn-secondary" onclick="volverVistaInicial()">
-                                ← Volver
-                            </button>
-                            <button type="submit" class="btn btn-success">
-                                💾 Guardar Registro Profesional
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+            </form>
         </div>
     </div>
+</div>
 
-    <!-- Loader -->
-    <div id="loader" class="loader-overlay" style="display: none;">
-        <div class="loader"></div>
-    </div>
-
-    <script src="../../js/tutor/sesiontutoria.js"></script>
-</body>
-</html>
+<div id="loaderAtencion" class="loader-overlay-atencion" style="display: none;">
+    <div class="loader-atencion"></div>
+</div>

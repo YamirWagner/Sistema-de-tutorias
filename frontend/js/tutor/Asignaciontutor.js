@@ -34,9 +34,30 @@
                 throw new Error('No se encontró el contenedor dashboardContent');
             }
             
+            console.log('📦 Tamaño del HTML cargado:', html.length, 'caracteres');
+            
             dashboardContent.innerHTML = html;
             
             console.log('✅ HTML del módulo cargado correctamente');
+            
+            // Cargar el CSS de atención de tutoría si no está cargado
+            if (!document.querySelector('link[href*="atenciontutoria.css"]')) {
+                const linkCSS = document.createElement('link');
+                linkCSS.rel = 'stylesheet';
+                linkCSS.href = `${basePath}/frontend/css/tutor/atenciontutoria.css`;
+                document.head.appendChild(linkCSS);
+                console.log('✅ CSS de atención de tutoría cargado');
+            }
+            
+            // Cargar el JS de atención de tutoría si no está cargado
+            if (typeof window.abrirModalAtencionTutoria !== 'function') {
+                const scriptJS = document.createElement('script');
+                scriptJS.src = `${basePath}/frontend/js/tutor/atenciontutoria.js`;
+                scriptJS.onload = () => {
+                    console.log('✅ JS de atención de tutoría cargado');
+                };
+                document.body.appendChild(scriptJS);
+            }
             
             // Inicializar el módulo
             setTimeout(() => {
@@ -140,14 +161,49 @@
         document.getElementById('horaInicio')?.addEventListener('change', function() {
             const horaInicio = this.value;
             if (horaInicio) {
-                // Calcular 30 minutos después
-                const [horas, minutos] = horaInicio.split(':');
-                const fecha = new Date();
-                fecha.setHours(parseInt(horas), parseInt(minutos));
-                fecha.setMinutes(fecha.getMinutes() + 30);
+                const [horas, minutos] = horaInicio.split(':').map(Number);
                 
-                const horaFin = `${String(fecha.getHours()).padStart(2, '0')}:${String(fecha.getMinutes()).padStart(2, '0')}`;
+                // Validar que esté entre 8:00 y 18:00
+                if (horas < 8 || horas >= 18) {
+                    mostrarError('La hora de inicio debe estar entre 8:00 AM y 6:00 PM');
+                    this.value = '08:00';
+                    return;
+                }
+                
+                // Calcular hora fin (1 hora después)
+                const fecha = new Date();
+                fecha.setHours(horas, minutos, 0, 0);
+                fecha.setHours(fecha.getHours() + 1);
+                
+                // Asegurar que la hora fin no pase de 18:00
+                const horaFinHoras = Math.min(fecha.getHours(), 18);
+                const horaFin = `${horaFinHoras.toString().padStart(2, '0')}:${fecha.getMinutes().toString().padStart(2, '0')}`;
                 document.getElementById('horaFin').value = horaFin;
+            }
+        });
+        
+        // Validación de hora fin
+        document.getElementById('horaFin')?.addEventListener('change', function() {
+            const horaFin = this.value;
+            const horaInicio = document.getElementById('horaInicio').value;
+            
+            if (horaFin && horaInicio) {
+                const [h1, m1] = horaInicio.split(':').map(Number);
+                const [h2, m2] = horaFin.split(':').map(Number);
+                
+                // Validar que esté entre 8:00 y 18:00
+                if (h2 < 8 || h2 > 18) {
+                    mostrarError('La hora de fin debe estar entre 8:00 AM y 6:00 PM');
+                    this.value = '18:00';
+                    return;
+                }
+                
+                // Validar que hora fin sea mayor que hora inicio
+                if (h2 < h1 || (h2 === h1 && m2 <= m1)) {
+                    mostrarError('La hora de fin debe ser posterior a la hora de inicio');
+                    this.value = '';
+                    return;
+                }
             }
         });
 
@@ -275,12 +331,22 @@
         const celda = document.createElement('div');
         celda.className = 'calendario-celda';
         
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+        
+        // Verificar si la fecha es pasada
+        const esPasada = fecha && fecha < hoy;
+        
         if (otroMes) {
             celda.classList.add('otro-mes');
         }
         
         if (esHoy) {
             celda.classList.add('hoy');
+        }
+        
+        if (esPasada) {
+            celda.classList.add('fecha-pasada');
         }
 
         const diaNumero = document.createElement('div');
@@ -302,7 +368,7 @@
             }
         }
 
-        if (fecha && !otroMes) {
+        if (fecha && !otroMes && !esPasada) {
             celda.addEventListener('click', function(e) {
                 if (!e.target.classList.contains('agendamiento-item')) {
                     abrirModalNuevoConFecha(fecha);
@@ -450,11 +516,12 @@
                 agendamientosDia.forEach(ag => {
                     const duracion = calcularDuracionMinutos(ag.horaInicio, ag.horaFin);
                     const alturaPixeles = (duracion / 60) * 60; // 60px por hora
+                    const estadoClass = (ag.estado === 'Cancelada' || ag.estado === 'Cancelada_Automatica') ? 'cancelada' : '';
                     
-                    celdaContent += `<div class="semana-evento ${ag.tipoTutoria.toLowerCase()}" 
+                    celdaContent += `<div class="semana-evento ${ag.tipoTutoria.toLowerCase()} ${estadoClass}" 
                         style="height: ${alturaPixeles}px;" 
                         data-id="${ag.id}"
-                        onclick="window.verDetalleAgendamiento(${ag.id})">
+                        onclick="event.stopPropagation(); window.verDetalleAgendamiento(${ag.id})">
                         <div class="evento-hora">${formatearHora(ag.horaInicio)}</div>
                         <div class="evento-estudiante">${ag.estudianteNombres}</div>
                         <div class="evento-tipo">${ag.tipoTutoria}</div>
@@ -472,6 +539,16 @@
     
     window.crearAgendamientoEnFecha = function(fechaStr, hora) {
         const fecha = new Date(fechaStr);
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+        fecha.setHours(0, 0, 0, 0);
+        
+        // Validar que la fecha no sea pasada
+        if (fecha < hoy) {
+            mostrarError('No se pueden crear agendamientos en fechas pasadas');
+            return;
+        }
+        
         fecha.setHours(hora, 0, 0, 0);
         abrirModalNuevoConFecha(fecha);
     };
@@ -511,11 +588,12 @@
             
             html += `<div class="dia-hora-bloque">
                 <div class="dia-hora-label">${horaStr}</div>
-                <div class="dia-hora-contenido">`;
+                <div class="dia-hora-contenido" onclick="window.crearAgendamientoEnFecha('${fechaStr}', ${hora})">`;
             
             if (agendamientosHora.length > 0) {
                 agendamientosHora.forEach(ag => {
-                    html += `<div class="dia-evento ${ag.tipoTutoria.toLowerCase()}" onclick="window.verDetalleAgendamiento(${ag.id})">
+                    const estadoClass = (ag.estado === 'Cancelada' || ag.estado === 'Cancelada_Automatica') ? 'cancelada' : '';
+                    html += `<div class="dia-evento ${ag.tipoTutoria.toLowerCase()} ${estadoClass}" onclick="event.stopPropagation(); window.verDetalleAgendamiento(${ag.id})">
                         <div class="evento-hora">${formatearHora(ag.horaInicio)} - ${formatearHora(ag.horaFin)}</div>
                         <div class="evento-estudiante">${ag.estudianteNombres} ${ag.estudianteApellidos}</div>
                         <div class="evento-detalles">${ag.tipoTutoria} • ${ag.modalidad}</div>
@@ -557,17 +635,28 @@
 
             const data = await response.json();
             if (data.success && data.data && data.data.semester) {
-                document.getElementById('semestreActual').value = data.data.semester.nombre || data.data.semester.name || 'No hay semestre activo';
-            } else {
-                document.getElementById('semestreActual').value = 'No hay semestre activo';
+                const semestreIdInput = document.getElementById('semestreId');
+                if (semestreIdInput) {
+                    semestreIdInput.value = data.data.semester.id || '';
+                }
             }
         } catch (error) {
             console.error('Error al cargar semestre:', error);
-            document.getElementById('semestreActual').value = 'Error al cargar semestre';
         }
     }
 
     function abrirModalNuevoConFecha(fecha) {
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+        const fechaComparar = new Date(fecha);
+        fechaComparar.setHours(0, 0, 0, 0);
+        
+        // Validar que la fecha no sea pasada
+        if (fechaComparar < hoy) {
+            mostrarError('No se pueden crear agendamientos en fechas pasadas');
+            return;
+        }
+        
         abrirModalNuevo();
         
         // Establecer fecha
@@ -595,8 +684,15 @@
         document.getElementById('fechaAgendamiento').value = agendamiento.fecha;
         document.getElementById('horaInicio').value = agendamiento.horaInicio;
         document.getElementById('horaFin').value = agendamiento.horaFin;
-        document.getElementById('tipoTutoria').value = agendamiento.tipoTutoria;
-        document.getElementById('modalidad').value = agendamiento.modalidad;
+        
+        // Seleccionar tipo de tutoría (radio button)
+        const tipoRadio = document.querySelector(`input[name="tipoTutoria"][value="${agendamiento.tipoTutoria}"]`);
+        if (tipoRadio) tipoRadio.checked = true;
+        
+        // Seleccionar modalidad (radio button)
+        const modalidadRadio = document.querySelector(`input[name="modalidad"][value="${agendamiento.modalidad}"]`);
+        if (modalidadRadio) modalidadRadio.checked = true;
+        
         document.getElementById('observaciones').value = agendamiento.observaciones || '';
 
         // Cargar semestre activo
@@ -620,6 +716,77 @@
         agendamientoSeleccionado = null;
     }
 
+    function esJSONDeAtencion(observaciones) {
+        if (!observaciones) return false;
+        
+        try {
+            const datos = typeof observaciones === 'string' 
+                ? JSON.parse(observaciones) 
+                : observaciones;
+            
+            return datos && typeof datos === 'object' && datos.tipoTutoria;
+        } catch {
+            return false;
+        }
+    }
+
+    function generarDetalleAtencion(agendamiento) {
+        if (!agendamiento.observaciones) return '';
+        
+        try {
+            const datos = typeof agendamiento.observaciones === 'string' 
+                ? JSON.parse(agendamiento.observaciones) 
+                : agendamiento.observaciones;
+            
+            if (!datos || typeof datos !== 'object' || !datos.tipoTutoria) return '';
+            
+            let items = [];
+            
+            if (datos.tipoTutoria === 'Academica') {
+                if (datos.temaPrincipal) items.push(`<strong>Tema Principal:</strong> ${datos.temaPrincipal}`);
+                if (datos.contenidoEspecifico) items.push(`<strong>Contenido Específico:</strong> ${datos.contenidoEspecifico}`);
+                if (datos.observacionesDesempeno) items.push(`<strong>Observaciones de Desempeño:</strong> ${datos.observacionesDesempeno}`);
+                if (datos.actividadesRealizadas) items.push(`<strong>Actividades Realizadas:</strong> ${datos.actividadesRealizadas}`);
+                if (datos.tareasAsignadas) items.push(`<strong>Tareas Asignadas:</strong> ${datos.tareasAsignadas}`);
+                if (datos.recursosRecomendados) items.push(`<strong>Recursos Recomendados:</strong> ${datos.recursosRecomendados}`);
+                
+            } else if (datos.tipoTutoria === 'Personal') {
+                if (datos.situacionPersonal) items.push(`<strong>Situación Personal:</strong> ${datos.situacionPersonal}`);
+                if (datos.estadoEmocional) items.push(`<strong>Estado Emocional:</strong> ${datos.estadoEmocional}`);
+                if (datos.observacionesPersonales) items.push(`<strong>Observaciones:</strong> ${datos.observacionesPersonales}`);
+                if (datos.accionesTomadas) items.push(`<strong>Acciones Tomadas:</strong> ${datos.accionesTomadas}`);
+                if (datos.requiereDerivacion === 'Si') {
+                    items.push(`<strong>⚠️ Requiere Derivación Psicológica:</strong> Sí`);
+                    if (datos.motivoDerivacion) items.push(`<strong>Motivo:</strong> ${datos.motivoDerivacion}`);
+                }
+                
+            } else if (datos.tipoTutoria === 'Profesional') {
+                if (datos.temaProfesional) items.push(`<strong>Tema Profesional:</strong> ${datos.temaProfesional}`);
+                if (datos.descripcionTema) items.push(`<strong>Descripción:</strong> ${datos.descripcionTema}`);
+                if (datos.avancesLogros) items.push(`<strong>Avances y Logros:</strong> ${datos.avancesLogros}`);
+                if (datos.observacionesProfesionales) items.push(`<strong>Observaciones:</strong> ${datos.observacionesProfesionales}`);
+                if (datos.recursosContactos) items.push(`<strong>Recursos y Contactos:</strong> ${datos.recursosContactos}`);
+            }
+            
+            if (datos.notasAdicionales) items.push(`<strong>Notas Adicionales:</strong> ${datos.notasAdicionales}`);
+            
+            if (items.length === 0) return '';
+            
+            return `
+                <div class="detalle-fila-completa" style="background: #f8f9fa; padding: 16px; border-left: 4px solid #8B1C1C;">
+                    <div class="detalle-label">📋 Detalle de la Atención</div>
+                    <div class="detalle-valor" style="line-height: 1.8;">
+                        ${items.join('<br><br>')}
+                    </div>
+                </div>
+            `;
+            
+        } catch (error) {
+            console.error('Error al parsear observaciones:', error);
+            return '';
+        }
+    }
+
     function mostrarDetalleAgendamiento(agendamiento) {
         const body = document.getElementById('detalleAgendamientoBody');
         const footer = document.getElementById('detalleAgendamientoFooter');
@@ -632,48 +799,51 @@
             day: 'numeric' 
         });
 
-        const estadoClass = agendamiento.estado.toLowerCase();
-        const tipoClass = agendamiento.tipoTutoria.toLowerCase();
-
         body.innerHTML = `
-            <div class="detalle-grupo">
-                <div class="detalle-label">Estudiante</div>
-                <div class="detalle-valor">${agendamiento.estudianteNombres} ${agendamiento.estudianteApellidos}</div>
-                <div class="detalle-valor" style="color: #666; font-size: 14px;">Código: ${agendamiento.estudianteCodigo}</div>
-            </div>
-            <div class="detalle-grupo">
-                <div class="detalle-label">Fecha y Hora</div>
-                <div class="detalle-valor">${fechaFormateada}</div>
-                <div class="detalle-valor">${formatearHora(agendamiento.horaInicio)} - ${formatearHora(agendamiento.horaFin)}</div>
-            </div>
-            <div class="detalle-grupo">
-                <div class="detalle-label">Tipo y Modalidad</div>
-                <div>
-                    <span class="detalle-badge agenda-tipo ${tipoClass}">${agendamiento.tipoTutoria}</span>
-                    <span class="detalle-badge agenda-modalidad">${agendamiento.modalidad}</span>
+            <div class="detalle-fila">
+                <div class="detalle-columna">
+                    <div class="detalle-label">Estudiante</div>
+                    <div class="detalle-valor">${agendamiento.estudianteNombres} ${agendamiento.estudianteApellidos}</div>
+                    <div class="detalle-valor-secundario">Código: ${agendamiento.estudianteCodigo}</div>
+                </div>
+                <div class="detalle-columna">
+                    <div class="detalle-label">Fecha y Hora</div>
+                    <div class="detalle-valor">${fechaFormateada}</div>
+                    <div class="detalle-valor-secundario">${formatearHora(agendamiento.horaInicio)} - ${formatearHora(agendamiento.horaFin)}</div>
                 </div>
             </div>
-            <div class="detalle-grupo">
-                <div class="detalle-label">Estado</div>
-                <div>
-                    <span class="detalle-badge agenda-estado ${estadoClass}">${agendamiento.estado}</span>
+            
+            <div class="detalle-fila">
+                <div class="detalle-columna">
+                    <div class="detalle-label">Tipo de Tutoría</div>
+                    <div class="detalle-valor">${agendamiento.tipoTutoria}</div>
+                </div>
+                <div class="detalle-columna">
+                    <div class="detalle-label">Modalidad</div>
+                    <div class="detalle-valor">${agendamiento.modalidad}</div>
+                </div>
+                <div class="detalle-columna">
+                    <div class="detalle-label">Estado</div>
+                    <div class="detalle-valor">${agendamiento.estado}</div>
                 </div>
             </div>
-            ${agendamiento.observaciones ? `
-                <div class="detalle-grupo">
+            
+            ${agendamiento.observaciones && !esJSONDeAtencion(agendamiento.observaciones) ? `
+                <div class="detalle-fila-completa">
                     <div class="detalle-label">Observaciones</div>
                     <div class="detalle-valor">${agendamiento.observaciones}</div>
                 </div>
             ` : ''}
             ${agendamiento.motivoCancelacion ? `
-                <div class="detalle-grupo">
+                <div class="detalle-fila-completa">
                     <div class="detalle-label">Motivo de Cancelación</div>
                     <div class="detalle-valor">${agendamiento.motivoCancelacion}</div>
                 </div>
             ` : ''}
+            ${esJSONDeAtencion(agendamiento.observaciones) ? generarDetalleAtencion(agendamiento) : ''}
         `;
 
-        // Mostrar botones solo si el agendamiento está programado y es futuro
+        // Mostrar botones según el estado del agendamiento
         const fechaAgendamiento = new Date(agendamiento.fecha);
         const hoy = new Date();
         hoy.setHours(0, 0, 0, 0);
@@ -689,19 +859,57 @@
                 abrirModalEditar(agendamiento);
             });
 
-            document.getElementById('btnAtenderAgendamiento').addEventListener('click', () => {
+            document.getElementById('btnAtenderAgendamiento').addEventListener('click', async () => {
                 cerrarModalDetalle();
-                abrirModalSesionTutoria(agendamiento.id);
+                
+                // Asegurar que el modal esté inicializado
+                if (typeof window.inicializarModalAtencion === 'function') {
+                    window.inicializarModalAtencion();
+                }
+                
+                // Esperar un momento para que el modal se cree
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                if (typeof abrirModalAtencionTutoria === 'function') {
+                    abrirModalAtencionTutoria(agendamiento);
+                } else {
+                    alert('Error: La función de atención no está disponible. Por favor, recarga la página.');
+                }
+            });
+        } else if (agendamiento.estado === 'Realizando') {
+            // Mostrar botón para continuar editando
+            footer.innerHTML = `
+                <button type="button" class="btn btn-success" id="btnContinuarAgendamiento">
+                    <i class="fas fa-edit"></i> Continuar Sesión
+                </button>
+            `;
+
+            document.getElementById('btnContinuarAgendamiento').addEventListener('click', async () => {
+                cerrarModalDetalle();
+                
+                // Asegurar que el modal esté inicializado
+                if (typeof window.inicializarModalAtencion === 'function') {
+                    window.inicializarModalAtencion();
+                }
+                
+                // Esperar un momento para que el modal se cree
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                if (typeof abrirModalAtencionTutoria === 'function') {
+                    abrirModalAtencionTutoria(agendamiento);
+                } else {
+                    alert('Error: La función de atención no está disponible. Por favor, recarga la página.');
+                }
             });
         } else {
             footer.innerHTML = '';
         }
 
-        document.getElementById('modalDetalle').classList.add('active');
+        document.getElementById('modalDetalle').classList.add('show');
     }
 
     function cerrarModalDetalle() {
-        document.getElementById('modalDetalle').classList.remove('active');
+        document.getElementById('modalDetalle').classList.remove('show');
     }
 
     function cerrarTodosModales() {
@@ -818,6 +1026,13 @@
             return false;
         }
 
+        // Validar tipos de tutoría válidos
+        const tiposValidos = ['Academica', 'Personal', 'Profesional'];
+        if (!tiposValidos.includes(data.tipoTutoria)) {
+            mostrarError('Tipo de tutoría no válido');
+            return false;
+        }
+
         // Validar que la fecha sea futura
         const fechaAgendamiento = new Date(data.fecha);
         const hoy = new Date();
@@ -828,9 +1043,10 @@
             return false;
         }
 
-        // Validar que hora fin sea mayor que hora inicio
-        if (data.horaFin <= data.horaInicio) {
-            mostrarError('La hora de fin debe ser posterior a la hora de inicio');
+        // Validar horarios usando la función validarHoras
+        const errorHoras = validarHoras();
+        if (errorHoras) {
+            mostrarError(errorHoras);
             return false;
         }
 
@@ -841,10 +1057,34 @@
         const horaInicio = document.getElementById('horaInicio').value;
         const horaFin = document.getElementById('horaFin').value;
         
-        if (horaInicio && horaFin && horaFin <= horaInicio) {
-            mostrarError('La hora de fin debe ser posterior a la hora de inicio');
-            document.getElementById('horaFin').value = '';
+        if (!horaInicio || !horaFin) {
+            return 'Debe especificar hora de inicio y fin';
         }
+        
+        const [h1, m1] = horaInicio.split(':').map(Number);
+        const [h2, m2] = horaFin.split(':').map(Number);
+        
+        // Validar rango de horario 8:00 - 18:00
+        if (h1 < 8 || h1 >= 18) {
+            return 'La hora de inicio debe estar entre 8:00 AM y 6:00 PM';
+        }
+        
+        if (h2 < 8 || h2 > 18) {
+            return 'La hora de fin debe estar entre 8:00 AM y 6:00 PM';
+        }
+        
+        // Validar que hora fin sea mayor que hora inicio
+        if (h2 < h1 || (h2 === h1 && m2 <= m1)) {
+            return 'La hora de fin debe ser posterior a la hora de inicio';
+        }
+        
+        // Validar duración mínima de 30 minutos
+        const duracion = (h2 * 60 + m2) - (h1 * 60 + m1);
+        if (duracion < 30) {
+            return 'La sesión debe tener una duración mínima de 30 minutos';
+        }
+        
+        return null;
     }
 
     // ==================== NAVEGACIÓN ====================
@@ -994,12 +1234,43 @@
         return hora.substring(0, 5);
     }
 
+    // Toast propio del módulo de agendamiento
+    function mostrarNotificacionAgendamiento(mensaje, tipo = 'info') {
+        const container = document.querySelector('.agendamiento-container') || document.body;
+
+        const notif = document.createElement('div');
+        notif.className = `agendamiento-toast agendamiento-toast-${tipo}`;
+        notif.textContent = mensaje;
+
+        container.appendChild(notif);
+
+        setTimeout(() => {
+            notif.style.opacity = '0';
+            setTimeout(() => notif.remove(), 300);
+        }, 3000);
+    }
+
     function mostrarError(mensaje) {
-        alert('Error: ' + mensaje);
+        // Siempre mostrar un toast visible del módulo
+        mostrarNotificacionAgendamiento(mensaje, 'error');
+
+        // Además, si existe el sistema global de notificaciones, úsalo también
+        if (typeof showNotification === 'function') {
+            showNotification(mensaje, 'error');
+        } else if (typeof mostrarNotificacion === 'function') {
+            mostrarNotificacion(mensaje, 'error');
+        }
     }
 
     function mostrarExito(mensaje) {
-        alert(mensaje);
+        mostrarNotificacionAgendamiento(mensaje, 'success');
+
+        if (typeof showNotification === 'function') {
+            showNotification(mensaje, 'success');
+        } else if (typeof mostrarNotificacion === 'function') {
+            mostrarNotificacion(mensaje, 'success');
+        }
     }
 
 })();
+

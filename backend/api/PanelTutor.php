@@ -99,66 +99,74 @@ try {
                 error_log("PanelTutor - Estudiantes asignados: " . $totalEstudiantes . " (Tutor ID: $tutorId, Semestre ID: {$semestre['id']})");
             }
             
-            // 4. Contar sesiones programadas en el mes actual
+            // 4. Contar sesiones del tutor en el mes actual (basado en tutoria)
             $mesActual = date('Y-m');
             $sesionesMesActual = 0;
             
             if ($semestre['id']) {
-                // Obtener cronogramas del mes actual del semestre activo
-                $querySesionesMes = "SELECT COUNT(DISTINCT c.id) as total 
-                                    FROM cronograma c
-                                    WHERE c.idSemestre = :semestre_id 
-                                    AND DATE_FORMAT(c.fecha, '%Y-%m') = :mes_actual
-                                    AND c.estado IN ('Programada', 'Completada')";
+                $querySesionesMes = "SELECT COUNT(DISTINCT t.id) as total
+                                     FROM tutoria t
+                                     INNER JOIN asignaciontutor a ON t.idAsignacion = a.id
+                                     WHERE a.idTutor = :tutor_id
+                                       AND a.idSemestre = :semestre_id
+                                       AND t.estado IN ('Programada', 'Realizando', 'Realizada')
+                                       AND DATE_FORMAT(t.fecha, '%Y-%m') = :mes_actual";
+                
                 $stmtSesionesMes = $db->prepare($querySesionesMes);
+                $stmtSesionesMes->bindParam(':tutor_id', $tutorId, PDO::PARAM_INT);
                 $stmtSesionesMes->bindParam(':semestre_id', $semestre['id'], PDO::PARAM_INT);
                 $stmtSesionesMes->bindParam(':mes_actual', $mesActual, PDO::PARAM_STR);
                 $stmtSesionesMes->execute();
                 $sesionesMesActual = (int)$stmtSesionesMes->fetchColumn();
-                
-                error_log("PanelTutor - Sesiones mes actual ($mesActual): " . $sesionesMesActual . " (Semestre ID: {$semestre['id']})");
+
+                error_log("PanelTutor - Sesiones del tutor en mes actual ($mesActual): " . $sesionesMesActual . " (Tutor ID: $tutorId, Semestre ID: {$semestre['id']})");
             }
             
-            // 5. Obtener las 2 próximas sesiones
+            // 5. Obtener las próximas sesiones del tutor (basadas en tutoria)
             $proximasSesiones = [];
             
             if ($semestre['id']) {
-                // Primero verificar si hay cronogramas en el semestre
                 $queryProximasSesiones = "SELECT 
-                                            c.id,
-                                            c.fecha,
-                                            c.horaInicio,
-                                            c.horaFin,
-                                            c.ambiente,
-                                            c.descripcion,
-                                            c.estado
-                                         FROM cronograma c
-                                         WHERE c.idSemestre = :semestre_id
-                                         AND c.fecha >= CURDATE()
-                                         AND c.estado = 'Programada'
-                                         ORDER BY c.fecha ASC, c.horaInicio ASC
-                                         LIMIT 2";
+                                            t.id,
+                                            t.fecha,
+                                            t.horaInicio,
+                                            t.horaFin,
+                                            t.tipo,
+                                            t.modalidad,
+                                            t.estado,
+                                            e.nombres AS estudianteNombres,
+                                            e.apellidos AS estudianteApellidos
+                                         FROM tutoria t
+                                         INNER JOIN asignaciontutor a ON t.idAsignacion = a.id
+                                         INNER JOIN estudiante e ON a.idEstudiante = e.id
+                                         WHERE a.idTutor = :tutor_id
+                                           AND a.idSemestre = :semestre_id
+                                           AND t.fecha >= CURDATE()
+                                           AND t.estado IN ('Programada', 'Realizando')
+                                         ORDER BY t.fecha ASC, t.horaInicio ASC
+                                         LIMIT 3";
                 
                 $stmtProximas = $db->prepare($queryProximasSesiones);
+                $stmtProximas->bindParam(':tutor_id', $tutorId, PDO::PARAM_INT);
                 $stmtProximas->bindParam(':semestre_id', $semestre['id'], PDO::PARAM_INT);
                 $stmtProximas->execute();
                 $proximasSesiones = $stmtProximas->fetchAll(PDO::FETCH_ASSOC);
                 
-                // Para cada sesión, obtener el número de estudiantes asignados al tutor
                 foreach ($proximasSesiones as &$sesion) {
-                    // Formatear fecha
                     $fechaObj = new DateTime($sesion['fecha']);
                     $sesion['fechaFormateada'] = $fechaObj->format('d/m/Y');
-                    
-                    // Formatear horas
-                    $sesion['horaInicio'] = substr($sesion['horaInicio'], 0, 5);
-                    $sesion['horaFin'] = substr($sesion['horaFin'], 0, 5);
-                    
-                    // Contar estudiantes asignados al tutor en este semestre
-                    $sesion['totalEstudiantes'] = $totalEstudiantes;
-                    
-                    // Tipo de historial (aquí puedes agregar lógica para determinar el tipo)
-                    $sesion['tipoHistorial'] = 'Académica'; // Valor por defecto
+
+                    // Formatear horas (asegurar formato HH:MM)
+                    $sesion['horaInicio'] = $sesion['horaInicio'] ? substr($sesion['horaInicio'], 0, 5) : null;
+                    $sesion['horaFin'] = $sesion['horaFin'] ? substr($sesion['horaFin'], 0, 5) : null;
+
+                    // Descripción: nombre del estudiante + tipo de tutoría
+                    $nombreEst = trim(($sesion['estudianteNombres'] ?? '') . ' ' . ($sesion['estudianteApellidos'] ?? ''));
+                    $tipo = $sesion['tipo'] ?? '';
+                    $sesion['descripcion'] = $nombreEst !== '' ? $nombreEst : 'Estudiante sin nombre';
+
+                    // Tipo de historial (mostrar tipo de tutoría)
+                    $sesion['tipoHistorial'] = $tipo ?: 'Tutoría';
                 }
             }
             

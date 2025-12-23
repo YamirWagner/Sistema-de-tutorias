@@ -123,6 +123,10 @@ $routes = [
     'PUT|api/asignacionTutor' => 'api/asignacionTutor.php',
     'DELETE|api/asignacionTutor' => 'api/asignacionTutor.php',
 
+    // Rutas del módulo "Mis Estudiantes" del tutor
+    'GET|api/misEstudiantes' => 'api/misEstudiantes.php',
+    'POST|api/misEstudiantes' => 'api/misEstudiantes.php',
+
     // Rutas de gestión de usuarios
     'GET|api/gestionUsuarios' => 'api/gestionUsuarios.php',
     'POST|api/gestionUsuarios' => 'api/gestionUsuarios.php',

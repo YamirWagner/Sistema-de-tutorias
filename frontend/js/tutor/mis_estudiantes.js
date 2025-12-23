@@ -7,48 +7,43 @@
             const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
             const componentPath = `${basePath}/frontend/components/tutor/mis_estudiantes.html`;
             const res = await fetch(componentPath);
-            if (!res.ok) throw new Error('No se pudo cargar el componente');
+            if (!res.ok) throw new Error('No se pudo cargar el componente Mis estudiantes');
+
             const html = await res.text();
             const container = document.getElementById('dashboardContent');
+            if (!container) return;
+
             container.innerHTML = html;
 
-            // Inicializar
             await cargarDatosYRender();
             agregarEventListeners();
-        } catch (err) {
-            console.error('Error cargando Mis estudiantes:', err);
+        } catch (error) {
+            console.error('Error cargando Mis estudiantes:', error);
             const container = document.getElementById('dashboardContent');
-            if (container) container.innerHTML = '<div class="p-4 text-red-600">Error al cargar módulo Mis estudiantes</div>';
+            if (container) {
+                container.innerHTML = '<div style="padding: 20px; color: #dc3545;">Error al cargar módulo Mis estudiantes</div>';
+            }
         }
     };
 
+    // ================== ESTADO ==================
     let estudiantes = [];
-    let agendamientos = [];
 
-    async function cargarDatosYRender(){
+    // ================== CARGA DE DATOS ==================
+    async function cargarDatosYRender() {
         try {
-            const token = localStorage.getItem('token');
-            const baseApi = APP_CONFIG.API.BASE_URL;
+            const data = await apiGet('/misEstudiantes?action=lista');
 
-            // Obtener estudiantes asignados
-            const resEst = await fetch(`${baseApi}/asignacionTutor.php?action=estudiantes`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const dataEst = await resEst.json();
-            if (dataEst.success) estudiantes = dataEst.data || [];
-            else estudiantes = [];
+            if (data.success) {
+                estudiantes = data.data || [];
+            } else {
+                estudiantes = [];
+                console.error('Error al cargar estudiantes:', data.message);
+            }
 
-            // Obtener todos los agendamientos (sin filtrar por mes) para poder revisar sesiones realizadas
-            const resAgen = await fetch(`${baseApi}/asignacionTutor.php?action=agendamientos&mes=`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const dataAgen = await resAgen.json();
-            if (dataAgen.success) agendamientos = dataAgen.data || [];
-            else agendamientos = [];
-
-            renderTabla(estudiantes, agendamientos);
-        } catch (e) {
-            console.error('Error cargando datos:', e);
+            renderTabla(estudiantes);
+        } catch (error) {
+            console.error('Error cargando datos de Mis estudiantes:', error);
         }
     }
 
@@ -154,12 +149,11 @@
         return mod.substring(0,3).toUpperCase();
     }
 
-    function renderTabla(estudiantesList, agendamientosList){
+    // ================== RENDER TABLA ==================
+    function renderTabla(estudiantesList) {
         const tbody = document.getElementById('studentsTbody');
         if (!tbody) return;
         tbody.innerHTML = '';
-
-        const sessionsMap = mapSessionsByStudent();
 
         estudiantesList.forEach(est => {
             const sid = est.id;
@@ -222,7 +216,8 @@
         });
     }
 
-    function agregarEventListeners(){
+    // ================== EVENTOS ==================
+    function agregarEventListeners() {
         const search = document.getElementById('filterSearch');
         const tipo = document.getElementById('filterTipo');
         const modalidad = document.getElementById('filterModalidad');
@@ -234,21 +229,18 @@
         if (btnReporte) btnReporte.addEventListener('click', generarReporteLista);
     }
 
-    function filtrar(){
-        const q = document.getElementById('filterSearch').value.toLowerCase();
+    function filtrar() {
+        const q = (document.getElementById('filterSearch').value || '').toLowerCase();
         const tipo = document.getElementById('filterTipo').value;
         const modalidad = document.getElementById('filterModalidad').value;
 
-        // Filtrar estudiantes localmente
         let lista = estudiantes.slice();
 
         if (q) {
-            lista = lista.filter(e => ((e.nombres||'') + ' ' + (e.apellidos||'') + ' ' + (e.codigo||'')).toLowerCase().includes(q));
+            lista = lista.filter(e => (`${e.nombres || ''} ${e.apellidos || ''} ${e.codigo || ''}`).toLowerCase().includes(q));
         }
 
-        // Si se solicita filtrar por tipo o modalidad, revisar agendamientos
-        if (tipo || modalidad) {
-            const sessionsMap = mapSessionsByStudent();
+        if (tipo) {
             lista = lista.filter(e => {
                 const m = sessionsMap[e.id] || { modalidades: new Set() };
                 if (tipo) {
@@ -262,7 +254,11 @@
             });
         }
 
-        renderTabla(lista, agendamientos);
+        if (modalidad) {
+            lista = lista.filter(e => (e.modalidadPreferida || 'Presencial') === modalidad);
+        }
+
+        renderTabla(lista);
     }
 
     function generarReporteLista(){
