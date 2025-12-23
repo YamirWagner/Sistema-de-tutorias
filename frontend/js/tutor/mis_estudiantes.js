@@ -29,17 +29,31 @@
     // ================== ESTADO ==================
     let estudiantes = [];
     let sessionsMap = {};
+<<<<<<< Updated upstream
+=======
+    let agendamientos = [];
+>>>>>>> Stashed changes
 
     // ================== CARGA DE DATOS ==================
     async function cargarDatosYRender() {
         try {
             const data = await apiGet('/misEstudiantes?action=lista');
+            const agendData = await apiGet('/atencionTutoria?action=lista');
 
             if (data.success) {
                 estudiantes = data.data || [];
             } else {
                 estudiantes = [];
                 console.error('Error al cargar estudiantes:', data.message);
+
+                        if (agendData.success) {
+                            agendamientos = agendData.data || [];
+                        } else {
+                            agendamientos = [];
+                            console.error('Error al cargar agendamientos:', agendData.message);
+                        }
+
+                        sessionsMap = mapSessionsByStudent();
             }
 
             // intentar poblar sessionsMap si existe un array global `agendamientos`
