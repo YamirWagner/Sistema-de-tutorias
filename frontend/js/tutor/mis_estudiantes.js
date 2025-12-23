@@ -1,10 +1,11 @@
 // mis_estudiantes.js - Módulo "Mis estudiantes" para el tutor
-(function(){
+(function() {
     'use strict';
 
+    // ================== CARGA DEL COMPONENTE ==================
     window.loadMisEstudiantesContent = async function() {
         try {
-            const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+            const basePath = window.APP_BASE_PATH || '';
             const componentPath = `${basePath}/frontend/components/tutor/mis_estudiantes.html`;
             const res = await fetch(componentPath);
             if (!res.ok) throw new Error('No se pudo cargar el componente Mis estudiantes');
@@ -28,45 +29,17 @@
 
     // ================== ESTADO ==================
     let estudiantes = [];
-    let sessionsMap = {};
-<<<<<<< Updated upstream
-=======
-    let agendamientos = [];
->>>>>>> Stashed changes
 
     // ================== CARGA DE DATOS ==================
     async function cargarDatosYRender() {
         try {
             const data = await apiGet('/misEstudiantes?action=lista');
-            const agendData = await apiGet('/atencionTutoria?action=lista');
 
             if (data.success) {
                 estudiantes = data.data || [];
             } else {
                 estudiantes = [];
                 console.error('Error al cargar estudiantes:', data.message);
-
-                        if (agendData.success) {
-                            agendamientos = agendData.data || [];
-                        } else {
-                            agendamientos = [];
-                            console.error('Error al cargar agendamientos:', agendData.message);
-                        }
-
-                        sessionsMap = mapSessionsByStudent();
-            }
-
-            // intentar poblar sessionsMap si existe un array global `agendamientos`
-            try {
-                if (typeof agendamientos !== 'undefined' && Array.isArray(agendamientos)) {
-                    sessionsMap = mapSessionsByStudent();
-                } else if (window.sessionsMap && typeof window.sessionsMap === 'object') {
-                    sessionsMap = window.sessionsMap;
-                } else {
-                    sessionsMap = {};
-                }
-            } catch (e) {
-                sessionsMap = {};
             }
 
             renderTabla(estudiantes);
@@ -75,106 +48,18 @@
         }
     }
 
-    function mapSessionsByStudent() {
-        const map = {};
-        agendamientos.forEach(a => {
-            const idEst = parseInt(a.idEstudiante || a.estudianteId || 0);
-            if (!idEst) return;
-            if (!map[idEst]) map[idEst] = {
-                Academica: {date: null, modalidad: null},
-                Personal: {date: null, modalidad: null},
-                Profesional: {date: null, modalidad: null},
-                modalidades: new Set(),
-                count: 0,
-                lastDateTime: null,
-                lastModalidad: null
-            };
-
-            const estado = String(a.estado || '').toLowerCase();
-            // considerar solo sesiones registradas como realizadas
-            if (estado === 'realizada' || estado === 'realizado' || estado === 'realizada') {
-                // construir fechaHora para comparaciones: preferir fecha + horaInicio
-                let fechaHora = null;
-                if (a.fecha) {
-                    fechaHora = a.fecha;
-                    if (a.horaInicio) fechaHora = `${a.fecha} ${a.horaInicio}`;
-                }
-
-                // incrementar contador
-                map[idEst].count += 1;
-
-                // actualizar lastDateTime / lastModalidad
-                if (fechaHora) {
-                    const prev = map[idEst].lastDateTime;
-                    if (!prev || (new Date(fechaHora) > new Date(prev))) {
-                        map[idEst].lastDateTime = fechaHora;
-                        map[idEst].lastModalidad = a.modalidad || null;
-                    }
-                } else {
-                    // si no hay fecha, aún podemos usar modalidad
-                    if (!map[idEst].lastModalidad && a.modalidad) map[idEst].lastModalidad = a.modalidad;
-                }
-
-                const tipo = String(a.tipoTutoria || a.tipo || '').toLowerCase();
-                let key = null;
-                if (tipo.includes('acad')) key = 'Academica';
-                else if (tipo.includes('personal')) key = 'Personal';
-                else if (tipo.includes('profesional')) key = 'Profesional';
-
-                if (key) {
-                    // si ya existe una fecha para el area, comparar y mantener la más reciente
-                    const area = map[idEst][key];
-                    const areaFecha = area.date;
-                    if (fechaHora) {
-                        if (!areaFecha || (new Date(fechaHora) > new Date(areaFecha))) {
-                            area.date = fechaHora;
-                            area.modalidad = a.modalidad || null;
-                        }
-                    } else {
-                        if (!area.date) {
-                            area.modalidad = a.modalidad || null;
-                        }
-                    }
-                }
-            }
-
-            if (a.modalidad) map[idEst].modalidades.add(a.modalidad);
-        });
-        return map;
-    }
-
-    function formatDateShort(isoDate){
-        if (!isoDate) return '';
+    // ================== UTILIDADES ==================
+    function formatDateShort(isoDate) {
+        if (!isoDate) return 'DD/MM/YY';
         try {
-            const d = new Date(isoDate);
-            if (isNaN(d)) return '';
-            const day = String(d.getDate()).padStart(2,'0');
-            const mon = String(d.getMonth()+1).padStart(2,'0');
+            const d = new Date(isoDate + 'T00:00:00');
+            const day = String(d.getDate()).padStart(2, '0');
+            const mon = String(d.getMonth() + 1).padStart(2, '0');
             const year = String(d.getFullYear()).slice(-2);
             return `${day}/${mon}/${year}`;
-        } catch(e){ return ''; }
-    }
-
-    function formatDateTime(isoDateTime){
-        if (!isoDateTime) return '';
-        try {
-            const d = new Date(isoDateTime);
-            if (isNaN(d)) return '';
-            const day = String(d.getDate()).padStart(2,'0');
-            const mon = String(d.getMonth()+1).padStart(2,'0');
-            const year = String(d.getFullYear()).slice(-2);
-            const hh = String(d.getHours()).padStart(2,'0');
-            const mm = String(d.getMinutes()).padStart(2,'0');
-            return `${day}/${mon}/${year} ${hh}:${mm}`;
-        } catch(e){ return ''; }
-    }
-
-    function shortModal(mod) {
-        if (!mod) return '';
-        const m = String(mod).toLowerCase();
-        if (m.includes('pres')) return 'Pres';
-        if (m.includes('virt')) return 'Virt';
-        return mod.substring(0,3).toUpperCase();
+        } catch (e) {
+            return 'DD/MM/YY';
+        }
     }
 
     // ================== RENDER TABLA ==================
@@ -187,75 +72,48 @@
             const sid = est.id;
             const nombre = `${est.nombres || ''} ${est.apellidos || ''}`.trim();
             const codigo = est.codigo || '';
-            const map = sessionsMap[sid] || { Academica:{date:null,modalidad:null}, Personal:{date:null,modalidad:null}, Profesional:{date:null,modalidad:null}, modalidades:new Set(), count:0, lastDateTime:null, lastModalidad:null };
 
-            const modal = map.lastModalidad || [...map.modalidades][0] || '';
+            const sesionAcademica = est.ultimaAcademica || null;
+            const sesionPersonal = est.ultimaPersonal || null;
+            const sesionProfesional = est.ultimaProfesional || null;
+            const modalidad = est.modalidadPreferida || 'Presencial';
+
             const row = document.createElement('tr');
 
             const tdEst = document.createElement('td');
             tdEst.innerHTML = `<strong>${nombre}</strong><br><small>${codigo}</small>`;
 
-            // Académica: fecha y modalidad
-            const tdADate = document.createElement('td');
-            tdADate.className = 'center';
-            const aDate = map.Academica.date || null;
-            tdADate.textContent = aDate ? formatDateShort(aDate) : '--/--/--';
+            const tdA = document.createElement('td');
+            tdA.className = 'center';
+            tdA.innerHTML = `<input type="checkbox" disabled ${sesionAcademica ? 'checked' : ''}><span class="session-date">${formatDateShort(sesionAcademica)}</span>`;
 
-            const tdAMod = document.createElement('td');
-            tdAMod.className = 'center';
-            const aMod = map.Academica.modalidad || map.lastModalidad || '';
-            tdAMod.textContent = aMod ? shortModal(aMod) : 'Mod';
+            const tdP = document.createElement('td');
+            tdP.className = 'center';
+            tdP.innerHTML = `<input type="checkbox" disabled ${sesionPersonal ? 'checked' : ''}><span class="session-date">${formatDateShort(sesionPersonal)}</span>`;
 
-            // Personal: fecha y modalidad
-            const tdPDate = document.createElement('td');
-            tdPDate.className = 'center';
-            const pDate = map.Personal.date || null;
-            tdPDate.textContent = pDate ? formatDateShort(pDate) : '--/--/--';
+            const tdPr = document.createElement('td');
+            tdPr.className = 'center';
+            tdPr.innerHTML = `<input type="checkbox" disabled ${sesionProfesional ? 'checked' : ''}><span class="session-date">${formatDateShort(sesionProfesional)}</span>`;
 
-            const tdPMod = document.createElement('td');
-            tdPMod.className = 'center';
-            const pMod = map.Personal.modalidad || map.lastModalidad || '';
-            tdPMod.textContent = pMod ? shortModal(pMod) : 'Mod';
-
-            // Profesional: fecha y modalidad
-            const tdPrDate = document.createElement('td');
-            tdPrDate.className = 'center';
-            const prDate = map.Profesional.date || null;
-            tdPrDate.textContent = prDate ? formatDateShort(prDate) : '--/--/--';
-
-            const tdPrMod = document.createElement('td');
-            tdPrMod.className = 'center';
-            const prMod = map.Profesional.modalidad || map.lastModalidad || '';
-            tdPrMod.textContent = prMod ? shortModal(prMod) : 'Mod';
-
-            const tdCount = document.createElement('td');
-            tdCount.className = 'center';
-            const count = map.count || 0;
-            tdCount.textContent = `${count}/3`;
+            const tdModal = document.createElement('td');
+            tdModal.textContent = modalidad;
 
             const tdAction = document.createElement('td');
             tdAction.className = 'center';
+            const allThree = !!est.completoTresSesiones;
             const btn = document.createElement('button');
             btn.textContent = 'Generar constancia';
+            btn.className = 'btn-primary';
+            btn.disabled = !allThree;
             btn.dataset.estudianteId = sid;
-            if (count >= 3) {
-                btn.className = 'btn-generate-enabled';
-                btn.disabled = false;
-                btn.addEventListener('click', () => generarConstancia(sid));
-            } else {
-                btn.className = 'btn-generate-disabled';
-                btn.disabled = true;
-            }
+            btn.addEventListener('click', () => generarConstancia(sid));
             tdAction.appendChild(btn);
 
             row.appendChild(tdEst);
-            row.appendChild(tdADate);
-            row.appendChild(tdAMod);
-            row.appendChild(tdPDate);
-            row.appendChild(tdPMod);
-            row.appendChild(tdPrDate);
-            row.appendChild(tdPrMod);
-            row.appendChild(tdCount);
+            row.appendChild(tdA);
+            row.appendChild(tdP);
+            row.appendChild(tdPr);
+            row.appendChild(tdModal);
             row.appendChild(tdAction);
 
             tbody.appendChild(row);
@@ -288,14 +146,9 @@
 
         if (tipo) {
             lista = lista.filter(e => {
-                const m = sessionsMap[e.id] || { modalidades: new Set() };
-                if (tipo) {
-                    const key = tipo === 'Academica' ? 'Academica' : tipo;
-                    if (!m[key] || !m[key].date) return false;
-                }
-                if (modalidad) {
-                    if (![...m.modalidades].includes(modalidad)) return false;
-                }
+                if (tipo === 'Academica') return !!e.ultimaAcademica;
+                if (tipo === 'Personal') return !!e.ultimaPersonal;
+                if (tipo === 'Profesional') return !!e.ultimaProfesional;
                 return true;
             });
         }
@@ -307,39 +160,81 @@
         renderTabla(lista);
     }
 
-    function generarReporteLista(){
-        // Generar reporte via backend (TCPDF) y previsualizar
-        (async ()=>{
-            try {
-                const token = localStorage.getItem('token');
-                const url = `${APP_CONFIG.API.BASE_URL}/tutorReports.php?action=list`;
-                const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
-                if (!res.ok) { const txt = await res.text(); throw new Error(txt || 'Error generando reporte'); }
-                const blob = await res.blob();
-                if (typeof setPreviewBlob === 'function') setPreviewBlob('previewReporteIframe', blob);
-                if (typeof openPreviewModal === 'function') openPreviewModal('previewReporteModal');
-            } catch (e) {
-                console.error(e);
-                alert('Error al generar reporte: ' + e.message);
+    // ================== REPORTES Y CONSTANCIAS ==================
+    async function generarReporteLista() {
+        try {
+            const data = await apiGet('/misEstudiantes?action=reporte');
+
+            if (!data.success || !data.data || data.data.total === 0) {
+                alert('No hay estudiantes que hayan completado las 3 sesiones');
+                return;
             }
-        })();
+
+            const reporte = data.data;
+            const content = reporte.estudiantes.map(p => `${p.nombres} ${p.apellidos} (${p.codigo})`).join('\n');
+
+            const w = window.open('', '_blank');
+            if (w) {
+                w.document.write('<html><head><title>Reporte de Estudiantes</title></head><body>');
+                w.document.write(`<h2>Estudiantes que completaron las 3 sesiones - ${reporte.semestre}</h2>`);
+                w.document.write(`<p>Total: <strong>${reporte.total}</strong> estudiantes</p>`);
+                w.document.write('<pre>' + content + '</pre>');
+                w.document.write('</body></html>');
+            }
+        } catch (error) {
+            console.error('Error generando reporte:', error);
+            alert('Error al generar el reporte');
+        }
     }
 
-    function generarConstancia(estudianteId){
-        (async ()=>{
-            try {
-                const token = localStorage.getItem('token');
-                const url = `${APP_CONFIG.API.BASE_URL}/tutorReports.php?action=constancia&estudianteId=${encodeURIComponent(estudianteId)}`;
-                const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
-                if (!res.ok) { const txt = await res.text(); throw new Error(txt || 'Error generando constancia'); }
-                const blob = await res.blob();
-                if (typeof setPreviewBlob === 'function') setPreviewBlob('previewConstanciaIframe', blob);
-                if (typeof openPreviewModal === 'function') openPreviewModal('previewConstanciaModal');
-            } catch (e) {
-                console.error(e);
-                alert('Error al generar constancia: ' + e.message);
+    async function generarConstancia(estudianteId) {
+        try {
+            const data = await apiPost('/misEstudiantes?action=constancia', {
+                estudiante_id: estudianteId
+            });
+
+            if (!data.success) {
+                alert('Error al generar constancia: ' + data.message);
+                return;
             }
-        })();
+
+            const constancia = data.data;
+            const est = constancia.estudiante;
+
+            const w = window.open('', '_blank');
+            if (w) {
+                w.document.write(`<html><head><title>Constancia de Tutoría</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; }
+                        h1 { text-align: center; color: #7b1f1f; }
+                        .info { margin: 20px 0; line-height: 1.8; }
+                        .firma { margin-top: 60px; text-align: center; }
+                    </style>
+                    </head><body>`);
+                w.document.write('<h1>CONSTANCIA DE TUTORÍA</h1>');
+                w.document.write(`<div class="info">
+                    <p><strong>Semestre:</strong> ${constancia.semestre}</p>
+                    <p><strong>Estudiante:</strong> ${est.nombres} ${est.apellidos}</p>
+                    <p><strong>Código:</strong> ${est.codigo}</p>
+                    <p><strong>Tutor:</strong> ${est.tutorNombres} ${est.tutorApellidos}</p>
+                    <p>Se hace constar que el estudiante mencionado ha completado satisfactoriamente las tres (3) sesiones de tutoría obligatorias:</p>
+                    <ul>
+                        <li>Sesión Académica: ${constancia.sesiones.academica > 0 ? '✓' : '✗'}</li>
+                        <li>Sesión Personal: ${constancia.sesiones.personal > 0 ? '✓' : '✗'}</li>
+                        <li>Sesión Profesional: ${constancia.sesiones.profesional > 0 ? '✓' : '✗'}</li>
+                    </ul>
+                    <p><strong>Fecha de expedición:</strong> ${new Date(constancia.fechaGeneracion).toLocaleDateString('es-PE')}</p>
+                </div>
+                <div class="firma">
+                    <p>_________________________</p>
+                    <p>${est.tutorNombres} ${est.tutorApellidos}<br>Tutor Académico</p>
+                </div>
+                </body></html>`);
+            }
+        } catch (error) {
+            console.error('Error generando constancia:', error);
+            alert('Error al generar la constancia');
+        }
     }
 
 })();

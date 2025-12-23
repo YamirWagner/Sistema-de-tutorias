@@ -204,24 +204,3 @@ async function apiUpload(endpoint, formData) {
         throw error;
     }
 }
-
-// Decodificar payload de JWT (base64url safe)
-function decodeJwtPayload(token) {
-    if (!token) return null;
-    try {
-        const parts = token.split('.');
-        if (parts.length < 2) return null;
-        let b64 = parts[1];
-        // base64url -> base64
-        b64 = b64.replace(/-/g, '+').replace(/_/g, '/');
-        // añadir padding
-        while (b64.length % 4) b64 += '=';
-        const json = atob(b64);
-        return JSON.parse(json);
-    } catch (e) {
-        console.error('Error decoding JWT payload:', e);
-        return null;
-    }
-}
-
-window.decodeJwtPayload = decodeJwtPayload;
