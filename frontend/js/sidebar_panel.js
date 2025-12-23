@@ -188,9 +188,8 @@ async function loadSidebarMenu() {
     
     if (token) {
         try {
-            // Decodificar el token JWT para obtener el rol
-            const payload = JSON.parse(atob(token.split('.')[1]));
-            role = payload.role || 'student';
+            const payload = window.decodeJwtPayload ? window.decodeJwtPayload(token) : JSON.parse(atob(token.split('.')[1]));
+            role = (payload && payload.role) || 'student';
             console.log('👤 Rol del usuario:', role);
         } catch (error) {
             console.error('❌ Error al decodificar token:', error);

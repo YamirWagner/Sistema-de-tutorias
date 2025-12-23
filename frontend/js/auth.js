@@ -157,15 +157,15 @@ function isAuthenticated() {
     if (!token) return false;
     
     try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
+        const payload = window.decodeJwtPayload ? window.decodeJwtPayload(token) : JSON.parse(atob(token.split('.')[1]));
         const now = Math.floor(Date.now() / 1000);
-        
-        if (payload.exp && payload.exp < now) {
+
+        if (payload && payload.exp && payload.exp < now) {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             return false;
         }
-        
+
         return true;
     } catch (error) {
         return false;
@@ -180,7 +180,8 @@ function getUserFromToken() {
     if (!token) return null;
     
     try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
+        const payload = window.decodeJwtPayload ? window.decodeJwtPayload(token) : JSON.parse(atob(token.split('.')[1]));
+        if (!payload) return null;
         return {
             id: payload.user_id || payload.id || payload.userId,
             email: payload.email,
@@ -298,8 +299,8 @@ function attachVerifyHandler(formEl, email, messageElementId) {
                 
                 if (token) {
                     try {
-                        const payload = JSON.parse(atob(token.split('.')[1]));
-                        userRole = payload.role || 'student';
+                        const payload = window.decodeJwtPayload ? window.decodeJwtPayload(token) : JSON.parse(atob(token.split('.')[1]));
+                        userRole = (payload && payload.role) || 'student';
                         console.log('👤 Rol detectado:', userRole);
                     } catch (e) {
                         console.error('Error al decodificar token:', e);
