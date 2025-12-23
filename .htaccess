@@ -60,6 +60,7 @@ DirectoryIndex frontend/index.html
   # Módulo del Tutor
   RewriteRule ^tutor/?$ frontend/panel.html [L,NC]
   RewriteRule ^asignacionTutor/?$ frontend/panel.html [L,NC]
+  RewriteRule ^mis-estudiantes/?$ frontend/panel.html [L,NC]
 
   # ============================================
   # RECURSOS ESTÁTICOS

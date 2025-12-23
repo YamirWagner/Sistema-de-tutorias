@@ -1,273 +1,83 @@
-// mis_estudiantes.js - Módulo para "Mis estudiantes"
-(function(){
+// mis_estudiantes.js - Módulo "Mis estudiantes" para el tutor
+(function() {
     'use strict';
 
+    // ================== CARGA DEL COMPONENTE ==================
     window.loadMisEstudiantesContent = async function() {
         try {
             const basePath = window.APP_BASE_PATH || '';
             const componentPath = `${basePath}/frontend/components/tutor/mis_estudiantes.html`;
-            const resp = await fetch(componentPath);
-            const html = await resp.text();
-            const target = document.getElementById('dashboardContent');
-            if (!target) return;
-            target.innerHTML = html;
-
-            // Inicializar eventos
-            document.getElementById('filterSearch').addEventListener('input', aplicarFiltros);
-            document.getElementById('filterTipo').addEventListener('change', aplicarFiltros);
-            document.getElementById('filterModalidad').addEventListener('change', aplicarFiltros);
-            document.getElementById('btnGenerarReporte').addEventListener('click', generarReporteLista);
-
-            // Cargar datos
-            await cargarEstudiantes();
-        } catch (err) {
-            console.error('Error cargando Mis estudiantes:', err);
-        }
-    };
-
-    let estudiantes = [];
-
-    async function cargarEstudiantes(){
-        try {
-            const token = localStorage.getItem('token');
-            const res = await fetch(`${APP_CONFIG.API.BASE_URL}/asignacionTutor.php?action=estudiantes`, { headers: { 'Authorization': `Bearer ${token}` } });
-            const data = await res.json();
-            if (!data.success) return alert('Error al obtener estudiantes: '+(data.message || ''));
-            estudiantes = data.data || [];
-            renderizarTabla(estudiantes);
-        } catch (e) { console.error(e); alert('Error de conexión al cargar estudiantes'); }
-    }
-
-    async function obtenerSesionesPorEstudiante(estudianteId){
-        try {
-            const token = localStorage.getItem('token');
-            const res = await fetch(`${APP_CONFIG.API.BASE_URL}/asignacionTutor.php?action=agendamientos&estudiante=${estudianteId}`, { headers: { 'Authorization': `Bearer ${token}` } });
-            const json = await res.json();
-            if (!json.success) return [];
-            return json.data || [];
-        } catch (e) { console.error(e); return []; }
-    }
-
-    async function renderizarTabla(list){
-        const tbody = document.getElementById('studentsTbody');
-        if (!tbody) return;
-        tbody.innerHTML = '';
-
-        for (const est of list) {
-            const sesiones = await obtenerSesionesPorEstudiante(est.id);
-
-            // Buscar por tipo
-            const tipos = { 'Académica': null, 'Personal': null, 'Profesional': null };
-            sesiones.filter(s=>s.estado==='Realizada').forEach(s=>{
-                const tipo = s.tipoTutoria || s.tipo || s.tipoTutoria || s.tipo;
-                if (tipo && tipos[tipo] === null) tipos[tipo] = s.fecha;
-            });
-
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${est.nombres} ${est.apellidos}<br><small>${est.codigo || ''}</small></td>
-                <td class="center">${checkboxHtml(tipos['Académica'])}</td>
-                <td class="center">${checkboxHtml(tipos['Personal'])}</td>
-                <td class="center">${checkboxHtml(tipos['Profesional'])}</td>
-                <td>${determineModalidadFromSessions(sesiones)}</td>
-                <td class="center"><button class="btn-primary btn-generate" data-id="${est.id}">Generar constancia</button></td>
-            `;
-
-            tbody.appendChild(tr);
-        }
-
-        // attach listeners
-        document.querySelectorAll('.btn-generate').forEach(b => {
-            b.addEventListener('click', async function(){
-                const id = this.dataset.id;
-                await previewConstancia(id);
-            });
-        });
-    }
-
-    function checkboxHtml(fecha){
-        if (!fecha) return `<div style="opacity:0.35">☐<span class="session-date">DD/MM/YY</span></div>`;
-        const d = formatDate(fecha);
-        return `<div>☑<span class="session-date">${d}</span></div>`;
-    }
-
-    function formatDate(fecha){
-        if (!fecha) return '';
-        const dt = new Date(fecha);
-        if (isNaN(dt)) return fecha;
-        return `${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')}/${String(dt.getFullYear()).slice(-2)}`;
-    }
-
-    function determineModalidadFromSessions(sesiones){
-        if (!sesiones || sesiones.length===0) return 'N/A';
-        const m = sesiones.find(s=>s.modalidad);
-        return m ? m.modalidad : 'N/A';
-    }
-
-    function aplicarFiltros(){
-        const q = document.getElementById('filterSearch').value.toLowerCase();
-        const tipo = document.getElementById('filterTipo').value;
-        const mod = document.getElementById('filterModalidad').value;
-
-        const filtered = estudiantes.filter(e=>{
-            const name = (e.nombres+' '+e.apellidos+' '+(e.codigo||'')).toLowerCase();
-            if (q && !name.includes(q)) return false;
-            return true; // tipo/modalidad deben aplicarse por sesiones (omitir server-side hacia atrás)
-        });
-
-        renderizarTabla(filtered);
-    }
-
-    // Preview constancia: fetch PDF blob and show in modal
-    async function previewConstancia(estudianteId){
-        try {
-            const token = localStorage.getItem('token');
-            const url = `${APP_CONFIG.API.BASE_URL}/tutorReports.php?action=constancia&estudianteId=${encodeURIComponent(estudianteId)}`;
-            const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
-            if (!res.ok) { const txt = await res.text(); throw new Error(txt || 'Error generando constancia'); }
-            const blob = await res.blob();
-            setPreviewBlob('previewConstanciaIframe', blob);
-            openPreviewModal('previewConstanciaModal');
-        } catch (e) { console.error(e); alert('Error al previsualizar constancia: '+e.message); }
-    }
-
-    // Generar reporte lista y previsualizar
-    async function generarReporteLista(){
-        try {
-            const token = localStorage.getItem('token');
-            const url = `${APP_CONFIG.API.BASE_URL}/tutorReports.php?action=list`;
-            const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
-            if (!res.ok) { const txt = await res.text(); throw new Error(txt || 'Error generando reporte'); }
-            const blob = await res.blob();
-            setPreviewBlob('previewReporteIframe', blob);
-            openPreviewModal('previewReporteModal');
-        } catch (e) { console.error(e); alert('Error al generar reporte: '+e.message); }
-    }
-
-    // Reexport helpers used by modals
-    window.setPreviewBlob = function(iframeId, blob){
-        if (window.setPreviewBlobGlobal) return window.setPreviewBlobGlobal(iframeId, blob);
-        const script = document.createElement('script'); // fallback no-op
-    };
-
-    // When module loads, ensure helper setPreviewBlob from modals is available
-    function hookupPreviewSetter(){
-        if (typeof setPreviewBlob === 'function') {
-            window.setPreviewBlobGlobal = setPreviewBlob;
-            window.setPreviewBlob = setPreviewBlob;
-        } else {
-            setTimeout(hookupPreviewSetter, 200);
-        }
-    }
-    hookupPreviewSetter();
-
-})();
-// mis_estudiantes.js - Módulo "Mis estudiantes" para el tutor
-(function(){
-    'use strict';
-
-    window.loadMisEstudiantesContent = async function() {
-        try {
-            const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
-            const componentPath = `${basePath}/frontend/components/tutor/mis_estudiantes.html`;
             const res = await fetch(componentPath);
-            if (!res.ok) throw new Error('No se pudo cargar el componente');
+            if (!res.ok) throw new Error('No se pudo cargar el componente Mis estudiantes');
+
             const html = await res.text();
             const container = document.getElementById('dashboardContent');
+            if (!container) return;
+
             container.innerHTML = html;
 
-            // Inicializar
             await cargarDatosYRender();
             agregarEventListeners();
-        } catch (err) {
-            console.error('Error cargando Mis estudiantes:', err);
+        } catch (error) {
+            console.error('Error cargando Mis estudiantes:', error);
             const container = document.getElementById('dashboardContent');
-            if (container) container.innerHTML = '<div class="p-4 text-red-600">Error al cargar módulo Mis estudiantes</div>';
+            if (container) {
+                container.innerHTML = '<div style="padding: 20px; color: #dc3545;">Error al cargar módulo Mis estudiantes</div>';
+            }
         }
     };
 
+    // ================== ESTADO ==================
     let estudiantes = [];
-    let agendamientos = [];
 
-    async function cargarDatosYRender(){
+    // ================== CARGA DE DATOS ==================
+    async function cargarDatosYRender() {
         try {
-            const token = localStorage.getItem('token');
-            const baseApi = APP_CONFIG.API.BASE_URL;
+            const data = await apiGet('/misEstudiantes?action=lista');
 
-            // Obtener estudiantes asignados
-            const resEst = await fetch(`${baseApi}/asignacionTutor.php?action=estudiantes`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const dataEst = await resEst.json();
-            if (dataEst.success) estudiantes = dataEst.data || [];
-            else estudiantes = [];
+            if (data.success) {
+                estudiantes = data.data || [];
+            } else {
+                estudiantes = [];
+                console.error('Error al cargar estudiantes:', data.message);
+            }
 
-            // Obtener todos los agendamientos (sin filtrar por mes) para poder revisar sesiones realizadas
-            const resAgen = await fetch(`${baseApi}/asignacionTutor.php?action=agendamientos&mes=`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const dataAgen = await resAgen.json();
-            if (dataAgen.success) agendamientos = dataAgen.data || [];
-            else agendamientos = [];
-
-            renderTabla(estudiantes, agendamientos);
-        } catch (e) {
-            console.error('Error cargando datos:', e);
+            renderTabla(estudiantes);
+        } catch (error) {
+            console.error('Error cargando datos de Mis estudiantes:', error);
         }
     }
 
-    function mapSessionsByStudent() {
-        const map = {};
-        agendamientos.forEach(a => {
-            const idEst = parseInt(a.idEstudiante || a.estudianteId || 0);
-            if (!idEst) return;
-            if (!map[idEst]) map[idEst] = { Academica: null, Personal: null, Profesional: null, modalidades: new Set() };
-
-            const estado = (a.estado || '').toLowerCase();
-            const tipo = (a.tipoTutoria || a.tipo || '').toLowerCase();
-            if (estado === 'realizada' || estado === 'realizado' || estado === 'realizada') {
-                let key = null;
-                if (tipo.includes('acad')) key = 'Academica';
-                else if (tipo.includes('personal')) key = 'Personal';
-                else if (tipo.includes('profesional')) key = 'Profesional';
-
-                if (key) {
-                    // guardar la fecha más reciente si hay varias
-                    const fecha = a.fecha;
-                    if (!map[idEst][key] || map[idEst][key] < fecha) map[idEst][key] = fecha;
-                }
-            }
-
-            if (a.modalidad) map[idEst].modalidades.add(a.modalidad);
-        });
-        return map;
-    }
-
-    function formatDateShort(isoDate){
+    // ================== UTILIDADES ==================
+    function formatDateShort(isoDate) {
         if (!isoDate) return 'DD/MM/YY';
         try {
-            const d = new Date(isoDate);
-            const day = String(d.getDate()).padStart(2,'0');
-            const mon = String(d.getMonth()+1).padStart(2,'0');
+            const d = new Date(isoDate + 'T00:00:00');
+            const day = String(d.getDate()).padStart(2, '0');
+            const mon = String(d.getMonth() + 1).padStart(2, '0');
             const year = String(d.getFullYear()).slice(-2);
             return `${day}/${mon}/${year}`;
-        } catch(e){ return 'DD/MM/YY'; }
+        } catch (e) {
+            return 'DD/MM/YY';
+        }
     }
 
-    function renderTabla(estudiantesList, agendamientosList){
+    // ================== RENDER TABLA ==================
+    function renderTabla(estudiantesList) {
         const tbody = document.getElementById('studentsTbody');
         if (!tbody) return;
         tbody.innerHTML = '';
-
-        const sessionsMap = mapSessionsByStudent();
 
         estudiantesList.forEach(est => {
             const sid = est.id;
             const nombre = `${est.nombres || ''} ${est.apellidos || ''}`.trim();
             const codigo = est.codigo || '';
-            const map = sessionsMap[sid] || { Academica: null, Personal: null, Profesional: null, modalidades: new Set() };
 
-            const modal = [...map.modalidades][0] || 'Presencial';
+            const sesionAcademica = est.ultimaAcademica || null;
+            const sesionPersonal = est.ultimaPersonal || null;
+            const sesionProfesional = est.ultimaProfesional || null;
+            const modalidad = est.modalidadPreferida || 'Presencial';
+
             const row = document.createElement('tr');
 
             const tdEst = document.createElement('td');
@@ -275,22 +85,22 @@
 
             const tdA = document.createElement('td');
             tdA.className = 'center';
-            tdA.innerHTML = `<input type="checkbox" disabled ${map.Academica ? 'checked' : ''}><span class="session-date">${formatDateShort(map.Academica)}</span>`;
+            tdA.innerHTML = `<input type="checkbox" disabled ${sesionAcademica ? 'checked' : ''}><span class="session-date">${formatDateShort(sesionAcademica)}</span>`;
 
             const tdP = document.createElement('td');
             tdP.className = 'center';
-            tdP.innerHTML = `<input type="checkbox" disabled ${map.Personal ? 'checked' : ''}><span class="session-date">${formatDateShort(map.Personal)}</span>`;
+            tdP.innerHTML = `<input type="checkbox" disabled ${sesionPersonal ? 'checked' : ''}><span class="session-date">${formatDateShort(sesionPersonal)}</span>`;
 
             const tdPr = document.createElement('td');
             tdPr.className = 'center';
-            tdPr.innerHTML = `<input type="checkbox" disabled ${map.Profesional ? 'checked' : ''}><span class="session-date">${formatDateShort(map.Profesional)}</span>`;
+            tdPr.innerHTML = `<input type="checkbox" disabled ${sesionProfesional ? 'checked' : ''}><span class="session-date">${formatDateShort(sesionProfesional)}</span>`;
 
             const tdModal = document.createElement('td');
-            tdModal.textContent = modal;
+            tdModal.textContent = modalidad;
 
             const tdAction = document.createElement('td');
             tdAction.className = 'center';
-            const allThree = map.Academica && map.Personal && map.Profesional;
+            const allThree = !!est.completoTresSesiones;
             const btn = document.createElement('button');
             btn.textContent = 'Generar constancia';
             btn.className = 'btn-primary';
@@ -310,7 +120,8 @@
         });
     }
 
-    function agregarEventListeners(){
+    // ================== EVENTOS ==================
+    function agregarEventListeners() {
         const search = document.getElementById('filterSearch');
         const tipo = document.getElementById('filterTipo');
         const modalidad = document.getElementById('filterModalidad');
@@ -322,52 +133,108 @@
         if (btnReporte) btnReporte.addEventListener('click', generarReporteLista);
     }
 
-    function filtrar(){
-        const q = document.getElementById('filterSearch').value.toLowerCase();
+    function filtrar() {
+        const q = (document.getElementById('filterSearch').value || '').toLowerCase();
         const tipo = document.getElementById('filterTipo').value;
         const modalidad = document.getElementById('filterModalidad').value;
 
-        // Filtrar estudiantes localmente
         let lista = estudiantes.slice();
 
         if (q) {
-            lista = lista.filter(e => ((e.nombres||'') + ' ' + (e.apellidos||'') + ' ' + (e.codigo||'')).toLowerCase().includes(q));
+            lista = lista.filter(e => (`${e.nombres || ''} ${e.apellidos || ''} ${e.codigo || ''}`).toLowerCase().includes(q));
         }
 
-        // Si se solicita filtrar por tipo o modalidad, revisar agendamientos
-        if (tipo || modalidad) {
-            const sessionsMap = mapSessionsByStudent();
+        if (tipo) {
             lista = lista.filter(e => {
-                const m = sessionsMap[e.id] || { modalidades: new Set() };
-                if (tipo) {
-                    const key = tipo === 'Academica' ? 'Academica' : tipo;
-                    if (!m[key]) return false;
-                }
-                if (modalidad) {
-                    if (![...m.modalidades].includes(modalidad)) return false;
-                }
+                if (tipo === 'Academica') return !!e.ultimaAcademica;
+                if (tipo === 'Personal') return !!e.ultimaPersonal;
+                if (tipo === 'Profesional') return !!e.ultimaProfesional;
                 return true;
             });
         }
 
-        renderTabla(lista, agendamientos);
+        if (modalidad) {
+            lista = lista.filter(e => (e.modalidadPreferida || 'Presencial') === modalidad);
+        }
+
+        renderTabla(lista);
     }
 
-    function generarReporteLista(){
-        // Placeholder: el backend TCPDF se implementará más adelante
-        const passed = [];
-        const map = mapSessionsByStudent();
-        estudiantes.forEach(e => { if (map[e.id] && map[e.id].Academica && map[e.id].Personal && map[e.id].Profesional) passed.push(e); });
-        if (passed.length === 0) return alert('No hay estudiantes que cumplan las 3 sesiones');
-        // Abrir nueva ventana con listado (temporal)
-        const content = passed.map(p => `${p.nombres} ${p.apellidos} (${p.codigo})`).join('\n');
-        const w = window.open('', '_blank');
-        w.document.write('<pre>' + content + '</pre>');
+    // ================== REPORTES Y CONSTANCIAS ==================
+    async function generarReporteLista() {
+        try {
+            const data = await apiGet('/misEstudiantes?action=reporte');
+
+            if (!data.success || !data.data || data.data.total === 0) {
+                alert('No hay estudiantes que hayan completado las 3 sesiones');
+                return;
+            }
+
+            const reporte = data.data;
+            const content = reporte.estudiantes.map(p => `${p.nombres} ${p.apellidos} (${p.codigo})`).join('\n');
+
+            const w = window.open('', '_blank');
+            if (w) {
+                w.document.write('<html><head><title>Reporte de Estudiantes</title></head><body>');
+                w.document.write(`<h2>Estudiantes que completaron las 3 sesiones - ${reporte.semestre}</h2>`);
+                w.document.write(`<p>Total: <strong>${reporte.total}</strong> estudiantes</p>`);
+                w.document.write('<pre>' + content + '</pre>');
+                w.document.write('</body></html>');
+            }
+        } catch (error) {
+            console.error('Error generando reporte:', error);
+            alert('Error al generar el reporte');
+        }
     }
 
-    function generarConstancia(estudianteId){
-        // Placeholder: se implementará generación PDF con TCPDF posteriormente
-        alert('Generar constancia (pendiente backend). Estudiante ID: ' + estudianteId);
+    async function generarConstancia(estudianteId) {
+        try {
+            const data = await apiPost('/misEstudiantes?action=constancia', {
+                estudiante_id: estudianteId
+            });
+
+            if (!data.success) {
+                alert('Error al generar constancia: ' + data.message);
+                return;
+            }
+
+            const constancia = data.data;
+            const est = constancia.estudiante;
+
+            const w = window.open('', '_blank');
+            if (w) {
+                w.document.write(`<html><head><title>Constancia de Tutoría</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; }
+                        h1 { text-align: center; color: #7b1f1f; }
+                        .info { margin: 20px 0; line-height: 1.8; }
+                        .firma { margin-top: 60px; text-align: center; }
+                    </style>
+                    </head><body>`);
+                w.document.write('<h1>CONSTANCIA DE TUTORÍA</h1>');
+                w.document.write(`<div class="info">
+                    <p><strong>Semestre:</strong> ${constancia.semestre}</p>
+                    <p><strong>Estudiante:</strong> ${est.nombres} ${est.apellidos}</p>
+                    <p><strong>Código:</strong> ${est.codigo}</p>
+                    <p><strong>Tutor:</strong> ${est.tutorNombres} ${est.tutorApellidos}</p>
+                    <p>Se hace constar que el estudiante mencionado ha completado satisfactoriamente las tres (3) sesiones de tutoría obligatorias:</p>
+                    <ul>
+                        <li>Sesión Académica: ${constancia.sesiones.academica > 0 ? '✓' : '✗'}</li>
+                        <li>Sesión Personal: ${constancia.sesiones.personal > 0 ? '✓' : '✗'}</li>
+                        <li>Sesión Profesional: ${constancia.sesiones.profesional > 0 ? '✓' : '✗'}</li>
+                    </ul>
+                    <p><strong>Fecha de expedición:</strong> ${new Date(constancia.fechaGeneracion).toLocaleDateString('es-PE')}</p>
+                </div>
+                <div class="firma">
+                    <p>_________________________</p>
+                    <p>${est.tutorNombres} ${est.tutorApellidos}<br>Tutor Académico</p>
+                </div>
+                </body></html>`);
+            }
+        } catch (error) {
+            console.error('Error generando constancia:', error);
+            alert('Error al generar la constancia');
+        }
     }
 
 })();
