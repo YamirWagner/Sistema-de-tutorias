@@ -1,4 +1,4 @@
-<!-- Modal Mejorado de Atención de Tutoría -->
+<!-- Modal Dinámico de Atención de Tutoría (Académica, Personal, Profesional) -->
 <div id="modalAtencionTutoria" class="modal-atencion-overlay" style="display: none;">
     <div class="modal-atencion-container">
         <div class="modal-atencion-header">
@@ -6,13 +6,12 @@
             <button class="btn-close-atencion" onclick="cerrarModalAtencion()">✕</button>
         </div>
 
-        <!-- Formulario Principal de Registro -->
         <div id="vistaFormularioAtencion" class="modal-atencion-content">
             <form id="formRegistroAtencion">
                 <input type="hidden" id="idTutoriaAtencion">
                 <input type="hidden" id="tipoTutoriaSeleccionada">
 
-                <!-- Sección Información Básica -->
+                <!-- ========== INFORMACIÓN BÁSICA (COMÚN PARA TODOS) ========== -->
                 <div class="form-section-atencion">
                     <h3 class="section-title-atencion">📋 Información Básica de la Sesión</h3>
                     
@@ -32,103 +31,220 @@
                         </div>
                     </div>
 
-                    <div class="form-group-atencion">
-                        <label for="modalidadSesionRegistro">🏫 Modalidad de la Sesión</label>
-                        <select id="modalidadSesionRegistro" class="form-control-atencion">
-                            <option value="">--Seleccionar modalidad--</option>
-                            <option value="Presencial">Presencial</option>
-                            <option value="Virtual">Virtual</option>
-                            <option value="Híbrida">Híbrida</option>
-                        </select>
+                    <div class="form-row-atencion">
+                        <div class="form-group-atencion">
+                            <label for="tipoTutoriaDisplay">📚 Tipo de Tutoría</label>
+                            <input type="text" id="tipoTutoriaDisplay" class="form-control-atencion" readonly>
+                        </div>
+                        <div class="form-group-atencion">
+                            <label for="modalidadSesionRegistro">🏫 Modalidad de la Sesión</label>
+                            <input type="text" id="modalidadSesionRegistro" class="form-control-atencion" readonly>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Sección Académica -->
-                <div class="form-section-atencion">
-                    <h3 class="section-title-atencion">📚 SECCIÓN ACADÉMICA</h3>
-                    <p class="section-description-atencion">Registra los temas académicos abordados durante la sesión, el contenido específico trabajado y el progreso del estudiante.</p>
+                <!-- ========== SECCIÓN ACADÉMICA ========== -->
+                <div id="seccionAcademica" class="form-section-atencion" style="display: none;">
+                    <h3 class="section-title-atencion">📚 TUTORÍA ACADÉMICA</h3>
+                    <p class="section-description-atencion">Registra los temas académicos, contenido trabajado y progreso del estudiante.</p>
                     
                     <div class="form-group-atencion">
                         <label for="temaPrincipalAtencion">📖 Tema Principal Tratado <span class="required">*</span></label>
                         <input type="text" id="temaPrincipalAtencion" class="form-control-atencion" 
-                               placeholder="Ej: Programación Orientada a Objetos, Cálculo Diferencial..." required>
+                               placeholder="Ej: Programación Orientada a Objetos, Cálculo Diferencial...">
                     </div>
 
                     <div class="form-group-atencion">
-                        <label for="contenidoEspecificoAtencion">📝 Contenido Específico</label>
-                        <textarea id="contenidoEspecificoAtencion" class="form-control-atencion" rows="3"
+                        <label for="contenidoEspecificoAtencion">📝 Contenido Específico <span class="required">*</span></label>
+                        <textarea id="contenidoEspecificoAtencion" class="form-control-atencion" rows="4"
                                   placeholder="Describe el contenido específico trabajado durante la sesión..."></textarea>
                     </div>
 
                     <div class="form-group-atencion">
                         <label for="observacionesDesempenoAtencion">💬 Observaciones de Desempeño Académico <span class="required">*</span></label>
                         <textarea id="observacionesDesempenoAtencion" class="form-control-atencion" rows="5"
-                                  placeholder="Describe el desempeño del estudiante durante la sesión:&#10;• Fortalezas identificadas&#10;• Dificultades encontradas&#10;• Nivel de comprensión de los temas&#10;• Recomendaciones académicas" required></textarea>
+                                  placeholder="• Fortalezas identificadas&#10;• Dificultades encontradas&#10;• Nivel de comprensión de los temas&#10;• Recomendaciones académicas"></textarea>
                     </div>
 
                     <div class="form-group-atencion">
                         <label for="actividadesRealizadasAtencion">✏️ Actividades Realizadas</label>
                         <textarea id="actividadesRealizadasAtencion" class="form-control-atencion" rows="3"
-                                  placeholder="Lista los ejercicios, problemas o actividades que se trabajaron durante la sesión..."></textarea>
-                    </div>
-                </div>
-
-                <!-- Materiales y Tareas -->
-                <div class="form-section-atencion">
-                    <h3 class="section-title-atencion">📚 MATERIALES Y TAREAS</h3>
-                    
-                    <div class="form-group-atencion">
-                        <label for="materialesApoyoAtencion">📎 Materiales de Apoyo (opcional)</label>
-                        <div class="file-upload-atencion">
-                            <div class="file-upload-icon">📁</div>
-                            <p>Haz clic para subir archivos</p>
-                            <small>PDF, Word, Excel, PowerPoint, imágenes (Máx. 10MB por archivo)</small>
-                        </div>
-                        <textarea id="materialesApoyoAtencion" class="form-control-atencion" rows="2"
-                                  placeholder="Lista los materiales utilizados o proporciona enlaces..."></textarea>
+                                  placeholder="Lista los ejercicios, problemas o actividades trabajadas..."></textarea>
                     </div>
 
                     <div class="form-group-atencion">
                         <label for="tareasAsignadasAtencion">📋 Tareas Asignadas para la Próxima Sesión</label>
                         <textarea id="tareasAsignadasAtencion" class="form-control-atencion" rows="4"
-                                  placeholder="Lista las tareas, ejercicios o actividades que el estudiante debe completar antes de la próxima sesión:&#10;&#10;• Resolver ejercicios del 1 al 13 de la pág. 23&#10;• Preparar preguntas sobre el tema&#10;• Revisar material complementario..."></textarea>
+                                  placeholder="• Resolver ejercicios del 1 al 13 de la pág. 23&#10;• Preparar preguntas sobre el tema&#10;• Revisar material complementario..."></textarea>
                     </div>
 
                     <div class="form-group-atencion">
                         <label for="recursosRecomendadosAtencion">🔗 Recursos Recomendados (Enlaces, libros, videos)</label>
                         <textarea id="recursosRecomendadosAtencion" class="form-control-atencion" rows="3"
+                                  placeholder="Agrega enlaces, títulos de libros, videos o recursos que el estudiante pueda consultar..."></textarea>
+                    </div>
+
+                    <div style="text-align: right; margin-top: 15px;">
+                        <button type="button" class="btn-atencion btn-success-atencion" onclick="guardarSeccionAcademica()">
+                            💾 Guardar Tutoría Académica
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ========== SECCIÓN PERSONAL ========== -->
+                <div id="seccionPersonal" class="form-section-atencion" style="display: none;">
+                    <h3 class="section-title-atencion">💬 TUTORÍA PERSONAL</h3>
+                    <p class="section-description-atencion">Registra aspectos personales, emocionales y de desarrollo integral del estudiante.</p>
+                    
+                    <div class="form-group-atencion">
+                        <label for="situacionPersonal">🗣️ Situación Personal Abordada <span class="required">*</span></label>
+                        <textarea id="situacionPersonal" class="form-control-atencion" rows="4"
+                                  placeholder="Describe brevemente la situación o inquietud personal del estudiante..."></textarea>
+                    </div>
+
+                    <div class="form-group-atencion">
+                        <label for="estadoEmocional">😊 Estado Emocional Observado <span class="required">*</span></label>
+                        <select id="estadoEmocional" class="form-control-atencion">
+                            <option value="">--Seleccionar--</option>
+                            <option value="Muy positivo">Muy positivo</option>
+                            <option value="Positivo">Positivo</option>
+                            <option value="Neutral">Neutral</option>
+                            <option value="Preocupado">Preocupado</option>
+                            <option value="Ansioso">Ansioso</option>
+                            <option value="Deprimido">Deprimido</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group-atencion">
+                        <label for="observacionesPersonales">💭 Observaciones y Recomendaciones <span class="required">*</span></label>
+                        <textarea id="observacionesPersonales" class="form-control-atencion" rows="5"
+                                  placeholder="• Observaciones sobre la situación&#10;• Consejos y orientaciones brindadas&#10;• Recomendaciones para el estudiante&#10;• Acuerdos establecidos"></textarea>
+                    </div>
+
+                    <div class="form-group-atencion">
+                        <label for="accionesTomadas">✅ Acciones y Acuerdos</label>
+                        <textarea id="accionesTomadas" class="form-control-atencion" rows="3"
+                                  placeholder="Describe las acciones tomadas o acuerdos establecidos con el estudiante..."></textarea>
+                    </div>
+
+                    <div class="form-group-atencion">
+                        <label for="requiereDerivacion">⚕️ ¿Requiere Derivación Psicológica?</label>
+                        <select id="requiereDerivacion" class="form-control-atencion">
+                            <option value="No">No</option>
+                            <option value="Si">Sí, requiere atención psicológica</option>
+                        </select>
+                    </div>
+
+                    <div id="divMotivoDerivacion" class="form-group-atencion" style="display: none;">
+                        <label for="motivoDerivacion">📝 Motivo de Derivación</label>
+                        <textarea id="motivoDerivacion" class="form-control-atencion" rows="3"
+                                  placeholder="Explica el motivo por el cual se deriva al estudiante a atención psicológica..."></textarea>
+                    </div>
+
+                    <div style="text-align: right; margin-top: 15px;">
+                        <button type="button" class="btn-atencion btn-success-atencion" onclick="guardarSeccionPersonal()">
+                            💾 Guardar Tutoría Personal
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ========== SECCIÓN PROFESIONAL ========== -->
+                <div id="seccionProfesional" class="form-section-atencion" style="display: none;">
+                    <h3 class="section-title-atencion">💼 TUTORÍA PROFESIONAL</h3>
+                    <p class="section-description-atencion">Registra aspectos de orientación vocacional, desarrollo profesional y planificación de carrera.</p>
+                    
+                    <div class="form-group-atencion">
+                        <label for="temaProfesional">🎯 Tema Profesional Abordado <span class="required">*</span></label>
+                        <select id="temaProfesional" class="form-control-atencion">
+                            <option value="">--Seleccionar--</option>
+                            <option value="Orientación vocacional">Orientación vocacional</option>
+                            <option value="Prácticas profesionales">Prácticas profesionales</option>
+                            <option value="Elaboración de CV">Elaboración de CV</option>
+                            <option value="Entrevistas laborales">Entrevistas laborales</option>
+                            <option value="Desarrollo de habilidades">Desarrollo de habilidades blandas</option>
+                            <option value="Proyecto de tesis">Proyecto de tesis</option>
+                            <option value="Planificación de carrera">Planificación de carrera</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group-atencion">
+                        <label for="descripcionTema">📄 Descripción del Tema <span class="required">*</span></label>
+                        <textarea id="descripcionTema" class="form-control-atencion" rows="4"
+                                  placeholder="Describe el tema profesional tratado durante la sesión..."></textarea>
+                    </div>
+
+                    <div class="form-group-atencion">
+                        <label for="avancesLogros">🏆 Avances y Logros</label>
+                        <textarea id="avancesLogros" class="form-control-atencion" rows="3"
+                                  placeholder="Describe los avances, logros o progresos del estudiante..."></textarea>
+                    </div>
+
+                    <div class="form-group-atencion">
+                        <label for="observacionesProfesionales">💼 Observaciones y Orientaciones <span class="required">*</span></label>
+                        <textarea id="observacionesProfesionales" class="form-control-atencion" rows="5"
+                                  placeholder="• Orientaciones brindadas&#10;• Recomendaciones profesionales&#10;• Áreas de mejora identificadas&#10;• Próximos pasos a seguir"></textarea>
+                    </div>
+
+                    <div class="form-group-atencion">
+                        <label for="recursosContactos">📞 Recursos y Contactos Proporcionados</label>
+                        <textarea id="recursosContactos" class="form-control-atencion" rows="3"
+                                  placeholder="Enlaces, contactos, empresas recomendadas, eventos, etc..."></textarea>
+                    </div>
+
+                    <div style="text-align: right; margin-top: 15px;">
+                        <button type="button" class="btn-atencion btn-success-atencion" onclick="guardarSeccionProfesional()">
+                            💾 Guardar Tutoría Profesional
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ========== MATERIALES Y TAREAS (COMÚN) ========== -->
+                <div class="form-section-atencion">
+                    <h3 class="section-title-atencion">📚 MATERIALES Y TAREAS</h3>
+                    
+                    <div class="form-group-atencion">
+                        <label for="materialesApoyo">📎 Materiales de Apoyo (opcional)</label>
+                        <div class="materiales-container">
+                            <div class="file-upload-zone" onclick="document.getElementById('archivosMateriales').click()">
+                                <div class="file-upload-icon">📁</div>
+                                <p><strong>Haz clic para subir archivos</strong></p>
+                                <small>PDF, Word, Excel, PowerPoint, imágenes (Máx. 10MB por archivo)</small>
+                            </div>
+                            <input type="file" id="archivosMateriales" class="file-input-hidden" 
+                                   accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png" multiple 
+                                   onchange="procesarArchivos(this)">
+                            
+                            <div id="listaArchivosCargados" class="lista-archivos"></div>
+                        </div>
+                        <textarea id="descripcionMateriales" class="form-control-atencion" rows="2" style="margin-top: 10px;"
+                                  placeholder="Lista las tareas, ejercicios o actividades que el estudiante debe completar antes de la próxima sesión...&#10;&#10;1. Resolver ejercicios del 1 al 13 de la pág. 23&#10;2. Preparar preguntas sobre el tema&#10;3. Saludar a todas las personas..."></textarea>
+                    </div>
+
+                    <div class="form-group-atencion">
+                        <label for="recursosRecomendados">🔗 Recursos Recomendados (Enlaces, libros, videos)</label>
+                        <textarea id="recursosRecomendados" class="form-control-atencion" rows="3"
                                   placeholder="Agrega enlaces, títulos de libros, videos de YouTube o cualquier recurso que el estudiante pueda consultar..."></textarea>
                     </div>
 
                     <div class="form-group-atencion">
-                        <label for="notasAdicionalesAtencion">📌 Notas o Comentarios Adicionales</label>
-                        <textarea id="notasAdicionalesAtencion" class="form-control-atencion" rows="3"
+                        <label for="notasComentarios">📌 Notas o Comentarios Adicionales</label>
+                        <textarea id="notasComentarios" class="form-control-atencion" rows="3"
                                   placeholder="Cualquier información adicional relevante que quieras registrar sobre esta sesión..."></textarea>
                     </div>
                 </div>
 
-                <!-- Nota Importante -->
+                <!-- Alerta Importante -->
                 <div class="alert-warning-atencion">
-                    <strong>📌 NOTA IMPORTANTE:</strong> Toda la información registrada será visible para el estudiante en su panel. Sé claro, constructivo y profesional en tus observaciones. Esta información también será utilizada para el seguimiento y evaluación del progreso del estudiante.
-                </div>
-
-                <!-- Sección de Firmas (Opcional - futuro) -->
-                <div class="form-section-atencion" style="border: 2px dashed #ccc; background: #f9f9f9;">
-                    <h3 class="section-title-atencion">✍️ Firma Digital (Próximamente)</h3>
-                    <div class="firma-placeholder">
-                        <p style="text-align: center; color: #999; padding: 30px;">
-                            Función de firma digital en desarrollo<br>
-                            <small>Pronto podrás agregar tu firma digital y la del estudiante</small>
-                        </p>
-                    </div>
+                    <strong>📌 NOTA IMPORTANTE:</strong> Toda la información registrada será visible para el estudiante en su panel. Sé claro, constructivo y profesional en tus observaciones.
                 </div>
 
                 <div class="modal-actions-atencion">
                     <button type="button" class="btn-atencion btn-secondary-atencion" onclick="cerrarModalAtencion()">
                         Cancelar
                     </button>
-                    <button type="submit" class="btn-atencion btn-success-atencion">
-                        💾 Guardar Registro
+                    <button type="button" class="btn-atencion btn-success-atencion" onclick="finalizarTutoria()">
+                        ✅ Finalizar Tutoría
                     </button>
                 </div>
             </form>
@@ -136,7 +252,6 @@
     </div>
 </div>
 
-<!-- Loader -->
 <div id="loaderAtencion" class="loader-overlay-atencion" style="display: none;">
     <div class="loader-atencion"></div>
 </div>

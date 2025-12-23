@@ -118,7 +118,7 @@ CREATE TABLE IF NOT EXISTS tutoria (
     observaciones TEXT,
     motivoCancelacion TEXT,
     fechaCancelacion DATETIME,
-    estado ENUM('Pendiente', 'Programada', 'Reprogramada', 'Realizada', 'Cancelada', 'Cancelada_Automatica') DEFAULT 'Programada',
+    estado ENUM('Pendiente', 'Programada', 'Reprogramada', 'Realizando', 'Realizada', 'Cancelada', 'Cancelada_Automatica') DEFAULT 'Programada',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (idAsignacion) REFERENCES asignaciontutor(id) ON DELETE CASCADE,

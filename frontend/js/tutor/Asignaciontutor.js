@@ -771,7 +771,7 @@
             ` : ''}
         `;
 
-        // Mostrar botones solo si el agendamiento está programado y es futuro
+        // Mostrar botones según el estado del agendamiento
         const fechaAgendamiento = new Date(agendamiento.fecha);
         const hoy = new Date();
         hoy.setHours(0, 0, 0, 0);
@@ -788,6 +788,31 @@
             });
 
             document.getElementById('btnAtenderAgendamiento').addEventListener('click', async () => {
+                cerrarModalDetalle();
+                
+                // Asegurar que el modal esté inicializado
+                if (typeof window.inicializarModalAtencion === 'function') {
+                    window.inicializarModalAtencion();
+                }
+                
+                // Esperar un momento para que el modal se cree
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                if (typeof abrirModalAtencionTutoria === 'function') {
+                    abrirModalAtencionTutoria(agendamiento);
+                } else {
+                    alert('Error: La función de atención no está disponible. Por favor, recarga la página.');
+                }
+            });
+        } else if (agendamiento.estado === 'Realizando') {
+            // Mostrar botón para continuar editando
+            footer.innerHTML = `
+                <button type="button" class="btn btn-success" id="btnContinuarAgendamiento">
+                    <i class="fas fa-edit"></i> Continuar Sesión
+                </button>
+            `;
+
+            document.getElementById('btnContinuarAgendamiento').addEventListener('click', async () => {
                 cerrarModalDetalle();
                 
                 // Asegurar que el modal esté inicializado

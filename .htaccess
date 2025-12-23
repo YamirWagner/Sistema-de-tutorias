@@ -16,7 +16,7 @@ DirectoryIndex frontend/index.html
   RewriteCond %{REQUEST_URI} !backend/api/gestionUsuarios\.php$
   RewriteCond %{REQUEST_URI} !backend/api/asignacionTutor\.php$
   RewriteCond %{REQUEST_URI} !backend/api/semestre\.php$
-  RewriteCond %{REQUEST_URI} !backend/api/atenciontutoria\.php$
+  RewriteCond %{REQUEST_URI} !backend/api/atencionTutoria\.php$
   RewriteRule .* - [F,L]
   
   # Todas las rutas /api/* van al enrutador routes.php

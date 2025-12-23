@@ -8,8 +8,9 @@ require_once __DIR__ . '/../core/jwt.php';
 require_once __DIR__ . '/../core/activity.php';
 
 error_reporting(E_ALL);
-ini_set('display_errors', 0);
+ini_set('display_errors', 1);
 ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/../storage/logs/atencion_debug.log');
 
 try {
     $token = JWT::getBearerToken();
@@ -37,10 +38,15 @@ try {
             
         case 'POST':
             $data = json_decode(file_get_contents('php://input'), true);
+            error_log("POST atencionTutoria - action: $action, tutorId: $tutorId");
+            error_log("POST atencionTutoria - data: " . json_encode($data));
+            
             if (!$data) Response::error('Datos no válidos', 400);
             
             if (in_array($action, ['registrar-academica', 'registrar-personal', 'registrar-profesional'])) {
-                registrarSesion($db, $tutorId, $data);
+                guardarParcial($db, $tutorId, $data);
+            } elseif ($action === 'registrar-final') {
+                registrarSesionFinal($db, $tutorId, $data);
             } else {
                 Response::error('Acción no válida', 400);
             }
@@ -76,6 +82,7 @@ function obtenerDetalleSesion($db, $tutorId) {
                     t.tipo AS tipoTutoria,
                     t.modalidad,
                     t.estado,
+                    t.observaciones,
                     e.codigo AS estudianteCodigo,
                     e.nombres AS estudianteNombres,
                     e.apellidos AS estudianteApellidos,
@@ -85,7 +92,7 @@ function obtenerDetalleSesion($db, $tutorId) {
                   INNER JOIN estudiante e ON at.idEstudiante = e.id
                   WHERE t.id = :idSesion 
                     AND at.idTutor = :tutorId
-                    AND t.estado IN ('Programada', 'Reprogramada')";
+                    AND t.estado IN ('Programada', 'Reprogramada', 'Realizando', 'Realizada')";
         
         $stmt = $db->prepare($query);
         $stmt->execute([':idSesion' => $idSesion, ':tutorId' => $tutorId]);
@@ -146,23 +153,90 @@ function posponerSesion($db, $tutorId, $data) {
     }
 }
 
-function registrarSesion($db, $tutorId, $data) {
+function guardarParcial($db, $tutorId, $data) {
     try {
+        error_log("guardarParcial - tutorId: $tutorId, data: " . json_encode($data));
+        
         $idTutoria = $data['idTutoria'] ?? null;
         if (!$idTutoria) Response::error('ID de tutoría no proporcionado', 400);
         
-        $queryVerify = "SELECT t.id 
+        $queryVerify = "SELECT t.id, t.idAsignacion, t.estado, at.idTutor
                         FROM tutoria t
-                        INNER JOIN asignaciontutor at ON t.idAsignacion = at.id
-                        WHERE t.id = :idTutoria AND at.idTutor = :tutorId";
+                        LEFT JOIN asignaciontutor at ON t.idAsignacion = at.id
+                        WHERE t.id = :idTutoria";
         
         $stmtVerify = $db->prepare($queryVerify);
-        $stmtVerify->execute([':idTutoria' => $idTutoria, ':tutorId' => $tutorId]);
+        $stmtVerify->execute([':idTutoria' => $idTutoria]);
         
-        if (!$stmtVerify->fetch()) Response::forbidden('Sin permisos');
+        $result = $stmtVerify->fetch();
+        error_log("guardarParcial - resultado verificación: " . json_encode($result));
+        
+        if (!$result) {
+            Response::error('Tutoría no encontrada', 404);
+        }
+        
+        if ($result['idTutor'] != $tutorId) {
+            Response::forbidden('Sin permisos para esta tutoría');
+        }
+        
+        // No permitir editar si ya está realizada (finalizada)
+        if ($result['estado'] === 'Realizada') {
+            Response::error('No se puede modificar una tutoría ya finalizada', 400);
+        }
         
         $db->beginTransaction();
         
+        // Guardado parcial: cambiar estado a Realizando
+        $queryUpdate = "UPDATE tutoria 
+                        SET estado = 'Realizando',
+                            observaciones = :observaciones
+                        WHERE id = :idTutoria";
+        
+        $stmtUpdate = $db->prepare($queryUpdate);
+        $stmtUpdate->execute([
+            ':idTutoria' => $idTutoria,
+            ':observaciones' => json_encode($data, JSON_UNESCAPED_UNICODE)
+        ]);
+        
+        $db->commit();
+        
+        Response::success(['id' => $idTutoria], 'Datos guardados correctamente');
+        
+    } catch (Exception $e) {
+        if ($db->inTransaction()) $db->rollBack();
+        error_log("Error en guardarParcial: " . $e->getMessage());
+        Response::error('Error: ' . $e->getMessage(), 500);
+    }
+}
+
+function registrarSesionFinal($db, $tutorId, $data) {
+    try {
+        error_log("registrarSesionFinal - tutorId: $tutorId, data: " . json_encode($data));
+        
+        $idTutoria = $data['idTutoria'] ?? null;
+        if (!$idTutoria) Response::error('ID de tutoría no proporcionado', 400);
+        
+        $queryVerify = "SELECT t.id, t.idAsignacion, at.idTutor
+                        FROM tutoria t
+                        LEFT JOIN asignaciontutor at ON t.idAsignacion = at.id
+                        WHERE t.id = :idTutoria";
+        
+        $stmtVerify = $db->prepare($queryVerify);
+        $stmtVerify->execute([':idTutoria' => $idTutoria]);
+        
+        $result = $stmtVerify->fetch();
+        
+        if (!$result) {
+            Response::error('Tutoría no encontrada', 404);
+        }
+        
+        if ($result['idTutor'] != $tutorId) {
+            Response::forbidden('Sin permisos para esta tutoría');
+        }
+        
+        $db->beginTransaction();
+        
+        // Guardado final: cambiar estado a Realizada
         $queryUpdate = "UPDATE tutoria 
                         SET estado = 'Realizada',
                             observaciones = :observaciones,
@@ -177,11 +251,11 @@ function registrarSesion($db, $tutorId, $data) {
         
         $db->commit();
         
-        Response::success(['id' => $idTutoria], 'Sesión registrada correctamente');
+        Response::success(['id' => $idTutoria], 'Tutoría finalizada correctamente');
         
     } catch (Exception $e) {
         if ($db->inTransaction()) $db->rollBack();
-        error_log("Error en registrarSesion: " . $e->getMessage());
+        error_log("Error en registrarSesionFinal: " . $e->getMessage());
         Response::error('Error: ' . $e->getMessage(), 500);
     }
 }
