@@ -1,4 +1,20 @@
-// GESTIÓN DE SESIONES DE TUTORÍA
+/**
+ * GESTIÓN DE SESIONES DE TUTORÍA
+ * 
+ * Este módulo maneja:
+ * - Carga dinámica del modal de atención de tutorías
+ * - Registro de sesiones (Académica, Personal, Profesional)
+ * - Guardado parcial y finalización de tutorías
+ * - Validación de campos obligatorios
+ * - Notificaciones personalizadas (sin alerts del navegador)
+ * - Protección contra edición de tutorías finalizadas
+ * 
+ * @version 2.0
+ * @date 2025-12-23
+ * @optimizado Eliminados console.log, mejorado manejo de errores,
+ *             implementadas notificaciones modernas
+ */
+
 let agendamientoActual = null;
 let modalAtencionInicializado = false;
 
@@ -10,15 +26,16 @@ window.inicializarModalAtencion = async function() {
     }
 
     try {
-        // Cargar el modal desde el archivo HTML externo
         const response = await fetch('components/tutor/atenciontutoria.html');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const html = await response.text();
         document.body.insertAdjacentHTML('beforeend', html);
         modalAtencionInicializado = true;
-        console.log('✅ Modal de atención cargado desde HTML externo');
     } catch (error) {
-        console.error('❌ Error al cargar modal de atención:', error);
-        mostrarError('Error al cargar el formulario de atención');
+        console.error('Error al cargar modal de atención:', error);
+        mostrarError('No se pudo cargar el formulario de atención. Por favor, recarga la página.');
     }
 };
 
@@ -60,53 +77,42 @@ function mostrarFormularioRegistroDirecto() {
         return;
     }
 
-    console.log('=== DEPURACIÓN MODAL ATENCIÓN ===');
-    console.log('Agendamiento completo:', agendamientoActual);
-    console.log('Tipo Tutoría:', agendamientoActual.tipoTutoria);
-    console.log('Modalidad:', agendamientoActual.modalidad);
-
-    document.getElementById('vistaFormularioAtencion').style.display = 'block';
-    document.getElementById('idTutoriaAtencion').value = agendamientoActual.id;
-    document.getElementById('tipoTutoriaSeleccionada').value = agendamientoActual.tipoTutoria;
-    document.getElementById('estudianteNombreAtencion').value = 
-        `${agendamientoActual.estudianteNombres} ${agendamientoActual.estudianteApellidos}`;
-    document.getElementById('fechaSesionRegistro').value = agendamientoActual.fecha;
-    document.getElementById('horaSesionRegistro').value = 
-        `${formatearHora(agendamientoActual.horaInicio)} - ${formatearHora(agendamientoActual.horaFin)}`;
-    
-    // Mostrar tipo de tutoría
-    const tipoDisplay = document.getElementById('tipoTutoriaDisplay');
-    console.log('Campo tipoTutoriaDisplay encontrado:', tipoDisplay);
-    if (tipoDisplay) {
-        tipoDisplay.value = agendamientoActual.tipoTutoria || 'No especificado';
-        console.log('Valor asignado a tipoTutoriaDisplay:', tipoDisplay.value);
-    } else {
-        console.error('❌ Campo tipoTutoriaDisplay NO encontrado en el DOM');
+    // Mostrar vista del formulario
+    const vistaFormulario = document.getElementById('vistaFormularioAtencion');
+    if (!vistaFormulario) {
+        mostrarError('Error al cargar el formulario');
+        return;
     }
-    
-    // Mostrar modalidad
-    const modalidadDisplay = document.getElementById('modalidadSesionRegistro');
-    console.log('Campo modalidadSesionRegistro encontrado:', modalidadDisplay);
-    if (modalidadDisplay) {
-        modalidadDisplay.value = agendamientoActual.modalidad || 'No especificada';
-        console.log('Valor asignado a modalidadSesionRegistro:', modalidadDisplay.value);
-    } else {
-        console.error('❌ Campo modalidadSesionRegistro NO encontrado en el DOM');
-    }
+    vistaFormulario.style.display = 'block';
 
-    // Mostrar secciones según el tipo de tutoría
+    // Asignar datos básicos
+    asignarValorSeguro('idTutoriaAtencion', agendamientoActual.id);
+    asignarValorSeguro('tipoTutoriaSeleccionada', agendamientoActual.tipoTutoria);
+    asignarValorSeguro('estudianteNombreAtencion', 
+        `${agendamientoActual.estudianteNombres} ${agendamientoActual.estudianteApellidos}`);
+    asignarValorSeguro('fechaSesionRegistro', agendamientoActual.fecha);
+    asignarValorSeguro('horaSesionRegistro', 
+        `${formatearHora(agendamientoActual.horaInicio)} - ${formatearHora(agendamientoActual.horaFin)}`);
+    asignarValorSeguro('tipoTutoriaDisplay', agendamientoActual.tipoTutoria || 'No especificado');
+    asignarValorSeguro('modalidadSesionRegistro', agendamientoActual.modalidad || 'No especificada');
+
+    // Configurar vista según tipo de tutoría
     mostrarSeccionesSegunTipo(agendamientoActual.tipoTutoria);
     actualizarTituloModal(agendamientoActual.tipoTutoria);
-    
-    // Cargar datos guardados previamente
     cargarDatosGuardados(agendamientoActual);
     
-    // Bloquear campos si el estado es Realizada
+    // Bloquear si ya está realizada
     if (agendamientoActual.estado === 'Realizada') {
         bloquearCamposFormulario();
     }
-    
-    console.log('=== FIN DEPURACIÓN ===');
+}
+
+// Función auxiliar para asignar valores de forma segura
+function asignarValorSeguro(elementId, valor) {
+    const elemento = document.getElementById(elementId);
+    if (elemento) {
+        elemento.value = valor || '';
+    }
 }
 
 function mostrarSeccionesSegunTipo(tipoTutoria) {
@@ -133,46 +139,52 @@ function cargarDatosGuardados(agendamiento) {
     if (!agendamiento.observaciones) return;
     
     try {
-        // Si observaciones es string, parsearlo como JSON
         const datos = typeof agendamiento.observaciones === 'string' 
             ? JSON.parse(agendamiento.observaciones) 
             : agendamiento.observaciones;
         
-        console.log('Cargando datos guardados:', datos);
+        if (!datos || typeof datos !== 'object') return;
         
         // Cargar datos según el tipo de tutoría
-        if (agendamiento.tipoTutoria === 'Academica') {
-            document.getElementById('temaPrincipalAtencion').value = datos.temaPrincipal || '';
-            document.getElementById('contenidoEspecificoAtencion').value = datos.contenidoEspecifico || '';
-            document.getElementById('observacionesDesempenoAtencion').value = datos.observacionesDesempeno || '';
-            document.getElementById('actividadesRealizadasAtencion').value = datos.actividadesRealizadas || '';
-            document.getElementById('tareasAsignadasAtencion').value = datos.tareasAsignadas || '';
-            document.getElementById('recursosRecomendadosAtencion').value = datos.recursosRecomendados || '';
-            if (datos.notasAdicionales) {
-                document.getElementById('notasAdicionalesAtencion').value = datos.notasAdicionales;
-            }
-        } else if (agendamiento.tipoTutoria === 'Personal') {
-            document.getElementById('situacionPersonal').value = datos.situacionPersonal || '';
-            document.getElementById('estadoEmocional').value = datos.estadoEmocional || '';
-            document.getElementById('observacionesPersonales').value = datos.observacionesPersonales || '';
-            document.getElementById('accionesTomadas').value = datos.accionesTomadas || '';
-            document.getElementById('requiereDerivacion').value = datos.requiereDerivacion || 'No';
-            document.getElementById('motivoDerivacion').value = datos.motivoDerivacion || '';
-            if (datos.notasAdicionales) {
-                document.getElementById('notasAdicionalesAtencion').value = datos.notasAdicionales;
-            }
-        } else if (agendamiento.tipoTutoria === 'Profesional') {
-            document.getElementById('temaProfesional').value = datos.temaProfesional || '';
-            document.getElementById('descripcionTema').value = datos.descripcionTema || '';
-            document.getElementById('avancesLogros').value = datos.avancesLogros || '';
-            document.getElementById('observacionesProfesionales').value = datos.observacionesProfesionales || '';
-            document.getElementById('recursosContactos').value = datos.recursosContactos || '';
-            if (datos.notasAdicionales) {
-                document.getElementById('notasAdicionalesAtencion').value = datos.notasAdicionales;
-            }
+        const camposPorTipo = {
+            'Academica': [
+                ['temaPrincipalAtencion', 'temaPrincipal'],
+                ['contenidoEspecificoAtencion', 'contenidoEspecifico'],
+                ['observacionesDesempenoAtencion', 'observacionesDesempeno'],
+                ['actividadesRealizadasAtencion', 'actividadesRealizadas'],
+                ['tareasAsignadasAtencion', 'tareasAsignadas'],
+                ['recursosRecomendadosAtencion', 'recursosRecomendados']
+            ],
+            'Personal': [
+                ['situacionPersonal', 'situacionPersonal'],
+                ['estadoEmocional', 'estadoEmocional'],
+                ['observacionesPersonales', 'observacionesPersonales'],
+                ['accionesTomadas', 'accionesTomadas'],
+                ['requiereDerivacion', 'requiereDerivacion'],
+                ['motivoDerivacion', 'motivoDerivacion']
+            ],
+            'Profesional': [
+                ['temaProfesional', 'temaProfesional'],
+                ['descripcionTema', 'descripcionTema'],
+                ['avancesLogros', 'avancesLogros'],
+                ['observacionesProfesionales', 'observacionesProfesionales'],
+                ['recursosContactos', 'recursosContactos']
+            ]
+        };
+        
+        const campos = camposPorTipo[agendamiento.tipoTutoria];
+        if (campos) {
+            campos.forEach(([elementId, dataProp]) => {
+                asignarValorSeguro(elementId, datos[dataProp]);
+            });
         }
+        
+        // Cargar notas adicionales (común para todos)
+        asignarValorSeguro('notasComentarios', datos.notasAdicionales);
+        
     } catch (error) {
         console.error('Error al cargar datos guardados:', error);
+        mostrarError('Error al cargar datos previamente guardados');
     }
 }
 
@@ -185,17 +197,24 @@ function bloquearCamposFormulario() {
         input.style.cursor = 'not-allowed';
     });
     
-    // Ocultar botones de guardado parcial
+    // Ocultar todos los botones de guardado (parcial y final)
     const botonesParciales = document.querySelectorAll('[onclick^="guardarSeccion"]');
     botonesParciales.forEach(boton => {
         boton.style.display = 'none';
     });
     
-    // Mostrar mensaje de solo lectura
+    // Ocultar botón de finalizar tutoría
+    const botonFinalizar = document.querySelector('[onclick="finalizarTutoria()"]');
+    if (botonFinalizar) {
+        botonFinalizar.style.display = 'none';
+    }
+    
+    // Mostrar mensaje de solo lectura prominente
     const alertDiv = document.createElement('div');
-    alertDiv.className = 'alert-atencion';
-    alertDiv.innerHTML = '⚠️ Esta tutoría ya ha sido finalizada y no puede ser modificada';
+    alertDiv.className = 'alert-warning-atencion';
+    alertDiv.style.marginTop = '20px';
     alertDiv.style.marginBottom = '20px';
+    alertDiv.innerHTML = '<strong>📌 TUTORÍA FINALIZADA:</strong> Esta tutoría ha sido finalizada y registrada. Los datos están en modo de solo lectura y no pueden ser modificados.';
     
     const vistaFormulario = document.getElementById('vistaFormularioAtencion');
     if (vistaFormulario && vistaFormulario.firstChild) {
@@ -244,12 +263,70 @@ function ocultarLoaderAtencion() {
 }
 
 function mostrarError(mensaje) {
-    alert('❌ Error: ' + mensaje);
+    mostrarNotificacion(mensaje, 'error');
 }
 
 function mostrarExito(mensaje) {
-    alert('✅ ' + mensaje);
+    mostrarNotificacion(mensaje, 'success');
 }
+
+function mostrarNotificacion(mensaje, tipo = 'info') {
+    // Remover notificaciones anteriores
+    const notifAnterior = document.querySelector('.notificacion-atencion');
+    if (notifAnterior) notifAnterior.remove();
+    
+    const notif = document.createElement('div');
+    notif.className = `notificacion-atencion notificacion-${tipo}`;
+    
+    const icono = tipo === 'success' ? '✅' : tipo === 'error' ? '❌' : 'ℹ️';
+    notif.innerHTML = `
+        <span class="notif-icono">${icono}</span>
+        <span class="notif-mensaje">${mensaje}</span>
+    `;
+    
+    document.body.appendChild(notif);
+    
+    setTimeout(() => notif.classList.add('show'), 10);
+    
+    setTimeout(() => {
+        notif.classList.remove('show');
+        setTimeout(() => notif.remove(), 300);
+    }, 4000);
+}
+
+function mostrarModalConfirmacion(titulo, mensaje, onConfirm) {
+    const modalHtml = `
+        <div id="modalConfirmAtencion" class="modal-confirm-overlay">
+            <div class="modal-confirm-container">
+                <div class="modal-confirm-header">
+                    <h3>${titulo}</h3>
+                </div>
+                <div class="modal-confirm-body">
+                    <p>${mensaje}</p>
+                </div>
+                <div class="modal-confirm-footer">
+                    <button class="btn-confirm-cancel" onclick="cerrarModalConfirmacion()">Cancelar</button>
+                    <button class="btn-confirm-ok" onclick="confirmarAccion()">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    window.confirmarAccion = function() {
+        cerrarModalConfirmacion();
+        if (onConfirm) onConfirm();
+    };
+}
+
+function cerrarModalConfirmacion() {
+    const modal = document.getElementById('modalConfirmAtencion');
+    if (modal) modal.remove();
+    window.confirmarAccion = null;
+}
+
+window.cerrarModalConfirmacion = cerrarModalConfirmacion;
 
 // ==================== GESTIÓN DE MATERIALES ====================
 let archivosCargados = [];
@@ -465,20 +542,18 @@ window.guardarSeccionPersonal = async function() {
         return;
     }
 
-    // Recopilar datos de la sección personal
     const datosPersonales = {
         idTutoria: agendamientoActual.id,
         tipoTutoria: 'Personal',
-        situacionPersonal: document.getElementById('situacionPersonal').value,
-        estadoEmocional: document.getElementById('estadoEmocional').value,
-        observacionesPersonales: document.getElementById('observacionesPersonales').value,
-        accionesTomadas: document.getElementById('accionesTomadas').value,
-        requiereDerivacion: document.getElementById('requiereDerivacion').value,
-        motivoDerivacion: document.getElementById('motivoDerivacion').value,
-        notasAdicionales: document.getElementById('notasAdicionalesAtencion')?.value || ''
+        situacionPersonal: obtenerValor('situacionPersonal'),
+        estadoEmocional: obtenerValor('estadoEmocional'),
+        observacionesPersonales: obtenerValor('observacionesPersonales'),
+        accionesTomadas: obtenerValor('accionesTomadas'),
+        requiereDerivacion: obtenerValor('requiereDerivacion'),
+        motivoDerivacion: obtenerValor('motivoDerivacion'),
+        notasAdicionales: obtenerValor('notasComentarios')
     };
 
-    // Validar campos obligatorios
     if (!datosPersonales.situacionPersonal || !datosPersonales.estadoEmocional || !datosPersonales.observacionesPersonales) {
         mostrarError('Por favor, complete los campos obligatorios (*) de la tutoría personal');
         return;
@@ -493,19 +568,17 @@ window.guardarSeccionProfesional = async function() {
         return;
     }
 
-    // Recopilar datos de la sección profesional
     const datosProfesionales = {
         idTutoria: agendamientoActual.id,
         tipoTutoria: 'Profesional',
-        temaProfesional: document.getElementById('temaProfesional').value,
-        descripcionTema: document.getElementById('descripcionTema').value,
-        avancesLogros: document.getElementById('avancesLogros').value,
-        observacionesProfesionales: document.getElementById('observacionesProfesionales').value,
-        recursosContactos: document.getElementById('recursosContactos').value,
-        notasAdicionales: document.getElementById('notasAdicionalesAtencion')?.value || ''
+        temaProfesional: obtenerValor('temaProfesional'),
+        descripcionTema: obtenerValor('descripcionTema'),
+        avancesLogros: obtenerValor('avancesLogros'),
+        observacionesProfesionales: obtenerValor('observacionesProfesionales'),
+        recursosContactos: obtenerValor('recursosContactos'),
+        notasAdicionales: obtenerValor('notasComentarios')
     };
 
-    // Validar campos obligatorios
     if (!datosProfesionales.temaProfesional || !datosProfesionales.descripcionTema || !datosProfesionales.observacionesProfesionales) {
         mostrarError('Por favor, complete los campos obligatorios (*) de la tutoría profesional');
         return;
@@ -518,55 +591,38 @@ async function guardarTutoriaParcial(datos, tipoNombre, action) {
     try {
         mostrarLoaderAtencion();
         
-        console.log('=== GUARDANDO TUTORÍA PARCIAL ===');
-        console.log('Datos a enviar:', datos);
-        console.log('Action:', action);
-        
-        const token = localStorage.getItem('token');
-        const response = await fetch(
-            `${APP_CONFIG.API.BASE_URL}/atencionTutoria.php?action=${action}`,
-            {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(datos)
-            }
-        );
-        
-        console.log('Response status:', response.status);
-        console.log('Response headers:', response.headers);
-        
-        // Capturar la respuesta como texto primero
-        const responseText = await response.text();
-        console.log('Response text:', responseText);
-        
-        ocultarLoaderAtencion();
-        
-        // Intentar parsear como JSON
-        let result;
-        try {
-            result = JSON.parse(responseText);
-        } catch (e) {
-            console.error('Error parseando JSON:', e);
-            console.error('Respuesta HTML recibida:', responseText.substring(0, 500));
-            mostrarError(`Error del servidor: ${response.status}. Revisa la consola para más detalles.`);
-            return;
+        const token = localStorage.getItem('jwt_token');
+        if (!token) {
+            throw new Error('Sesión no válida. Por favor, inicia sesión nuevamente.');
         }
         
+        const response = await fetch(`${API_BASE_URL}/api/atencionTutoria.php?action=${action}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(datos)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.message || `Error ${response.status}: No se pudo guardar`);
+        }
+
         if (result.success) {
-            mostrarExito(`Tutoría ${tipoNombre} guardada correctamente`);
-            // NO cerrar modal, permitir seguir editando
-            // Actualizar observaciones en el objeto actual
             agendamientoActual.observaciones = JSON.stringify(datos);
+            mostrarExito(`✅ Tutoría ${tipoNombre} guardada correctamente`);
         } else {
-            mostrarError(result.message || `Error al guardar tutoría ${tipoNombre}`);
+            throw new Error(result.message || 'Error desconocido al guardar');
         }
+        
     } catch (error) {
+        console.error(`Error al guardar tutoría ${tipoNombre}:`, error);
+        mostrarError(error.message);
+    } finally {
         ocultarLoaderAtencion();
-        console.error('Error al guardar tutoría parcial:', error);
-        mostrarError(`Error de conexión al guardar tutoría ${tipoNombre}`);
     }
 }
 
@@ -577,11 +633,17 @@ window.finalizarTutoria = async function() {
         return;
     }
 
+    // Validar que no esté ya finalizada
+    if (agendamientoActual.estado === 'Realizada') {
+        mostrarError('Esta tutoría ya ha sido finalizada');
+        return;
+    }
+
     // Recopilar todos los datos según el tipo de tutoría
     let datosCompletos = {
         idTutoria: agendamientoActual.id,
         tipoTutoria: agendamientoActual.tipoTutoria,
-        notasAdicionales: document.getElementById('notasAdicionalesAtencion')?.value || ''
+        notasAdicionales: document.getElementById('notasComentarios')?.value || ''
     };
 
     // Agregar datos específicos según el tipo
@@ -634,11 +696,53 @@ window.finalizarTutoria = async function() {
         }
     }
 
-    // Confirmar finalización
-    if (!confirm('¿Está seguro de finalizar esta tutoría? Una vez finalizada no podrá ser modificada.')) {
+    // Validar campos obligatorios antes de mostrar confirmación
+    const camposVacios = validarCamposObligatorios(agendamientoActual.tipoTutoria);
+    if (camposVacios.length > 0) {
+        mostrarError(`Por favor complete los siguientes campos obligatorios: ${camposVacios.join(', ')}`);
         return;
     }
 
+    // Mostrar modal de confirmación personalizado
+    mostrarModalConfirmacion(
+        '⚠️ Confirmar Finalización',
+        '¿Está seguro de finalizar esta tutoría?<br><br><strong>Una vez finalizada no podrá ser modificada.</strong>',
+        async () => {
+            await ejecutarFinalizacion(datosCompletos);
+        }
+    );
+};
+
+function validarCamposObligatorios(tipoTutoria) {
+    const camposVacios = [];
+    
+    if (tipoTutoria === 'Academica') {
+        if (!document.getElementById('temaPrincipalAtencion')?.value) 
+            camposVacios.push('Tema Principal');
+        if (!document.getElementById('contenidoEspecificoAtencion')?.value) 
+            camposVacios.push('Contenido Específico');
+        if (!document.getElementById('observacionesDesempenoAtencion')?.value) 
+            camposVacios.push('Observaciones de Desempeño');
+    } else if (tipoTutoria === 'Personal') {
+        if (!document.getElementById('situacionPersonal')?.value) 
+            camposVacios.push('Situación Personal');
+        if (!document.getElementById('estadoEmocional')?.value) 
+            camposVacios.push('Estado Emocional');
+        if (!document.getElementById('observacionesPersonales')?.value) 
+            camposVacios.push('Observaciones Personales');
+    } else if (tipoTutoria === 'Profesional') {
+        if (!document.getElementById('temaProfesional')?.value) 
+            camposVacios.push('Tema Profesional');
+        if (!document.getElementById('descripcionTema')?.value) 
+            camposVacios.push('Descripción del Tema');
+        if (!document.getElementById('observacionesProfesionales')?.value) 
+            camposVacios.push('Observaciones Profesionales');
+    }
+    
+    return camposVacios;
+}
+
+async function ejecutarFinalizacion(datosCompletos) {
     try {
         mostrarLoaderAtencion();
         

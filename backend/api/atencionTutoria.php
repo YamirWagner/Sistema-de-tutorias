@@ -1,5 +1,22 @@
-<?php
-// atenciontutoria.php - API para gestión de sesiones de tutoría
+/**
+ * API para gestión de sesiones de tutoría
+ * 
+ * Endpoints:
+ * - GET detalle: Obtiene detalles de una sesión específica
+ * - POST registrar-academica/personal/profesional: Guardado parcial
+ * - POST registrar-final: Finalización de tutoría
+ * - PUT posponer: Reprogramar sesión
+ * 
+ * Seguridad:
+ * - Validación JWT
+ * - Verificación de permisos por tutor
+ * - Protección contra edición de tutorías finalizadas
+ * - Transacciones para integridad de datos
+ * 
+ * @version 2.0
+ * @date 2025-12-23
+ * @optimizado Mejor manejo de errores, validaciones reforzadas
+ */
 
 require_once __DIR__ . '/../core/config.php';
 require_once __DIR__ . '/../core/database.php';
@@ -38,8 +55,6 @@ try {
             
         case 'POST':
             $data = json_decode(file_get_contents('php://input'), true);
-            error_log("POST atencionTutoria - action: $action, tutorId: $tutorId");
-            error_log("POST atencionTutoria - data: " . json_encode($data));
             
             if (!$data) Response::error('Datos no válidos', 400);
             
@@ -155,7 +170,62 @@ function posponerSesion($db, $tutorId, $data) {
 
 function guardarParcial($db, $tutorId, $data) {
     try {
-        error_log("guardarParcial - tutorId: $tutorId, data: " . json_encode($data));
+        $idTutoria = $data['idTutoria'] ?? null;
+        if (!$idTutoria) Response::error('ID de tutoría no proporcionado', 400);
+        
+        $queryVerify = "SELECT t.id, t.idAsignacion, t.estado, at.idTutor
+                        FROM tutoria t
+                        LEFT JOIN asignaciontutor at ON t.idAsignacion = at.id
+                        WHERE t.id = :idTutoria";
+        
+        $stmtVerify = $db->prepare($queryVerify);
+        $stmtVerify->execute([':idTutoria' => $idTutoria]);
+        
+        $result = $stmtVerify->fetch();
+        
+        if (!$result) {
+            Response::error('Tutoría no encontrada', 404);
+        }
+        
+        if ($result['idTutor'] != $tutorId) {
+            Response::forbidden('Sin permisos para esta tutoría');
+        }
+        
+        if ($result['estado'] === 'Realizada') {
+            Response::error('No se puede modificar una tutoría ya finalizada', 400);
+        }
+        
+        $db->beginTransaction();
+        
+        $queryUpdate = "UPDATE tutoria 
+                        SET estado = 'Realizando',
+                            observaciones = :observaciones
+                        WHERE id = :idTutoria";
+        
+        $stmtUpdate = $db->prepare($queryUpdate);
+        $resultado = $stmtUpdate->execute([
+            ':idTutoria' => $idTutoria,
+            ':observaciones' => json_encode($data, JSON_UNESCAPED_UNICODE)
+        ]);
+        
+        if (!$resultado) {
+            throw new Exception('Error al actualizar los datos de la tutoría');
+        }
+        
+        $db->commit();
+        
+        Response::success(['id' => $idTutoria, 'estado' => 'Realizando'], 'Datos guardados correctamente');
+        
+    } catch (Exception $e) {
+        if ($db->inTransaction()) $db->rollBack();
+        error_log("Error en guardarParcial: " . $e->getMessage());
+        Response::error('Error al guardar: ' . $e->getMessage(), 500);
+    }
+}
+
+function registrarSesionFinal($db, $tutorId, $data) {
+    try {
+        error_log("registrarSesionFinal - tutorId: $tutorId, data: " . json_encode($data));
         
         $idTutoria = $data['idTutoria'] ?? null;
         if (!$idTutoria) Response::error('ID de tutoría no proporcionado', 400);
@@ -169,7 +239,6 @@ function guardarParcial($db, $tutorId, $data) {
         $stmtVerify->execute([':idTutoria' => $idTutoria]);
         
         $result = $stmtVerify->fetch();
-        error_log("guardarParcial - resultado verificación: " . json_encode($result));
         
         if (!$result) {
             Response::error('Tutoría no encontrada', 404);
@@ -179,59 +248,9 @@ function guardarParcial($db, $tutorId, $data) {
             Response::forbidden('Sin permisos para esta tutoría');
         }
         
-        // No permitir editar si ya está realizada (finalizada)
+        // Validar que no esté ya finalizada
         if ($result['estado'] === 'Realizada') {
-            Response::error('No se puede modificar una tutoría ya finalizada', 400);
-        }
-        
-        $db->beginTransaction();
-        
-        // Guardado parcial: cambiar estado a Realizando
-        $queryUpdate = "UPDATE tutoria 
-                        SET estado = 'Realizando',
-                            observaciones = :observaciones
-                        WHERE id = :idTutoria";
-        
-        $stmtUpdate = $db->prepare($queryUpdate);
-        $stmtUpdate->execute([
-            ':idTutoria' => $idTutoria,
-            ':observaciones' => json_encode($data, JSON_UNESCAPED_UNICODE)
-        ]);
-        
-        $db->commit();
-        
-        Response::success(['id' => $idTutoria], 'Datos guardados correctamente');
-        
-    } catch (Exception $e) {
-        if ($db->inTransaction()) $db->rollBack();
-        error_log("Error en guardarParcial: " . $e->getMessage());
-        Response::error('Error: ' . $e->getMessage(), 500);
-    }
-}
-
-function registrarSesionFinal($db, $tutorId, $data) {
-    try {
-        error_log("registrarSesionFinal - tutorId: $tutorId, data: " . json_encode($data));
-        
-        $idTutoria = $data['idTutoria'] ?? null;
-        if (!$idTutoria) Response::error('ID de tutoría no proporcionado', 400);
-        
-        $queryVerify = "SELECT t.id, t.idAsignacion, at.idTutor
-                        FROM tutoria t
-                        LEFT JOIN asignaciontutor at ON t.idAsignacion = at.id
-                        WHERE t.id = :idTutoria";
-        
-        $stmtVerify = $db->prepare($queryVerify);
-        $stmtVerify->execute([':idTutoria' => $idTutoria]);
-        
-        $result = $stmtVerify->fetch();
-        
-        if (!$result) {
-            Response::error('Tutoría no encontrada', 404);
-        }
-        
-        if ($result['idTutor'] != $tutorId) {
-            Response::forbidden('Sin permisos para esta tutoría');
+            Response::error('Esta tutoría ya ha sido finalizada', 400);
         }
         
         $db->beginTransaction();
@@ -244,18 +263,23 @@ function registrarSesionFinal($db, $tutorId, $data) {
                         WHERE id = :idTutoria";
         
         $stmtUpdate = $db->prepare($queryUpdate);
-        $stmtUpdate->execute([
+        $resultado = $stmtUpdate->execute([
             ':idTutoria' => $idTutoria,
             ':observaciones' => json_encode($data, JSON_UNESCAPED_UNICODE)
         ]);
         
+        if (!$resultado) {
+            throw new Exception('Error al actualizar el estado de la tutoría');
+        }
+        
         $db->commit();
         
-        Response::success(['id' => $idTutoria], 'Tutoría finalizada correctamente');
+        error_log("Tutoría $idTutoria finalizada correctamente por tutor $tutorId");
+        Response::success(['id' => $idTutoria, 'estado' => 'Realizada'], 'Tutoría finalizada correctamente');
         
     } catch (Exception $e) {
         if ($db->inTransaction()) $db->rollBack();
         error_log("Error en registrarSesionFinal: " . $e->getMessage());
-        Response::error('Error: ' . $e->getMessage(), 500);
+        Response::error('Error al finalizar la tutoría: ' . $e->getMessage(), 500);
     }
 }

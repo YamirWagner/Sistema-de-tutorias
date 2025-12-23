@@ -716,6 +716,77 @@
         agendamientoSeleccionado = null;
     }
 
+    function esJSONDeAtencion(observaciones) {
+        if (!observaciones) return false;
+        
+        try {
+            const datos = typeof observaciones === 'string' 
+                ? JSON.parse(observaciones) 
+                : observaciones;
+            
+            return datos && typeof datos === 'object' && datos.tipoTutoria;
+        } catch {
+            return false;
+        }
+    }
+
+    function generarDetalleAtencion(agendamiento) {
+        if (!agendamiento.observaciones) return '';
+        
+        try {
+            const datos = typeof agendamiento.observaciones === 'string' 
+                ? JSON.parse(agendamiento.observaciones) 
+                : agendamiento.observaciones;
+            
+            if (!datos || typeof datos !== 'object' || !datos.tipoTutoria) return '';
+            
+            let items = [];
+            
+            if (datos.tipoTutoria === 'Academica') {
+                if (datos.temaPrincipal) items.push(`<strong>Tema Principal:</strong> ${datos.temaPrincipal}`);
+                if (datos.contenidoEspecifico) items.push(`<strong>Contenido Específico:</strong> ${datos.contenidoEspecifico}`);
+                if (datos.observacionesDesempeno) items.push(`<strong>Observaciones de Desempeño:</strong> ${datos.observacionesDesempeno}`);
+                if (datos.actividadesRealizadas) items.push(`<strong>Actividades Realizadas:</strong> ${datos.actividadesRealizadas}`);
+                if (datos.tareasAsignadas) items.push(`<strong>Tareas Asignadas:</strong> ${datos.tareasAsignadas}`);
+                if (datos.recursosRecomendados) items.push(`<strong>Recursos Recomendados:</strong> ${datos.recursosRecomendados}`);
+                
+            } else if (datos.tipoTutoria === 'Personal') {
+                if (datos.situacionPersonal) items.push(`<strong>Situación Personal:</strong> ${datos.situacionPersonal}`);
+                if (datos.estadoEmocional) items.push(`<strong>Estado Emocional:</strong> ${datos.estadoEmocional}`);
+                if (datos.observacionesPersonales) items.push(`<strong>Observaciones:</strong> ${datos.observacionesPersonales}`);
+                if (datos.accionesTomadas) items.push(`<strong>Acciones Tomadas:</strong> ${datos.accionesTomadas}`);
+                if (datos.requiereDerivacion === 'Si') {
+                    items.push(`<strong>⚠️ Requiere Derivación Psicológica:</strong> Sí`);
+                    if (datos.motivoDerivacion) items.push(`<strong>Motivo:</strong> ${datos.motivoDerivacion}`);
+                }
+                
+            } else if (datos.tipoTutoria === 'Profesional') {
+                if (datos.temaProfesional) items.push(`<strong>Tema Profesional:</strong> ${datos.temaProfesional}`);
+                if (datos.descripcionTema) items.push(`<strong>Descripción:</strong> ${datos.descripcionTema}`);
+                if (datos.avancesLogros) items.push(`<strong>Avances y Logros:</strong> ${datos.avancesLogros}`);
+                if (datos.observacionesProfesionales) items.push(`<strong>Observaciones:</strong> ${datos.observacionesProfesionales}`);
+                if (datos.recursosContactos) items.push(`<strong>Recursos y Contactos:</strong> ${datos.recursosContactos}`);
+            }
+            
+            if (datos.notasAdicionales) items.push(`<strong>Notas Adicionales:</strong> ${datos.notasAdicionales}`);
+            
+            if (items.length === 0) return '';
+            
+            return `
+                <div class="detalle-fila-completa" style="background: #f8f9fa; padding: 16px; border-left: 4px solid #8B1C1C;">
+                    <div class="detalle-label">📋 Detalle de la Atención</div>
+                    <div class="detalle-valor" style="line-height: 1.8;">
+                        ${items.join('<br><br>')}
+                    </div>
+                </div>
+            `;
+            
+        } catch (error) {
+            console.error('Error al parsear observaciones:', error);
+            return '';
+        }
+    }
+
     function mostrarDetalleAgendamiento(agendamiento) {
         const body = document.getElementById('detalleAgendamientoBody');
         const footer = document.getElementById('detalleAgendamientoFooter');
@@ -757,7 +828,7 @@
                 </div>
             </div>
             
-            ${agendamiento.observaciones ? `
+            ${agendamiento.observaciones && !esJSONDeAtencion(agendamiento.observaciones) ? `
                 <div class="detalle-fila-completa">
                     <div class="detalle-label">Observaciones</div>
                     <div class="detalle-valor">${agendamiento.observaciones}</div>
@@ -769,6 +840,7 @@
                     <div class="detalle-valor">${agendamiento.motivoCancelacion}</div>
                 </div>
             ` : ''}
+            ${generarDetalleAtencion(agendamiento)}
         `;
 
         // Mostrar botones según el estado del agendamiento

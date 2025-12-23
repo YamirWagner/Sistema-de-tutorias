@@ -1042,6 +1042,92 @@ textarea.form-control {
     font-weight: 600;
 }
 
+/* ==================== DETALLE DE ATENCIÓN ==================== */
+.detalle-atencion-wrapper {
+    margin-top: 24px;
+    padding: 20px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-radius: 12px;
+    border: 2px solid #8B1C1C;
+    box-shadow: 0 4px 12px rgba(139, 28, 28, 0.1);
+}
+
+.detalle-atencion-header {
+    font-size: 16px;
+    font-weight: 700;
+    color: #8B1C1C;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #8B1C1C;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.detalle-atencion-content {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.detalle-atencion-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px 14px;
+    background: white;
+    border-radius: 8px;
+    border-left: 4px solid #8B1C1C;
+    transition: all 0.3s ease;
+}
+
+.detalle-atencion-item:hover {
+    background: #fff9f9;
+    box-shadow: 0 2px 8px rgba(139, 28, 28, 0.1);
+    transform: translateX(4px);
+}
+
+.detalle-atencion-item.detalle-atencion-alerta {
+    background: #fff9e6;
+    border-left-color: #ff9800;
+}
+
+.detalle-atencion-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #555;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.detalle-atencion-value {
+    font-size: 14px;
+    color: #2c3e50;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.detalle-atencion-notas {
+    margin-top: 16px;
+    padding: 14px 16px;
+    background: #fff3cd;
+    border-radius: 8px;
+    border-left: 4px solid #ffc107;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.detalle-atencion-notas .detalle-atencion-label {
+    color: #856404;
+}
+
+.detalle-atencion-notas .detalle-atencion-value {
+    color: #664d03;
+}
+
 /* ==================== RESPONSIVE ==================== */
 @media (max-width: 768px) {
     .agendamiento-header {
