@@ -1,3 +1,4 @@
+<?php
 /**
  * API para gestión de sesiones de tutoría
  * 

@@ -28,6 +28,7 @@
 
     // ================== ESTADO ==================
     let estudiantes = [];
+    let sessionsMap = {};
 
     // ================== CARGA DE DATOS ==================
     async function cargarDatosYRender() {
@@ -39,6 +40,19 @@
             } else {
                 estudiantes = [];
                 console.error('Error al cargar estudiantes:', data.message);
+            }
+
+            // intentar poblar sessionsMap si existe un array global `agendamientos`
+            try {
+                if (typeof agendamientos !== 'undefined' && Array.isArray(agendamientos)) {
+                    sessionsMap = mapSessionsByStudent();
+                } else if (window.sessionsMap && typeof window.sessionsMap === 'object') {
+                    sessionsMap = window.sessionsMap;
+                } else {
+                    sessionsMap = {};
+                }
+            } catch (e) {
+                sessionsMap = {};
             }
 
             renderTabla(estudiantes);
@@ -167,23 +181,38 @@
             const tdEst = document.createElement('td');
             tdEst.innerHTML = `<strong>${nombre}</strong><br><small>${codigo}</small>`;
 
-            const tdA = document.createElement('td');
-            tdA.className = 'center';
+            // Académica: fecha y modalidad
+            const tdADate = document.createElement('td');
+            tdADate.className = 'center';
             const aDate = map.Academica.date || null;
-            const aMod = map.Academica.modalidad || '';
-            tdA.innerHTML = `<div><span class="session-date">${aDate ? formatDateShort(aDate) : '--/--/--'} - ${aMod ? shortModal(aMod) : 'Mod'}</span></div>`;
+            tdADate.textContent = aDate ? formatDateShort(aDate) : '--/--/--';
 
-            const tdP = document.createElement('td');
-            tdP.className = 'center';
+            const tdAMod = document.createElement('td');
+            tdAMod.className = 'center';
+            const aMod = map.Academica.modalidad || map.lastModalidad || '';
+            tdAMod.textContent = aMod ? shortModal(aMod) : 'Mod';
+
+            // Personal: fecha y modalidad
+            const tdPDate = document.createElement('td');
+            tdPDate.className = 'center';
             const pDate = map.Personal.date || null;
-            const pMod = map.Personal.modalidad || '';
-            tdP.innerHTML = `<div><span class="session-date">${pDate ? formatDateShort(pDate) : '--/--/--'} - ${pMod ? shortModal(pMod) : 'Mod'}</span></div>`;
+            tdPDate.textContent = pDate ? formatDateShort(pDate) : '--/--/--';
 
-            const tdPr = document.createElement('td');
-            tdPr.className = 'center';
+            const tdPMod = document.createElement('td');
+            tdPMod.className = 'center';
+            const pMod = map.Personal.modalidad || map.lastModalidad || '';
+            tdPMod.textContent = pMod ? shortModal(pMod) : 'Mod';
+
+            // Profesional: fecha y modalidad
+            const tdPrDate = document.createElement('td');
+            tdPrDate.className = 'center';
             const prDate = map.Profesional.date || null;
-            const prMod = map.Profesional.modalidad || '';
-            tdPr.innerHTML = `<div><span class="session-date">${prDate ? formatDateShort(prDate) : '--/--/--'} - ${prMod ? shortModal(prMod) : 'Mod'}</span></div>`;
+            tdPrDate.textContent = prDate ? formatDateShort(prDate) : '--/--/--';
+
+            const tdPrMod = document.createElement('td');
+            tdPrMod.className = 'center';
+            const prMod = map.Profesional.modalidad || map.lastModalidad || '';
+            tdPrMod.textContent = prMod ? shortModal(prMod) : 'Mod';
 
             const tdCount = document.createElement('td');
             tdCount.className = 'center';
@@ -206,9 +235,12 @@
             tdAction.appendChild(btn);
 
             row.appendChild(tdEst);
-            row.appendChild(tdA);
-            row.appendChild(tdP);
-            row.appendChild(tdPr);
+            row.appendChild(tdADate);
+            row.appendChild(tdAMod);
+            row.appendChild(tdPDate);
+            row.appendChild(tdPMod);
+            row.appendChild(tdPrDate);
+            row.appendChild(tdPrMod);
             row.appendChild(tdCount);
             row.appendChild(tdAction);
 
