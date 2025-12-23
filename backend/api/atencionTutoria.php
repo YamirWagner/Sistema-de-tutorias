@@ -25,7 +25,8 @@ require_once __DIR__ . '/../core/response.php';
 require_once __DIR__ . '/../core/jwt.php';
 require_once __DIR__ . '/../core/activity.php';
 
-// Evitar que warnings/notices rompan el JSON: se loguea a archivo.
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 ini_set('log_errors', 1);
 ini_set('error_log', __DIR__ . '/../storage/logs/atencion_debug.log');
 

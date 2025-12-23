@@ -44,32 +44,23 @@ function checkAuth() {
     const token = localStorage.getItem('token');
     const path = window.location.pathname;
     const basePath = window.APP_BASE_PATH || '';
-
-    // Normalizar ruta relativa al proyecto para evitar falsos positivos
-    // Ej: "/Sistema-de-tutorias/" contiene "tutor" por "tutorias".
-    let relPath = path;
-    if (basePath && relPath.startsWith(basePath)) {
-        relPath = relPath.slice(basePath.length);
-    }
-    const segments = relPath.split('/').filter(Boolean);
-    const firstSeg = segments[0] || '';
     
     console.log('🔐 checkAuth() ejecutado');
     console.log('   - Path:', path);
     console.log('   - Token presente:', token ? 'SÍ' : 'NO');
     
-    const isPanel = firstSeg === 'panel' || firstSeg === 'dashboard';
-    const isTutor = firstSeg === 'tutor';
-    const isSemestre = firstSeg === 'semestre';
-    const isGestionUsuarios = firstSeg === 'gestion-usuarios';
-    const isAsignaciones = firstSeg === 'asignaciones';
-    const isReportes = firstSeg === 'reportes';
-    const isAuditoria = firstSeg === 'auditoria';
-    const isAsignacionTutor = firstSeg === 'asignacionTutor';
-    const isMisEstudiantes = firstSeg === 'mis-estudiantes';
-    const isLogin = firstSeg === 'login';
-    const isVerify = firstSeg === 'verify';
-    const isIndex = segments.length === 0 || firstSeg === 'index';
+    const isPanel = path.includes('panel') || path.includes('dashboard');
+    const isTutor = path.includes('tutor');
+    const isSemestre = path.includes('semestre');
+    const isGestionUsuarios = path.includes('gestion-usuarios');
+    const isAsignaciones = path.includes('asignaciones');
+    const isReportes = path.includes('reportes');
+    const isAuditoria = path.includes('auditoria');
+    const isAsignacionTutor = path.includes('asignacionTutor');
+    const isMisEstudiantes = path.includes('mis-estudiantes');
+    const isLogin = path.includes('login');
+    const isVerify = path.includes('verify');
+    const isIndex = path.endsWith('/') || path.includes('index');
     
     const isProtectedPage = isPanel || isTutor || isSemestre || isGestionUsuarios || isAsignaciones || isReportes || isAuditoria || isAsignacionTutor || isMisEstudiantes;
     
@@ -518,35 +509,27 @@ function showNotification(message, type = 'info') {
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
     const path = window.location.pathname;
-    const basePath = window.APP_BASE_PATH || '';
-    let relPath = path;
-    if (basePath && relPath.startsWith(basePath)) {
-        relPath = relPath.slice(basePath.length);
-    }
-    const segments = relPath.split('/').filter(Boolean);
-    const firstSeg = segments[0] || '';
     
     console.log('🚀 DOM Cargado - Inicializando aplicación...');
     console.log('📍 Ruta actual:', path);
     
     // Detectar si estamos en una página que requiere el panel (funciona con URLs limpias y .html)
-    const isPanelPage = firstSeg === 'panel' ||
-                       firstSeg === 'dashboard' ||
-                       firstSeg === 'tutor' ||
-                       firstSeg === 'semestre' ||
-                       firstSeg === 'gestion-usuarios' ||
-                       firstSeg === 'asignaciones' ||
-                       firstSeg === 'reportes' ||
-                       firstSeg === 'historial' ||
-                       firstSeg === 'auditoria' ||
-                       firstSeg === 'asignacionTutor' ||
-                       firstSeg === 'mis-estudiantes';
+    const isPanelPage = path.includes('panel') || 
+                       path.includes('dashboard') || 
+                       path.includes('tutor') ||
+                       path.includes('semestre') || 
+                       path.includes('gestion-usuarios') || 
+                       path.includes('asignaciones') ||
+                       path.includes('reportes') ||
+                       path.includes('historial') ||
+                       path.includes('auditoria') ||
+                       path.includes('asignacionTutor') ||
+                       path.includes('mis-estudiantes');
     
     console.log('🔍 Detección de página:');
     console.log('   - isPanelPage:', isPanelPage);
-    console.log('   - firstSeg:', firstSeg);
-    console.log('   - isTutor:', firstSeg === 'tutor');
-    console.log('   - isPanel:', firstSeg === 'panel');
+    console.log('   - includes("tutor"):', path.includes('tutor'));
+    console.log('   - includes("panel"):', path.includes('panel'));
     
     if (isPanelPage) {
         console.log('✅ Detectada página de panel/módulo - Inicializando dashboard...');
