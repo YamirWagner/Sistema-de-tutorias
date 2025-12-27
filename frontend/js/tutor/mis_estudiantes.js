@@ -29,6 +29,7 @@
 
     // ================== ESTADO ==================
     let estudiantes = [];
+    let sessionsMap = {};
 
     // ================== CARGA DE DATOS ==================
     async function cargarDatosYRender() {
@@ -40,6 +41,19 @@
             } else {
                 estudiantes = [];
                 console.error('Error al cargar estudiantes:', data.message);
+            }
+
+            // intentar poblar sessionsMap si existe un array global `agendamientos`
+            try {
+                if (typeof agendamientos !== 'undefined' && Array.isArray(agendamientos)) {
+                    sessionsMap = mapSessionsByStudent();
+                } else if (window.sessionsMap && typeof window.sessionsMap === 'object') {
+                    sessionsMap = window.sessionsMap;
+                } else {
+                    sessionsMap = {};
+                }
+            } catch (e) {
+                sessionsMap = {};
             }
 
             renderTabla(estudiantes);
