@@ -1,0 +1,419 @@
+/**
+ * Estilos para Modal de Generación de PDF - Constancia de Tutoría
+ * Sistema de Tutorías UNSAAC
+ */
+
+/* === MODAL OVERLAY === */
+.modal-overlay-pdf {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.3s ease;
+    backdrop-filter: blur(3px);
+}
+
+.modal-content-pdf {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    width: 90%;
+    max-width: 1200px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    animation: slideUp 0.3s ease;
+    overflow: hidden;
+}
+
+/* === HEADER === */
+.modal-header-pdf {
+    background: linear-gradient(135deg, #7B1113 0%, #9B192D 100%);
+    color: #fff;
+    padding: 20px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.modal-header-pdf h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.modal-close-btn-pdf {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: #fff;
+    font-size: 28px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.modal-close-btn-pdf:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: rotate(90deg) scale(1.1);
+}
+
+/* === NOTIFICATIONS === */
+.pdf-notification {
+    padding: 12px 30px;
+    margin: 0;
+    border-bottom: 1px solid #E5E7EB;
+    animation: slideDown 0.3s ease;
+}
+
+.pdf-notification.success {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+}
+
+.pdf-notification.error {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+}
+
+.pdf-notification.info {
+    background-color: #d1ecf1;
+    border-color: #bee5eb;
+}
+
+.notification-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.notification-icon {
+    font-size: 18px;
+}
+
+.notification-message {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* === CONFIRM DIALOG === */
+.pdf-confirm-dialog {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    z-index: 10001;
+    padding: 30px;
+    min-width: 400px;
+    max-width: 500px;
+    animation: fadeIn 0.3s ease;
+}
+
+.confirm-content {
+    text-align: center;
+}
+
+.confirm-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+}
+
+.confirm-message {
+    font-size: 16px;
+    color: #374151;
+    margin-bottom: 25px;
+    line-height: 1.5;
+}
+
+.confirm-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.btn-confirm-yes,
+.btn-confirm-no {
+    padding: 10px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-confirm-yes {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+}
+
+.btn-confirm-yes:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+
+.btn-confirm-no {
+    background: #E5E7EB;
+    color: #374151;
+}
+
+.btn-confirm-no:hover {
+    background: #D1D5DB;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* === BODY === */
+.modal-body-pdf {
+    flex: 1;
+    position: relative;
+    background: #e5e7eb;
+    min-height: 600px;
+    max-height: 80vh;
+    overflow-y: auto !important;
+    overflow-x: hidden;
+}
+
+.iframe-pdf {
+    width: 100%;
+    height: 100%;
+    min-height: 600px;
+    border: none;
+    background: #2d3748;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+}
+
+/* === LOADING INDICATOR === */
+.pdf-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.spinner-pdf {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #7B1113;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+}
+
+.loading-text-pdf {
+    font-size: 16px;
+    color: #333;
+    font-weight: 500;
+}
+
+/* === ERROR MESSAGE === */
+.pdf-error-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    text-align: center;
+    z-index: 100;
+    max-width: 500px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.error-icon {
+    font-size: 60px;
+    color: #F59E0B;
+}
+
+.error-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: #1F2937;
+}
+
+.error-subtitle {
+    font-size: 14px;
+    color: #6B7280;
+    margin-bottom: 10px;
+}
+
+.error-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* === FOOTER === */
+.modal-footer-pdf {
+    background: #fff;
+    padding: 20px 30px;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    flex-shrink: 0;
+}
+
+.btn-footer-pdf {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-primary-pdf {
+    background: linear-gradient(135deg, #7B1113 0%, #9B192D 100%);
+    color: #fff;
+    box-shadow: 0 2px 4px rgba(123, 17, 19, 0.2);
+}
+
+.btn-primary-pdf:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(123, 17, 19, 0.3);
+}
+
+.btn-success-pdf {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: #fff;
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
+}
+
+.btn-success-pdf:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+
+.btn-secondary-pdf {
+    background: #6B7280;
+    color: #fff;
+    box-shadow: 0 2px 4px rgba(107, 114, 128, 0.2);
+}
+
+.btn-secondary-pdf:hover {
+    background: #4B5563;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(107, 114, 128, 0.3);
+}
+
+.btn-tertiary-pdf {
+    background: #E5E7EB;
+    color: #374151;
+}
+
+.btn-tertiary-pdf:hover {
+    background: #D1D5DB;
+}
+
+/* === ANIMATIONS === */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+    .modal-content-pdf {
+        width: 95%;
+        max-height: 95vh;
+    }
+    
+    .modal-header-pdf {
+        padding: 15px 20px;
+    }
+    
+    .modal-header-pdf h2 {
+        font-size: 1.2rem;
+    }
+    
+    .modal-footer-pdf {
+        padding: 15px 20px;
+        flex-direction: column;
+    }
+    
+    .btn-footer-pdf {
+        width: 100%;
+    }
+    
+    .pdf-error-message {
+        padding: 30px 20px;
+        max-width: 90%;
+    }
+    
+    .error-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .error-buttons button {
+        width: 100%;
+    }
+}

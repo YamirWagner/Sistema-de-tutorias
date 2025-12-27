@@ -139,17 +139,20 @@ function getListaEstudiantes($db, $tutorId) {
                     -- Sesiones Académicas
                     COUNT(CASE WHEN t.tipo = 'Academica' AND t.estado = 'Realizada' THEN 1 END) as sesionesAcademica,
                     MAX(CASE WHEN t.tipo = 'Academica' AND t.estado = 'Realizada' THEN t.fecha END) as ultimaAcademica,
+                    (SELECT modalidad FROM tutoria WHERE idAsignacion = a.id AND tipo = 'Academica' AND estado = 'Realizada' ORDER BY fecha DESC LIMIT 1) as modalidadAcademica,
                     
                     -- Sesiones Personales
                     COUNT(CASE WHEN t.tipo = 'Personal' AND t.estado = 'Realizada' THEN 1 END) as sesionesPersonal,
                     MAX(CASE WHEN t.tipo = 'Personal' AND t.estado = 'Realizada' THEN t.fecha END) as ultimaPersonal,
+                    (SELECT modalidad FROM tutoria WHERE idAsignacion = a.id AND tipo = 'Personal' AND estado = 'Realizada' ORDER BY fecha DESC LIMIT 1) as modalidadPersonal,
                     
                     -- Sesiones Profesionales
                     COUNT(CASE WHEN t.tipo = 'Profesional' AND t.estado = 'Realizada' THEN 1 END) as sesionesProfesional,
                     MAX(CASE WHEN t.tipo = 'Profesional' AND t.estado = 'Realizada' THEN t.fecha END) as ultimaProfesional,
+                    (SELECT modalidad FROM tutoria WHERE idAsignacion = a.id AND tipo = 'Profesional' AND estado = 'Realizada' ORDER BY fecha DESC LIMIT 1) as modalidadProfesional,
                     
-                                        -- Modalidad utilizada (última registrada en sesión realizada)
-                                        MAX(CASE WHEN t.estado = 'Realizada' THEN t.modalidad END) as modalidadPreferida,
+                    -- Modalidad utilizada (última registrada en sesión realizada)
+                    MAX(CASE WHEN t.estado = 'Realizada' THEN t.modalidad END) as modalidadPreferida,
                     
                     -- Total de sesiones realizadas
                     COUNT(CASE WHEN t.estado = 'Realizada' THEN 1 END) as totalSesiones
@@ -161,7 +164,7 @@ function getListaEstudiantes($db, $tutorId) {
                     AND a.idSemestre = :semestre_id
                     AND a.estado = 'Activa'
                     AND e.estado = 'Activo'
-                  GROUP BY e.id, e.codigo, e.nombres, e.apellidos, e.correo, e.semestre, a.fechaAsignacion
+                  GROUP BY e.id, e.codigo, e.nombres, e.apellidos, e.correo, e.semestre, a.fechaAsignacion, a.id
                   ORDER BY e.apellidos, e.nombres";
         
         $stmt = $db->prepare($query);
@@ -389,14 +392,16 @@ function generarConstancia($db, $tutorId, $data) {
         // Obtener datos completos para la constancia
         $queryDatos = "SELECT 
                         e.codigo, e.nombres, e.apellidos, e.correo,
-                        t.nombres as tutorNombres, 
-                        t.apellidos as tutorApellidos
-                      FROM estudiante e, tutor t, asignaciontutor a
+                        u.nombres as tutorNombres, 
+                        u.apellidos as tutorApellidos
+                      FROM estudiante e
+                      INNER JOIN asignaciontutor a ON a.idEstudiante = e.id
+                      INNER JOIN usuariosistema u ON u.id = a.idTutor
                       WHERE e.id = :estudiante_id
-                        AND t.id = :tutor_id
-                        AND a.idEstudiante = e.id
-                        AND a.idTutor = t.id
-                        AND a.idSemestre = :semestre_id";
+                        AND a.idTutor = :tutor_id
+                        AND a.idSemestre = :semestre_id
+                        AND a.estado = 'Activa'
+                      LIMIT 1";
         
         $stmtDatos = $db->prepare($queryDatos);
         $stmtDatos->bindParam(':estudiante_id', $estudianteId, PDO::PARAM_INT);

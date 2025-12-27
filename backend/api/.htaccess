@@ -1,0 +1,7 @@
+RewriteEngine On
+RewriteCond %{HTTP:Authorization} ^(.*)
+RewriteRule .* - [e=HTTP_AUTHORIZATION:%1]
+
+<Files "generar-pdf.php">
+    Require all granted
+</Files>

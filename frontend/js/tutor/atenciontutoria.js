@@ -115,6 +115,14 @@ function asignarValorSeguro(elementId, valor) {
     }
 }
 
+// Obtener de forma segura el valor de un campo por id
+function obtenerValor(elementId) {
+    const elemento = document.getElementById(elementId);
+    if (!elemento) return '';
+    const valor = elemento.value ?? '';
+    return typeof valor === 'string' ? valor.trim() : valor;
+}
+
 function mostrarSeccionesSegunTipo(tipoTutoria) {
     // Ocultar todas las secciones específicas
     const seccionAcademica = document.getElementById('seccionAcademica');
@@ -603,13 +611,17 @@ window.guardarSeccionProfesional = async function() {
 async function guardarTutoriaParcial(datos, tipoNombre, action) {
     try {
         mostrarLoaderAtencion();
-        
-        const token = localStorage.getItem('jwt_token');
+        const token = localStorage.getItem('token');
         if (!token) {
-            throw new Error('Sesión no válida. Por favor, inicia sesión nuevamente.');
+            const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+            ocultarLoaderAtencion();
+            mostrarError('Sesión no válida o expirada. Redirigiendo al inicio de sesión...');
+            setTimeout(() => {
+                window.location.href = basePath + '/login';
+            }, 1500);
+            return;
         }
-        
-        const response = await fetch(`${API_BASE_URL}/api/atencionTutoria.php?action=${action}`, {
+        const response = await fetch(`${APP_CONFIG.API.BASE_URL}/atencionTutoria.php?action=${action}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

@@ -248,6 +248,21 @@ async function initDashboard() {
         }
     }
     
+    // Cargar componente de PDF para tutores
+    if (userRole === 'tutor') {
+        const pdfModalPath = '/Sistema-de-tutorias/frontend/components/tutor/generar-pdf.html';
+        try {
+            const response = await fetch(pdfModalPath);
+            if (response.ok) {
+                const html = await response.text();
+                modalsCheck.insertAdjacentHTML('beforeend', html);
+                console.log('✅ Modal de PDF cargado para tutor');
+            }
+        } catch (error) {
+            console.error('❌ Error cargando modal de PDF:', error);
+        }
+    }
+    
     // Actualizar versión en el footer
     setTimeout(() => {
         if (window.APP_VERSION) {

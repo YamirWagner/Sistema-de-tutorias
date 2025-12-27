@@ -19,8 +19,13 @@ backend/storage/backups/*
 
 # Dependencias PHP
 /vendor/
+backend/vendor/
 composer.lock
 composer.phar
+
+# Archivos generados de PDFs
+backend/storage/constancias/
+!backend/storage/constancias/.gitkeep
 
 # Dependencias Node (si se usa)
 node_modules/

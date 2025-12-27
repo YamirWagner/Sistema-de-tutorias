@@ -104,7 +104,7 @@ class Activity {
                 'usuario' => $payload['name'] ?? null,
                 'tipoAcceso' => self::mapRole($role, $userType),
                 'accion' => 'actividad',
-                'descripcion' => "${method} ${path}",
+                'descripcion' => "{$method} {$path}",
                 'estadoSesion' => 'activa',
                 'ipOrigen' => self::clientIp(),
             ];

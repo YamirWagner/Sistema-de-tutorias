@@ -288,7 +288,38 @@ INSERT INTO verificacion (idTutoria, idVerificador, fechaVerificacion, comentari
 (4, 9, '2025-06-05', 'Tutoría aprobada', 1);
 
 -- ============================================
--- 9. TABLA LOGACCESO (Bitácora del sistema)
+-- 9. TABLA CONSTANCIA
+-- ============================================
+CREATE TABLE IF NOT EXISTS constancia (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    idTutor INT NOT NULL,
+    idEstudiante INT NOT NULL,
+    idAsignacion INT NOT NULL,
+    idSemestre INT NOT NULL,
+    fechaGeneracion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    rutaPDF VARCHAR(500) NOT NULL,
+    firmado TINYINT(1) DEFAULT 0,
+    fechaFirma DATETIME NULL,
+    estado ENUM('Activo', 'Anulado') DEFAULT 'Activo',
+    observaciones TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (idTutor) REFERENCES usuariosistema(id) ON DELETE CASCADE,
+    FOREIGN KEY (idEstudiante) REFERENCES estudiante(id) ON DELETE CASCADE,
+    FOREIGN KEY (idAsignacion) REFERENCES asignaciontutor(id) ON DELETE CASCADE,
+    FOREIGN KEY (idSemestre) REFERENCES semestre(id) ON DELETE CASCADE,
+    INDEX idx_tutor (idTutor),
+    INDEX idx_estudiante (idEstudiante),
+    INDEX idx_asignacion (idAsignacion),
+    INDEX idx_semestre (idSemestre),
+    INDEX idx_estado (estado),
+    INDEX idx_firmado (firmado),
+    INDEX idx_fecha (fechaGeneracion),
+    UNIQUE KEY unique_constancia (idEstudiante, idAsignacion, idSemestre)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
+-- 10. TABLA LOGACCESO (Bitácora del sistema)
 -- ============================================
 CREATE TABLE IF NOT EXISTS logacceso (
     idLog INT AUTO_INCREMENT PRIMARY KEY,

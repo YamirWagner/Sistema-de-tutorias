@@ -127,6 +127,11 @@ $routes = [
     'GET|api/misEstudiantes' => 'api/misEstudiantes.php',
     'POST|api/misEstudiantes' => 'api/misEstudiantes.php',
 
+    // Rutas de constancias
+    'GET|api/listar-constancias' => 'api/listar-constancias.php',
+    'POST|api/firmar-constancia' => 'api/firmar-constancia.php',
+    'GET|api/generar-reporte-estudiantes' => 'api/generar-reporte-estudiantes.php',
+
     // Rutas de gestión de usuarios
     'GET|api/gestionUsuarios' => 'api/gestionUsuarios.php',
     'POST|api/gestionUsuarios' => 'api/gestionUsuarios.php',

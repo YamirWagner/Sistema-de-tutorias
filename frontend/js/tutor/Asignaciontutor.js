@@ -880,7 +880,7 @@
             // Mostrar botón para continuar editando
             footer.innerHTML = `
                 <button type="button" class="btn btn-success" id="btnContinuarAgendamiento">
-                    <i class="fas fa-edit"></i> Continuar Sesión
+                    <i class="fas fa-edit"></i> Continuar atención
                 </button>
             `;
 
