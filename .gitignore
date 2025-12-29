@@ -18,9 +18,9 @@ backend/storage/backups/*
 !backend/storage/backups/.gitkeep
 
 # Dependencias PHP
-/vendor/
-backend/vendor/
-composer.lock
+# NOTA: vendor/ se incluye en el repo porque el hosting no permite composer install
+# /vendor/
+# backend/vendor/
 composer.phar
 
 # Archivos generados de PDFs
