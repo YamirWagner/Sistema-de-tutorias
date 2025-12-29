@@ -63,7 +63,8 @@
         adminAuditoria: () => window.APP_CONFIG.COMPONENTS.ADMIN.AUDITORIA,
         adminModals: () => window.APP_CONFIG.COMPONENTS.ADMIN.MODALS,
         logo: () => window.APP_CONFIG.ASSETS.LOGO,
-        css: (subpath = '') => window.APP_CONFIG.PATHS.CSS + (subpath ? '/' + subpath : '')
+        css: (subpath = '') => window.APP_CONFIG.PATHS.CSS + (subpath ? '/' + subpath : ''),
+        component: (subpath = '') => window.APP_CONFIG.PATHS.COMPONENTS + (subpath ? '/' + subpath : '')
     };
 
     console.log('✅ Configuración global cargada');

@@ -108,3 +108,165 @@ async function viewMaterials() {
         showNotification('Error al cargar materiales', 'error');
     }
 }
+
+// ============================================
+// FUNCIONES DE CARGA DE MÓDULOS DE ESTUDIANTE
+// ============================================
+
+/**
+ * Cargar contenido del módulo "Inicio" (estudiante.html)
+ */
+async function loadEstudianteContent() {
+    const content = document.getElementById('dashboardContent');
+    if (!content) {
+        console.error('❌ No se encontró el contenedor dashboardContent');
+        return;
+    }
+    
+    try {
+        content.innerHTML = '<div class="loading-message" style="text-align:center;padding:40px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:32px;color:#a42727;"></i><p style="margin-top:16px;color:#666;">Cargando módulo...</p></div>';
+        
+        // Cargar CSS si es necesario
+        const cssPath = '/Sistema-de-tutorias/frontend/css/estudiante/estudiante.css';
+        
+        if (!document.querySelector(`link[href*="estudiante.css"]`)) {
+            const cssLink = document.createElement('link');
+            cssLink.rel = 'stylesheet';
+            cssLink.href = cssPath;
+            document.head.appendChild(cssLink);
+            console.log('✅ CSS cargado:', cssPath);
+        }
+        
+        // Cargar HTML
+        const url = '/Sistema-de-tutorias/frontend/components/estudiante/estudiante.html';
+        console.log('📄 Cargando HTML desde:', url);
+        
+        const response = await fetch(url, { cache: 'no-store' });
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const htmlText = await response.text();
+        content.innerHTML = htmlText;
+        console.log('✅ HTML cargado correctamente');
+        
+        // Cargar dashboard del estudiante
+        await loadStudentDashboard();
+        
+        console.log('✅ Módulo de inicio del estudiante cargado');
+    } catch (error) {
+        console.error('❌ Error al cargar módulo de inicio:', error);
+        content.innerHTML = `<div class="error-message" style="text-align:center;padding:40px;color:#d32f2f;">
+            <i class="fa-solid fa-exclamation-triangle" style="font-size:48px;margin-bottom:16px;"></i>
+            <h3>Error al cargar el módulo</h3>
+            <p style="color:#666;">${error.message}</p>
+        </div>`;
+    }
+}
+
+/**
+ * Cargar contenido del módulo "Sesión actual" (sesion-estudiante.html)
+ */
+async function loadSesionActualContent() {
+    const content = document.getElementById('dashboardContent');
+    if (!content) {
+        console.error('❌ No se encontró el contenedor dashboardContent');
+        return;
+    }
+    
+    try {
+        content.innerHTML = '<div class="loading-message" style="text-align:center;padding:40px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:32px;color:#a42727;"></i><p style="margin-top:16px;color:#666;">Cargando sesión actual...</p></div>';
+        
+        // Cargar CSS si es necesario
+        const cssPath = '/Sistema-de-tutorias/frontend/css/estudiante/sesion-estudiante.css';
+        
+        if (!document.querySelector(`link[href*="sesion-estudiante.css"]`)) {
+            const cssLink = document.createElement('link');
+            cssLink.rel = 'stylesheet';
+            cssLink.href = cssPath;
+            document.head.appendChild(cssLink);
+            console.log('✅ CSS cargado:', cssPath);
+        }
+        
+        // Cargar HTML
+        const url = '/Sistema-de-tutorias/frontend/components/estudiante/sesion-estudiante.html';
+        console.log('📄 Cargando HTML desde:', url);
+        
+        const response = await fetch(url, { cache: 'no-store' });
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const htmlText = await response.text();
+        content.innerHTML = htmlText;
+        console.log('✅ HTML cargado correctamente');
+        
+        // Inicializar funcionalidad de sesión actual
+        // TODO: Implementar lógica de sesión actual
+        console.log('✅ Módulo de sesión actual cargado');
+    } catch (error) {
+        console.error('❌ Error al cargar módulo de sesión actual:', error);
+        content.innerHTML = `<div class="error-message" style="text-align:center;padding:40px;color:#d32f2f;">
+            <i class="fa-solid fa-exclamation-triangle" style="font-size:48px;margin-bottom:16px;"></i>
+            <h3>Error al cargar el módulo</h3>
+            <p style="color:#666;">${error.message}</p>
+        </div>`;
+    }
+}
+
+/**
+ * Cargar contenido del módulo "Historial de tutorías" (historial-estudiante.html)
+ */
+async function loadHistorialTutoriasContent() {
+    const content = document.getElementById('dashboardContent');
+    if (!content) {
+        console.error('❌ No se encontró el contenedor dashboardContent');
+        return;
+    }
+    
+    try {
+        content.innerHTML = '<div class="loading-message" style="text-align:center;padding:40px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:32px;color:#a42727;"></i><p style="margin-top:16px;color:#666;">Cargando historial...</p></div>';
+        
+        // Cargar CSS si es necesario
+        const cssPath = '/Sistema-de-tutorias/frontend/css/estudiante/historial-estudiante.css';
+        
+        if (!document.querySelector(`link[href*="historial-estudiante.css"]`)) {
+            const cssLink = document.createElement('link');
+            cssLink.rel = 'stylesheet';
+            cssLink.href = cssPath;
+            document.head.appendChild(cssLink);
+            console.log('✅ CSS cargado:', cssPath);
+        }
+        
+        // Cargar HTML
+        const url = '/Sistema-de-tutorias/frontend/components/estudiante/historial-estudiante.html';
+        console.log('📄 Cargando HTML desde:', url);
+        
+        const response = await fetch(url, { cache: 'no-store' });
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const htmlText = await response.text();
+        content.innerHTML = htmlText;
+        console.log('✅ HTML cargado correctamente');
+        
+        // Inicializar funcionalidad de historial
+        // TODO: Implementar lógica de historial
+        console.log('✅ Módulo de historial de tutorías cargado');
+    } catch (error) {
+        console.error('❌ Error al cargar módulo de historial:', error);
+        content.innerHTML = `<div class="error-message" style="text-align:center;padding:40px;color:#d32f2f;">
+            <i class="fa-solid fa-exclamation-triangle" style="font-size:48px;margin-bottom:16px;"></i>
+            <h3>Error al cargar el módulo</h3>
+            <p style="color:#666;">${error.message}</p>
+        </div>`;
+    }
+}
+
+// ============================================
+// EXPONER FUNCIONES GLOBALES
+// ============================================
+window.loadEstudianteContent = loadEstudianteContent;
+window.loadSesionActualContent = loadSesionActualContent;
+window.loadHistorialTutoriasContent = loadHistorialTutoriasContent;

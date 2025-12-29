@@ -221,10 +221,8 @@ async function loadSidebarMenu() {
         ],
         student: [
             { icon: 'fa-solid fa-house', text: 'Inicio', module: null, active: true },
-            { icon: 'fa-solid fa-chalkboard-user', text: 'Mi Tutor', module: 'mi-tutor' },
-            { icon: 'fa-solid fa-clock-rotate-left', text: 'Historial de Sesiones', module: 'historial' },
-            { icon: 'fa-solid fa-book-open', text: 'Materiales de Apoyo', module: 'materiales' },
-            { icon: 'fa-solid fa-user-circle', text: 'Mi Perfil', module: 'perfil' },
+            { icon: 'fa-solid fa-calendar-check', text: 'Sesión actual', module: 'sesion-actual' },
+            { icon: 'fa-solid fa-clock-rotate-left', text: 'Historial de tutorías', module: 'historial-tutorias' },
         ],
         verifier: [
             { icon: 'fa-solid fa-clipboard-check', text: 'Lista de Asistencias', module: 'asistencias', active: true },
@@ -294,6 +292,26 @@ function navigateToModule(element) {
     if (!module || module === 'null') {
         // Cambiar URL sin recargar
         window.history.pushState({module: 'inicio'}, '', `${basePath}/panel`);
+        
+        // Obtener el rol del usuario
+        const token = localStorage.getItem('token');
+        let role = 'student';
+        if (token) {
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                role = payload.role || 'student';
+            } catch (error) {
+                console.error('❌ Error al decodificar token:', error);
+            }
+        }
+        
+        // Para estudiante, cargar módulo de inicio
+        if (role === 'student' && typeof window.loadEstudianteContent === 'function') {
+            window.loadEstudianteContent();
+            return;
+        }
+        
+        // Para otros roles, recargar página
         window.location.href = `${basePath}/panel`;
         return;
     }
@@ -313,9 +331,8 @@ function navigateToModule(element) {
         'asignacionTutor': 'loadAsignacionTutorContent',
         'mis-estudiantes': 'loadMisEstudiantesContent',
         // Estudiante
-        'mi-tutor': 'loadMiTutorContent',
-        'materiales': 'loadMaterialesContent',
-        'perfil': 'loadPerfilContent',
+        'sesion-actual': 'loadSesionActualContent',
+        'historial-tutorias': 'loadHistorialTutoriasContent',
         // Verificador
         'asistencias': 'loadAsistenciasContent',
         'buscar-tutorias': 'loadBuscarTutoriasContent',

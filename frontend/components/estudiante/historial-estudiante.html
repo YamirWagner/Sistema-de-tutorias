@@ -1,0 +1,113 @@
+<!-- Historial de Tutorías del Estudiante -->
+<div class="historial-tutorias-container">
+    <div class="dashboard-header">
+        <h2><i class="fa-solid fa-clock-rotate-left"></i> Historial de Tutorías</h2>
+        <p>Registro completo de tus sesiones de tutoría</p>
+    </div>
+
+    <!-- Filtros de búsqueda -->
+    <div class="filters-card">
+        <div class="filters-grid">
+            <div class="filter-item">
+                <label for="filterFechaInicio">Fecha Inicio:</label>
+                <input type="date" id="filterFechaInicio" class="form-control">
+            </div>
+            <div class="filter-item">
+                <label for="filterFechaFin">Fecha Fin:</label>
+                <input type="date" id="filterFechaFin" class="form-control">
+            </div>
+            <div class="filter-item">
+                <label for="filterEstado">Estado:</label>
+                <select id="filterEstado" class="form-control">
+                    <option value="">Todos</option>
+                    <option value="completada">Completada</option>
+                    <option value="cancelada">Cancelada</option>
+                    <option value="ausente">Ausente</option>
+                </select>
+            </div>
+            <div class="filter-actions">
+                <button class="btn btn-primary" onclick="buscarHistorial()">
+                    <i class="fa-solid fa-search"></i> Buscar
+                </button>
+                <button class="btn btn-secondary" onclick="limpiarFiltros()">
+                    <i class="fa-solid fa-eraser"></i> Limpiar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas del historial -->
+    <div class="historial-stats">
+        <div class="stat-item">
+            <i class="fa-solid fa-calendar-check"></i>
+            <div>
+                <h4 id="totalHistorial">0</h4>
+                <p>Total de sesiones</p>
+            </div>
+        </div>
+        <div class="stat-item">
+            <i class="fa-solid fa-check-circle"></i>
+            <div>
+                <h4 id="completadasHistorial">0</h4>
+                <p>Completadas</p>
+            </div>
+        </div>
+        <div class="stat-item">
+            <i class="fa-solid fa-times-circle"></i>
+            <div>
+                <h4 id="canceladasHistorial">0</h4>
+                <p>Canceladas</p>
+            </div>
+        </div>
+        <div class="stat-item">
+            <i class="fa-solid fa-clock"></i>
+            <div>
+                <h4 id="horasTotales">0</h4>
+                <p>Horas totales</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de historial -->
+    <div class="historial-table-card">
+        <div class="table-header">
+            <h3><i class="fa-solid fa-list"></i> Registro de Sesiones</h3>
+            <button class="btn btn-success" onclick="exportarHistorial()">
+                <i class="fa-solid fa-download"></i> Exportar
+            </button>
+        </div>
+        <div class="table-responsive">
+            <table id="historialTable" class="table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Hora</th>
+                        <th>Tutor</th>
+                        <th>Tema</th>
+                        <th>Modalidad</th>
+                        <th>Duración</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="historialTableBody">
+                    <tr>
+                        <td colspan="8" class="text-center text-muted">
+                            No hay registros para mostrar
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Paginación -->
+    <div class="pagination-container">
+        <div id="paginationInfo" class="pagination-info">
+            Mostrando 0 de 0 registros
+        </div>
+        <div id="paginationButtons" class="pagination-buttons">
+            <!-- Los botones se generarán dinámicamente -->
+        </div>
+    </div>
+</div>
