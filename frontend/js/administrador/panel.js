@@ -239,8 +239,7 @@ function updateAssignmentCharts(stats) {
     
     stats.tutorWorkload.forEach((tutor, index) => {
         const barWrapper = document.createElement('div');
-        barWrapper.className = 'flex flex-col items-center flex-1 animate-fade-in';
-        barWrapper.style.animationDelay = `${index * 50}ms`;
+        barWrapper.className = 'flex flex-col items-center';
         
         const count = parseInt(tutor.count) || 0;
         const heightPercent = maxCount > 0 ? (count / maxCount) * 100 : 0;
@@ -248,11 +247,12 @@ function updateAssignmentCharts(stats) {
         
         barWrapper.innerHTML = `
             <div class="text-sm font-bold mb-1 text-gray-700">${count}</div>
-            <div class="${barColor} w-12 rounded-t transition-all duration-500" 
+            <div class="${barColor} w-16 rounded-t transition-all duration-500" 
                  style="height: ${heightPercent}%"
                  title="${tutor.name || 'Tutor ' + (index + 1)}: ${count} estudiante(s)">
             </div>
-            <div class="text-xs text-gray-600 mt-2 text-center max-w-[60px] truncate" 
+            <div class="text-xs text-gray-600 mt-2 text-center" 
+                 style="width: 80px; word-wrap: break-word; line-height: 1.2;"
                  title="${tutor.name || 'Tutor ' + (index + 1)}">
                 ${tutor.name || 'T' + (index + 1)}
             </div>
