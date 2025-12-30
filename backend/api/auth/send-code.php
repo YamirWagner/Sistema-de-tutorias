@@ -96,6 +96,23 @@ try {
     } catch (Exception $mailError) {
         error_log("[SEND-CODE] Error al enviar código: " . $mailError->getMessage());
         
+        // EN DESARROLLO: Si falla el correo, mostrar el código en los logs y responder con éxito
+        if (defined('APP_ENV') && APP_ENV === 'development') {
+            error_log("[DESARROLLO] ========================================");
+            error_log("[DESARROLLO] Código de verificación para: {$email}");
+            error_log("[DESARROLLO] Código: {$code}");
+            error_log("[DESARROLLO] Expira: {$expiration}");
+            error_log("[DESARROLLO] ========================================");
+            
+            // Responder con éxito pero indicar que el correo no se envió
+            Response::success([
+                'sessionClosed' => $closedPrev,
+                'emailFailed' => true,
+                'debugCode' => $code, // Solo en desarrollo
+                'message' => 'Código generado (correo no enviado - revisar logs del servidor)'
+            ], 'Código generado exitosamente');
+        }
+        
         // Mensaje de error más específico según el tipo de error
         $errorMsg = $mailError->getMessage();
         if (strpos($errorMsg, 'suspended') !== false) {
