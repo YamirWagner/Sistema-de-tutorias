@@ -198,21 +198,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && $action === 'historial') {
         // ✅ Obtener todas las tutorías del estudiante
         $sqlSesiones = "SELECT 
                           tu.id,
-                          c.fecha,
-                          c.horaInicio,
-                          c.horaFin,
+                          COALESCE(c.fecha, tu.fecha) AS fecha,
+                          COALESCE(c.horaInicio, tu.horaInicio) AS horaInicio,
+                          COALESCE(c.horaFin, tu.horaFin) AS horaFin,
                           tu.tipo,
+                          tu.modalidad,
                           COALESCE(tu.observaciones, '') AS observaciones,
                           tu.estado,
-                          COALESCE(tu.fechaRealizada, c.fecha) AS fechaRealizada,
+                          COALESCE(tu.fechaRealizada, tu.fecha) AS fechaRealizada,
                           COALESCE(t.nombres, '') AS tutorNombres,
                           COALESCE(t.apellidos, '') AS tutorApellidos
                        FROM tutoria tu
                        INNER JOIN asignaciontutor a ON tu.idAsignacion = a.id
-                       INNER JOIN cronograma c ON tu.idCronograma = c.id
+                       LEFT JOIN cronograma c ON tu.idCronograma = c.id
                        INNER JOIN usuariosistema t ON a.idTutor = t.id
                        WHERE a.idEstudiante = :idEstudiante
-                       ORDER BY c.fecha DESC, c.horaInicio DESC";
+                       ORDER BY COALESCE(c.fecha, tu.fecha) DESC, COALESCE(c.horaInicio, tu.horaInicio) DESC";
         
         $stmt = $conn->prepare($sqlSesiones);
         
@@ -231,13 +232,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && $action === 'historial') {
         
         $sesiones = [];
         foreach ($rows as $row) {
-            // Mapear según el tipo de tutoría
+            // Determinar qué tipo de tutoría es y asignar las notas correspondientes
             $academico = ['tema' => null, 'avance' => null, 'notas' => null];
             $personal = ['tema' => null, 'notas' => null];
             $profesional = ['tema' => null, 'notas' => null];
             
+            // Asignar observaciones según el tipo
             switch ($row['tipo']) {
-                case 'Académica':
+                case 'Academica':
                     $academico['tema'] = 'Tutoría Académica';
                     $academico['notas'] = $row['observaciones'];
                     break;
@@ -256,6 +258,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && $action === 'historial') {
                 'fecha' => $row['fecha'],
                 'horaInicio' => $row['horaInicio'],
                 'horaFin' => $row['horaFin'],
+                'tipo' => $row['tipo'],
+                'modalidad' => $row['modalidad'] ?? 'No especificada',
+                'estado' => $row['estado'],
+                'observaciones' => $row['observaciones'] ?? '',
                 'academico' => $academico,
                 'personal' => $personal,
                 'profesional' => $profesional,

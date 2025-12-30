@@ -350,60 +350,243 @@ function mostrarHistorial(datos) {
 
 function renderizarSesion(sesion) {
     const fecha = formatearFecha(sesion.fecha);
+    const hora = sesion.horaInicio ? sesion.horaInicio.substring(0, 5) : '';
+    const horaFin = sesion.horaFin ? sesion.horaFin.substring(0, 5) : '';
+    const horario = hora && horaFin ? `${hora} - ${horaFin}` : hora || 'N/A';
+    
+    // Badges de estado y modalidad
+    const estadoBadge = obtenerBadgeEstado(sesion.estado);
+    const modalidadBadge = sesion.modalidad ? `<span class="badge-modalidad">${sesion.modalidad}</span>` : '';
+    
+    // Intentar parsear observaciones si están en formato JSON
+    let detalles = null;
+    let notasOriginales = null;
+    
+    // Buscar las notas según el tipo de tutoría
+    if (sesion.tipo === 'Academica' && sesion.academico && sesion.academico.notas) {
+        notasOriginales = sesion.academico.notas;
+    } else if (sesion.tipo === 'Personal' && sesion.personal && sesion.personal.notas) {
+        notasOriginales = sesion.personal.notas;
+    } else if (sesion.tipo === 'Profesional' && sesion.profesional && sesion.profesional.notas) {
+        notasOriginales = sesion.profesional.notas;
+    } else if (sesion.observaciones) {
+        notasOriginales = sesion.observaciones;
+    }
+    
+    // Intentar parsear si parece JSON
+    if (notasOriginales && typeof notasOriginales === 'string' && notasOriginales.trim().startsWith('{')) {
+        try {
+            detalles = JSON.parse(notasOriginales);
+        } catch (e) {
+            console.warn('No se pudo parsear JSON:', e);
+            detalles = null;
+        }
+    }
+    
+    let contenidoHTML = '';
+    
+    // Si tenemos detalles JSON, mostrarlos con formato mejorado
+    if (detalles) {
+        if (detalles.temaProfesional || sesion.tipo === 'Profesional') {
+            // Tutoría Profesional
+            contenidoHTML = `
+                <div class="detalle-profesional">
+                    <h4><i class="fas fa-briefcase"></i> Tutoría Profesional</h4>
+                    <div class="detalle-grid">
+                        ${detalles.temaProfesional ? `
+                            <div class="detalle-item">
+                                <span class="detalle-label"><i class="fas fa-tag"></i> Tema:</span>
+                                <span class="detalle-value">${detalles.temaProfesional}</span>
+                            </div>
+                        ` : ''}
+                        ${detalles.descripcionTema ? `
+                            <div class="detalle-item full-width">
+                                <span class="detalle-label"><i class="fas fa-align-left"></i> Descripción:</span>
+                                <span class="detalle-value">${detalles.descripcionTema}</span>
+                            </div>
+                        ` : ''}
+                        ${detalles.avancesLogros ? `
+                            <div class="detalle-item full-width">
+                                <span class="detalle-label"><i class="fas fa-chart-line"></i> Avances y Logros:</span>
+                                <span class="detalle-value">${detalles.avancesLogros}</span>
+                            </div>
+                        ` : ''}
+                        ${detalles.observacionesProfesionales ? `
+                            <div class="detalle-item full-width">
+                                <span class="detalle-label"><i class="fas fa-clipboard"></i> Observaciones:</span>
+                                <span class="detalle-value">${detalles.observacionesProfesionales}</span>
+                            </div>
+                        ` : ''}
+                        ${detalles.recursosContactos ? `
+                            <div class="detalle-item full-width">
+                                <span class="detalle-label"><i class="fas fa-link"></i> Recursos/Contactos:</span>
+                                <span class="detalle-value">${detalles.recursosContactos}</span>
+                            </div>
+                        ` : ''}
+                        ${detalles.notasAdicionales ? `
+                            <div class="detalle-item full-width">
+                                <span class="detalle-label"><i class="fas fa-sticky-note"></i> Notas Adicionales:</span>
+                                <span class="detalle-value">${detalles.notasAdicionales}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        } else if (detalles.temaAcademico || detalles.cursoAsignatura || sesion.tipo === 'Academica') {
+            // Tutoría Académica
+            contenidoHTML = `
+                <div class="detalle-academico">
+                    <h4><i class="fas fa-graduation-cap"></i> Tutoría Académica</h4>
+                    <div class="detalle-grid">
+                        ${detalles.cursoAsignatura ? `
+                            <div class="detalle-item">
+                                <span class="detalle-label"><i class="fas fa-book"></i> Curso/Asignatura:</span>
+                                <span class="detalle-value">${detalles.cursoAsignatura}</span>
+                            </div>
+                        ` : ''}
+                        ${detalles.temaAcademico ? `
+                            <div class="detalle-item">
+                                <span class="detalle-label"><i class="fas fa-tag"></i> Tema:</span>
+                                <span class="detalle-value">${detalles.temaAcademico}</span>
+                            </div>
+                        ` : ''}
+                        ${detalles.descripcionTema ? `
+                            <div class="detalle-item full-width">
+                                <span class="detalle-label"><i class="fas fa-align-left"></i> Descripción:</span>
+                                <span class="detalle-value">${detalles.descripcionTema}</span>
+                            </div>
+                        ` : ''}
+                        ${detalles.dificultadesEncontradas ? `
+                            <div class="detalle-item full-width">
+                                <span class="detalle-label"><i class="fas fa-exclamation-circle"></i> Dificultades:</span>
+                                <span class="detalle-value">${detalles.dificultadesEncontradas}</span>
+                            </div>
+                        ` : ''}
+                        ${detalles.estrategiasAplicadas ? `
+                            <div class="detalle-item full-width">
+                                <span class="detalle-label"><i class="fas fa-lightbulb"></i> Estrategias Aplicadas:</span>
+                                <span class="detalle-value">${detalles.estrategiasAplicadas}</span>
+                            </div>
+                        ` : ''}
+                        ${detalles.recursosRecomendados ? `
+                            <div class="detalle-item full-width">
+                                <span class="detalle-label"><i class="fas fa-link"></i> Recursos Recomendados:</span>
+                                <span class="detalle-value">${detalles.recursosRecomendados}</span>
+                            </div>
+                        ` : ''}
+                        ${detalles.notasAdicionales ? `
+                            <div class="detalle-item full-width">
+                                <span class="detalle-label"><i class="fas fa-sticky-note"></i> Notas Adicionales:</span>
+                                <span class="detalle-value">${detalles.notasAdicionales}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        } else if (detalles.temaPersonal || sesion.tipo === 'Personal') {
+            // Tutoría Personal
+            contenidoHTML = `
+                <div class="detalle-personal">
+                    <h4><i class="fas fa-user"></i> Tutoría Personal</h4>
+                    <div class="detalle-grid">
+                        ${detalles.temaPersonal ? `
+                            <div class="detalle-item">
+                                <span class="detalle-label"><i class="fas fa-tag"></i> Tema:</span>
+                                <span class="detalle-value">${detalles.temaPersonal}</span>
+                            </div>
+                        ` : ''}
+                        ${detalles.descripcionSituacion ? `
+                            <div class="detalle-item full-width">
+                                <span class="detalle-label"><i class="fas fa-align-left"></i> Descripción de la Situación:</span>
+                                <span class="detalle-value">${detalles.descripcionSituacion}</span>
+                            </div>
+                        ` : ''}
+                        ${detalles.emocionesExpresadas ? `
+                            <div class="detalle-item full-width">
+                                <span class="detalle-label"><i class="fas fa-heart"></i> Emociones Expresadas:</span>
+                                <span class="detalle-value">${detalles.emocionesExpresadas}</span>
+                            </div>
+                        ` : ''}
+                        ${detalles.orientacionBrindada ? `
+                            <div class="detalle-item full-width">
+                                <span class="detalle-label"><i class="fas fa-compass"></i> Orientación Brindada:</span>
+                                <span class="detalle-value">${detalles.orientacionBrindada}</span>
+                            </div>
+                        ` : ''}
+                        ${detalles.acuerdosCompromisos ? `
+                            <div class="detalle-item full-width">
+                                <span class="detalle-label"><i class="fas fa-handshake"></i> Acuerdos/Compromisos:</span>
+                                <span class="detalle-value">${detalles.acuerdosCompromisos}</span>
+                            </div>
+                        ` : ''}
+                        ${detalles.notasAdicionales ? `
+                            <div class="detalle-item full-width">
+                                <span class="detalle-label"><i class="fas fa-sticky-note"></i> Notas Adicionales:</span>
+                                <span class="detalle-value">${detalles.notasAdicionales}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+    } else {
+        // Formato simple cuando no hay JSON o no se pudo parsear
+        const temaDisplay = sesion.academico?.tema || sesion.personal?.tema || sesion.profesional?.tema || 'Sin especificar';
+        const notasDisplay = notasOriginales || 'Sin observaciones registradas';
+        
+        contenidoHTML = `
+            <div class="sesion-content-simple">
+                <div class="categoria">
+                    <div class="categoria-titulo">
+                        ${sesion.tipo === 'Academica' ? '<i class="fas fa-graduation-cap"></i> Académica' : 
+                          sesion.tipo === 'Personal' ? '<i class="fas fa-user"></i> Personal' : 
+                          '<i class="fas fa-briefcase"></i> Profesional'}
+                    </div>
+                    <div class="categoria-item">
+                        <div class="item-label">Tema:</div>
+                        <div class="item-value">${temaDisplay}</div>
+                    </div>
+                    <div class="categoria-item full-width">
+                        <div class="item-label">Observaciones:</div>
+                        <div class="item-value">${notasDisplay}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
     
     return `
         <div class="sesion-card">
             <div class="sesion-header">
-                <div class="sesion-fecha">${fecha}</div>
-                <div class="sesion-tutor">Registrado por: <strong>Tutor ${sesion.tutor}</strong></div>
+                <div class="sesion-info">
+                    <div class="sesion-fecha"><i class="far fa-calendar"></i> ${fecha}</div>
+                    <div class="sesion-hora"><i class="far fa-clock"></i> ${horario}</div>
+                </div>
+                <div class="sesion-badges">
+                    ${estadoBadge}
+                    ${modalidadBadge}
+                </div>
             </div>
             
-            <div class="sesion-content">
-                <!-- Académico -->
-                <div class="categoria">
-                    <div class="categoria-titulo">Académico</div>
-                    <div class="categoria-item">
-                        <div class="item-label">Tema:</div>
-                        <div class="item-value">${sesion.academico.tema || 'N/A'}</div>
-                    </div>
-                    <div class="categoria-item">
-                        <div class="item-label">Avance:</div>
-                        <div class="item-value">${sesion.academico.avance ? sesion.academico.avance + '%' : 'N/A'}</div>
-                    </div>
-                    <div class="categoria-item">
-                        <div class="item-label">Notas:</div>
-                        <div class="item-value ${!sesion.academico.notas ? 'na' : ''}">${sesion.academico.notas || 'No se abordó'}</div>
-                    </div>
-                </div>
-                
-                <!-- Personal -->
-                <div class="categoria">
-                    <div class="categoria-titulo">Personal</div>
-                    <div class="categoria-item">
-                        <div class="item-label">Tema:</div>
-                        <div class="item-value">${sesion.personal.tema || 'N/A'}</div>
-                    </div>
-                    <div class="categoria-item">
-                        <div class="item-label">Notas:</div>
-                        <div class="item-value ${!sesion.personal.notas ? 'na' : ''}">${sesion.personal.notas || 'No se abordó'}</div>
-                    </div>
-                </div>
-                
-                <!-- Profesional -->
-                <div class="categoria">
-                    <div class="categoria-titulo">Profesional</div>
-                    <div class="categoria-item">
-                        <div class="item-label">Tema:</div>
-                        <div class="item-value">${sesion.profesional.tema || 'N/A'}</div>
-                    </div>
-                    <div class="categoria-item">
-                        <div class="item-label">Notas:</div>
-                        <div class="item-value ${!sesion.profesional.notas ? 'na' : ''}">${sesion.profesional.notas || 'No se abordó'}</div>
-                    </div>
-                </div>
+            <div class="sesion-tutor">
+                <i class="fas fa-user-tie"></i> <strong>${sesion.tutor || 'No especificado'}</strong>
             </div>
+            
+            ${contenidoHTML}
         </div>
     `;
+}
+
+function obtenerBadgeEstado(estado) {
+    const badges = {
+        'Realizada': '<span class="badge-estado realizada"><i class="fas fa-check-circle"></i> Realizada</span>',
+        'Programada': '<span class="badge-estado programada"><i class="far fa-calendar-check"></i> Programada</span>',
+        'Cancelada': '<span class="badge-estado cancelada"><i class="fas fa-times-circle"></i> Cancelada</span>',
+        'Reprogramada': '<span class="badge-estado reprogramada"><i class="fas fa-redo"></i> Reprogramada</span>',
+        'Realizando': '<span class="badge-estado realizando"><i class="fas fa-spinner"></i> En curso</span>',
+        'Pendiente': '<span class="badge-estado pendiente"><i class="far fa-clock"></i> Pendiente</span>'
+    };
+    return badges[estado] || `<span class="badge-estado">${estado}</span>`;
 }
 
 function formatearFecha(fecha) {

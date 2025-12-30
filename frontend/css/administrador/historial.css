@@ -381,3 +381,236 @@
     color: #7f8c8d;
     font-size: 0.875rem;
 }
+
+/* ===== ESTILOS MEJORADOS PARA SESIONES ===== */
+
+/* Header de sesión mejorado */
+.sesion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f0f0f0;
+    margin-bottom: 1rem;
+}
+
+.sesion-info {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.sesion-fecha,
+.sesion-hora {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #555;
+    font-weight: 500;
+}
+
+.sesion-fecha i,
+.sesion-hora i {
+    color: #f9b44d;
+}
+
+.sesion-badges {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+/* Badges de estado */
+.badge-estado {
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.badge-estado.realizada {
+    background: #d4edda;
+    color: #155724;
+}
+
+.badge-estado.programada {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.badge-estado.cancelada {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.badge-estado.reprogramada {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.badge-estado.realizando {
+    background: #cce5ff;
+    color: #004085;
+}
+
+.badge-estado.pendiente {
+    background: #e2e3e5;
+    color: #383d41;
+}
+
+.badge-modalidad {
+    background: #e7f3ff;
+    color: #0056b3;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* Info del tutor */
+.sesion-tutor {
+    background: #f8f9fa;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #555;
+}
+
+.sesion-tutor i {
+    color: #9B192D;
+}
+
+/* ===== DETALLES CON FORMATO JSON ===== */
+
+.detalle-profesional,
+.detalle-academico,
+.detalle-personal {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.detalle-profesional h4 {
+    color: #9B192D;
+    font-size: 1.1rem;
+    margin-bottom: 1.2rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #9B192D;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.detalle-academico h4 {
+    color: #2ecc71;
+    font-size: 1.1rem;
+    margin-bottom: 1.2rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #2ecc71;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.detalle-personal h4 {
+    color: #3498db;
+    font-size: 1.1rem;
+    margin-bottom: 1.2rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #3498db;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.detalle-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.detalle-item {
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 3px solid #f9b44d;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.detalle-item.full-width {
+    grid-column: 1 / -1;
+}
+
+.detalle-label {
+    font-weight: 600;
+    color: #555;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.detalle-label i {
+    color: #f9b44d;
+    font-size: 0.85rem;
+}
+
+.detalle-value {
+    color: #2c3e50;
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+
+/* ===== CONTENIDO SIMPLE (SIN JSON) ===== */
+
+.sesion-content-simple {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+}
+
+.categoria-titulo i {
+    margin-right: 0.5rem;
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media (max-width: 768px) {
+    .sesion-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .sesion-info {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-start;
+    }
+    
+    .sesion-badges {
+        width: 100%;
+    }
+    
+    .detalle-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .detalle-item.full-width {
+        grid-column: 1;
+    }
+    
+    .sesion-content-simple {
+        grid-template-columns: 1fr;
+    }
+}
