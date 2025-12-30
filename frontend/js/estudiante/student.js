@@ -4,11 +4,103 @@
 async function loadStudentDashboard() {
     console.log('Cargando dashboard de estudiante...');
     
+    // Cargar datos del semestre actual
+    await loadCurrentSemester();
+    
     // Cargar estadísticas
     await loadStudentStats();
-    
-    // Renderizar contenido específico
-    renderStudentContent();
+
+}
+
+// Cargar datos del semestre actual (usa la misma lógica del header)
+async function loadCurrentSemester() {
+    try {
+        console.log('🔄 Cargando semestre actual en dashboard estudiante...');
+        
+        // Intentar obtener del API (misma lógica que header_panel.js)
+        try {
+            const response = await apiGet('/semestre?action=current');
+            
+            if (response?.success && response.data?.semester) {
+                const semester = response.data.semester;
+                console.log('✅ Semestre obtenido desde BD:', semester);
+                
+                // Actualizar nombre del semestre
+                const semestreActualEl = document.getElementById('semestreActual');
+                if (semestreActualEl) {
+                    semestreActualEl.textContent = semester.name || semester.nombre || 'Sin semestre';
+                }
+                
+                // Actualizar estado del semestre
+                const estadoSemestreEl = document.getElementById('estadoSemestre');
+                if (estadoSemestreEl) {
+                    const estado = semester.status || semester.estado || 'Inactivo';
+                    estadoSemestreEl.textContent = estado;
+                    
+                    // Cambiar color según el estado
+                    const estadoSpan = estadoSemestreEl.parentElement;
+                    if (estadoSpan) {
+                        if (estado === 'Activo') {
+                            estadoSpan.style.backgroundColor = '#10b981'; // Verde
+                        } else if (estado === 'Cerrado' || estado === 'Finalizado') {
+                            estadoSpan.style.backgroundColor = '#ef4444'; // Rojo
+                        } else if (estado === 'Programado') {
+                            estadoSpan.style.backgroundColor = '#f59e0b'; // Amarillo
+                        } else {
+                            estadoSpan.style.backgroundColor = '#6b7280'; // Gris
+                        }
+                    }
+                }
+                
+                console.log('✅ Semestre cargado en dashboard:', semester.name || semester.nombre);
+                return; // Salir si todo fue exitoso
+            }
+        } catch (apiError) {
+            console.warn('⚠️ No se pudo obtener semestre del API:', apiError.message);
+        }
+        
+        // Fallback: usar datos del token si existen
+        const user = getUserFromToken();
+        if (user && user.semestre) {
+            const semestreActualEl = document.getElementById('semestreActual');
+            if (semestreActualEl) {
+                semestreActualEl.textContent = user.semestre;
+            }
+            
+            const estadoSemestreEl = document.getElementById('estadoSemestre');
+            if (estadoSemestreEl) {
+                estadoSemestreEl.textContent = 'Activo';
+                estadoSemestreEl.parentElement.style.backgroundColor = '#10b981';
+            }
+            
+            console.log('✅ Semestre del token:', user.semestre);
+            return;
+        }
+        
+        // Si no hay datos, mostrar mensaje
+        const semestreActualEl = document.getElementById('semestreActual');
+        if (semestreActualEl) {
+            semestreActualEl.textContent = 'Sin semestre activo';
+        }
+        
+        const estadoSemestreEl = document.getElementById('estadoSemestre');
+        if (estadoSemestreEl) {
+            estadoSemestreEl.textContent = 'Inactivo';
+            estadoSemestreEl.parentElement.style.backgroundColor = '#6b7280';
+        }
+        
+    } catch (error) {
+        console.error('❌ Error al cargar semestre actual:', error);
+        const semestreActualEl = document.getElementById('semestreActual');
+        if (semestreActualEl) {
+            semestreActualEl.textContent = 'Error al cargar';
+        }
+        const estadoSemestreEl = document.getElementById('estadoSemestre');
+        if (estadoSemestreEl) {
+            estadoSemestreEl.textContent = 'Error';
+            estadoSemestreEl.parentElement.style.backgroundColor = '#6b7280';
+        }
+    }
 }
 
 // Cargar estadísticas del estudiante
@@ -30,36 +122,6 @@ async function loadStudentStats() {
     } catch (error) {
         console.error('Error al cargar estadísticas:', error);
     }
-}
-
-// Renderizar contenido del estudiante
-function renderStudentContent() {
-    const content = document.getElementById('dashboardContent');
-    
-    const studentSection = document.createElement('div');
-    studentSection.className = 'mt-8';
-    studentSection.innerHTML = `
-        <div class="bg-white p-6 rounded-lg shadow">
-            <h3 class="text-xl font-bold mb-4">Panel del Estudiante</h3>
-            
-            <div class="grid md:grid-cols-2 gap-4">
-                <button onclick="searchTutors()" class="bg-blue-600 text-white p-4 rounded-lg hover:bg-blue-700">
-                    Buscar Tutores
-                </button>
-                <button onclick="requestSession()" class="bg-green-600 text-white p-4 rounded-lg hover:bg-green-700">
-                    Solicitar Sesión
-                </button>
-                <button onclick="viewMyRequests()" class="bg-purple-600 text-white p-4 rounded-lg hover:bg-purple-700">
-                    Mis Solicitudes
-                </button>
-                <button onclick="viewMaterials()" class="bg-orange-600 text-white p-4 rounded-lg hover:bg-orange-700">
-                    Materiales de Estudio
-                </button>
-            </div>
-        </div>
-    `;
-    
-    content.appendChild(studentSection);
 }
 
 // Buscar tutores
@@ -118,37 +180,31 @@ async function viewMaterials() {
  */
 async function loadEstudianteContent() {
     const content = document.getElementById('dashboardContent');
-    if (!content) {
-        console.error('❌ No se encontró el contenedor dashboardContent');
-        return;
-    }
+    if (!content) return;
     
     try {
         content.innerHTML = '<div class="loading-message" style="text-align:center;padding:40px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:32px;color:#a42727;"></i><p style="margin-top:16px;color:#666;">Cargando módulo...</p></div>';
         
         // Cargar CSS si es necesario
-        const cssPath = '/Sistema-de-tutorias/frontend/css/estudiante/estudiante.css';
+        const cssPath = window.PATH?.css('estudiante/estudiante.css') || 
+                       '/Sistema-de-tutorias/frontend/css/estudiante/estudiante.css';
         
         if (!document.querySelector(`link[href*="estudiante.css"]`)) {
             const cssLink = document.createElement('link');
             cssLink.rel = 'stylesheet';
             cssLink.href = cssPath;
             document.head.appendChild(cssLink);
-            console.log('✅ CSS cargado:', cssPath);
         }
         
         // Cargar HTML
-        const url = '/Sistema-de-tutorias/frontend/components/estudiante/estudiante.html';
-        console.log('📄 Cargando HTML desde:', url);
+        const url = window.PATH?.component('estudiante/estudiante.html') || 
+                    '/Sistema-de-tutorias/frontend/components/estudiante/estudiante.html';
         
         const response = await fetch(url, { cache: 'no-store' });
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
+        if (!response.ok) throw new Error(`Error al cargar: ${response.status}`);
         
         const htmlText = await response.text();
         content.innerHTML = htmlText;
-        console.log('✅ HTML cargado correctamente');
         
         // Cargar dashboard del estudiante
         await loadStudentDashboard();
@@ -156,11 +212,7 @@ async function loadEstudianteContent() {
         console.log('✅ Módulo de inicio del estudiante cargado');
     } catch (error) {
         console.error('❌ Error al cargar módulo de inicio:', error);
-        content.innerHTML = `<div class="error-message" style="text-align:center;padding:40px;color:#d32f2f;">
-            <i class="fa-solid fa-exclamation-triangle" style="font-size:48px;margin-bottom:16px;"></i>
-            <h3>Error al cargar el módulo</h3>
-            <p style="color:#666;">${error.message}</p>
-        </div>`;
+        content.innerHTML = '<div class="error-message" style="text-align:center;padding:40px;color:#d32f2f;">Error al cargar el módulo</div>';
     }
 }
 
@@ -169,48 +221,38 @@ async function loadEstudianteContent() {
  */
 async function loadSesionActualContent() {
     const content = document.getElementById('dashboardContent');
-    if (!content) {
-        console.error('❌ No se encontró el contenedor dashboardContent');
-        return;
-    }
+    if (!content) return;
     
     try {
         content.innerHTML = '<div class="loading-message" style="text-align:center;padding:40px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:32px;color:#a42727;"></i><p style="margin-top:16px;color:#666;">Cargando sesión actual...</p></div>';
         
         // Cargar CSS si es necesario
-        const cssPath = '/Sistema-de-tutorias/frontend/css/estudiante/sesion-estudiante.css';
+        const cssPath = window.PATH?.css('estudiante/sesion-estudiante.css') || 
+                       '/Sistema-de-tutorias/frontend/css/estudiante/sesion-estudiante.css';
         
         if (!document.querySelector(`link[href*="sesion-estudiante.css"]`)) {
             const cssLink = document.createElement('link');
             cssLink.rel = 'stylesheet';
             cssLink.href = cssPath;
             document.head.appendChild(cssLink);
-            console.log('✅ CSS cargado:', cssPath);
         }
         
         // Cargar HTML
-        const url = '/Sistema-de-tutorias/frontend/components/estudiante/sesion-estudiante.html';
-        console.log('📄 Cargando HTML desde:', url);
+        const url = window.PATH?.component('estudiante/sesion-estudiante.html') || 
+                    '/Sistema-de-tutorias/frontend/components/estudiante/sesion-estudiante.html';
         
         const response = await fetch(url, { cache: 'no-store' });
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
+        if (!response.ok) throw new Error(`Error al cargar: ${response.status}`);
         
         const htmlText = await response.text();
         content.innerHTML = htmlText;
-        console.log('✅ HTML cargado correctamente');
         
         // Inicializar funcionalidad de sesión actual
         // TODO: Implementar lógica de sesión actual
         console.log('✅ Módulo de sesión actual cargado');
     } catch (error) {
         console.error('❌ Error al cargar módulo de sesión actual:', error);
-        content.innerHTML = `<div class="error-message" style="text-align:center;padding:40px;color:#d32f2f;">
-            <i class="fa-solid fa-exclamation-triangle" style="font-size:48px;margin-bottom:16px;"></i>
-            <h3>Error al cargar el módulo</h3>
-            <p style="color:#666;">${error.message}</p>
-        </div>`;
+        content.innerHTML = '<div class="error-message" style="text-align:center;padding:40px;color:#d32f2f;">Error al cargar el módulo</div>';
     }
 }
 
@@ -219,48 +261,38 @@ async function loadSesionActualContent() {
  */
 async function loadHistorialTutoriasContent() {
     const content = document.getElementById('dashboardContent');
-    if (!content) {
-        console.error('❌ No se encontró el contenedor dashboardContent');
-        return;
-    }
+    if (!content) return;
     
     try {
         content.innerHTML = '<div class="loading-message" style="text-align:center;padding:40px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:32px;color:#a42727;"></i><p style="margin-top:16px;color:#666;">Cargando historial...</p></div>';
         
         // Cargar CSS si es necesario
-        const cssPath = '/Sistema-de-tutorias/frontend/css/estudiante/historial-estudiante.css';
+        const cssPath = window.PATH?.css('estudiante/historial-estudiante.css') || 
+                       '/Sistema-de-tutorias/frontend/css/estudiante/historial-estudiante.css';
         
         if (!document.querySelector(`link[href*="historial-estudiante.css"]`)) {
             const cssLink = document.createElement('link');
             cssLink.rel = 'stylesheet';
             cssLink.href = cssPath;
             document.head.appendChild(cssLink);
-            console.log('✅ CSS cargado:', cssPath);
         }
         
         // Cargar HTML
-        const url = '/Sistema-de-tutorias/frontend/components/estudiante/historial-estudiante.html';
-        console.log('📄 Cargando HTML desde:', url);
+        const url = window.PATH?.component('estudiante/historial-estudiante.html') || 
+                    '/Sistema-de-tutorias/frontend/components/estudiante/historial-estudiante.html';
         
         const response = await fetch(url, { cache: 'no-store' });
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
+        if (!response.ok) throw new Error(`Error al cargar: ${response.status}`);
         
         const htmlText = await response.text();
         content.innerHTML = htmlText;
-        console.log('✅ HTML cargado correctamente');
         
         // Inicializar funcionalidad de historial
         // TODO: Implementar lógica de historial
         console.log('✅ Módulo de historial de tutorías cargado');
     } catch (error) {
         console.error('❌ Error al cargar módulo de historial:', error);
-        content.innerHTML = `<div class="error-message" style="text-align:center;padding:40px;color:#d32f2f;">
-            <i class="fa-solid fa-exclamation-triangle" style="font-size:48px;margin-bottom:16px;"></i>
-            <h3>Error al cargar el módulo</h3>
-            <p style="color:#666;">${error.message}</p>
-        </div>`;
+        content.innerHTML = '<div class="error-message" style="text-align:center;padding:40px;color:#d32f2f;">Error al cargar el módulo</div>';
     }
 }
 
