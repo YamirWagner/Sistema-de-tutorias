@@ -90,17 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 if (response && response.success) {
                     // Código enviado exitosamente
-                    let message = 'Código enviado. Revisa tu correo e ingresa el código.';
-                    
-                    // Si el correo falló pero el código se generó (modo desarrollo)
-                    if (response.data && response.data.emailFailed) {
-                        message = '⚠️ Error al enviar correo. En modo desarrollo, el código es: ' + 
-                                 (response.data.debugCode || 'Ver logs del servidor');
-                        showMessage('login-message', message, 'info');
-                    } else {
-                        showMessage('login-message', message, 'success');
-                    }
-                    
+                    showMessage('login-message', 'Código enviado. Revisa tu correo e ingresa el código.', 'success');
                     // Mostrar bloque de verificación
                     renderInlineVerification(email);
                 } else {
