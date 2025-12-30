@@ -115,10 +115,12 @@ $routes = [
 
     // Rutas de gestión de sesiones de tutoría
     'GET|api/atencionTutoria' => 'api/atencionTutoria.php',
-    // Rutas de gestión de sesiones de tutoría
-    'GET|api/atenciontutoria' => 'api/atenciontutoria.php',
-    'POST|api/atenciontutoria' => 'api/atenciontutoria.php',
-    'PUT|api/atenciontutoria' => 'api/atenciontutoria.php',
+    'POST|api/atencionTutoria' => 'api/atencionTutoria.php',
+    'PUT|api/atencionTutoria' => 'api/atencionTutoria.php',
+    // Rutas alternativas en minúsculas (compatibilidad)
+    'GET|api/atenciontutoria' => 'api/atencionTutoria.php',
+    'POST|api/atenciontutoria' => 'api/atencionTutoria.php',
+    'PUT|api/atenciontutoria' => 'api/atencionTutoria.php',
 
     // Rutas de asignación de tutor
     'GET|api/asignacionTutor' => 'api/asignacionTutor.php',
