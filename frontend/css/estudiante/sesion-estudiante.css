@@ -1,0 +1,233 @@
+/* Estilos para Sesión Actual del Estudiante */
+
+.sesion-actual-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.dashboard-header {
+    margin-bottom: 30px;
+}
+
+.dashboard-header h2 {
+    color: #a42727;
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.dashboard-header h2 i {
+    margin-right: 10px;
+}
+
+.dashboard-header p {
+    color: #666;
+    font-size: 16px;
+}
+
+/* Estado de sesión */
+.session-status-card {
+    background: white;
+    border-radius: 12px;
+    padding: 40px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.no-session {
+    padding: 40px 20px;
+}
+
+.no-session i {
+    font-size: 64px;
+    color: #ccc;
+    margin-bottom: 20px;
+}
+
+.no-session h3 {
+    color: #333;
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.no-session p {
+    color: #666;
+    font-size: 16px;
+}
+
+/* Detalles de sesión activa */
+.active-session {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.session-info-card {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.session-info-card h3 {
+    color: #a42727;
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+.session-info-card h3 i {
+    margin-right: 8px;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.info-item {
+    padding: 16px;
+    background: #f9f9f9;
+    border-radius: 8px;
+}
+
+.info-item label {
+    display: block;
+    font-weight: 600;
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.info-item span {
+    display: block;
+    color: #333;
+    font-size: 16px;
+}
+
+.badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.badge-success {
+    background: #4caf50;
+    color: white;
+}
+
+/* Acciones de sesión */
+.session-actions {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-primary {
+    background: #a42727;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #8a2020;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(164, 39, 39, 0.3);
+}
+
+.btn-secondary {
+    background: #666;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #555;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Sesiones recientes */
+.recent-sessions-card {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.recent-sessions-card h3 {
+    color: #a42727;
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+.recent-sessions-card h3 i {
+    margin-right: 8px;
+}
+
+.recent-list {
+    padding: 16px;
+    background: #f9f9f9;
+    border-radius: 8px;
+}
+
+.text-muted {
+    color: #999;
+    font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sesion-actual-container {
+        padding: 15px;
+    }
+
+    .dashboard-header h2 {
+        font-size: 24px;
+    }
+
+    .session-status-card {
+        padding: 30px 20px;
+    }
+
+    .no-session i {
+        font-size: 48px;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .session-actions {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}

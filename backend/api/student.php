@@ -1,102 +1,205 @@
 <?php
 // student.php - Endpoints del Estudiante
 
-require_once '../core/config.php';
-require_once '../core/database.php';
-require_once '../core/response.php';
-require_once '../core/jwt.php';
+require_once __DIR__ . '/../core/config.php';
+require_once __DIR__ . '/../core/database.php';
+require_once __DIR__ . '/../core/response.php';
+require_once __DIR__ . '/../core/jwt.php';
 
 try {
+    // Activar logging de errores temporalmente
+    error_reporting(E_ALL);
+    ini_set('display_errors', '1');
+    error_log("=== student.php iniciado ===");
+    
     // Verificar autenticación
     $token = JWT::getBearerToken();
+    error_log("Token obtenido: " . ($token ? "SI" : "NO"));
     
     if (!$token) {
         Response::unauthorized('Token no proporcionado');
     }
     
     $payload = JWT::decode($token);
+    error_log("Payload decodificado - user_id: " . ($payload['user_id'] ?? 'N/A') . ", role: " . ($payload['role'] ?? 'N/A'));
     
     // Verificar rol de estudiante
     if ($payload['role'] !== 'student') {
+        error_log("Rol incorrecto: " . $payload['role']);
         Response::forbidden('Acceso denegado');
     }
     
     $userId = $payload['user_id'];
+    error_log("User ID: $userId");
     
     // Obtener acción
     $action = $_GET['action'] ?? '';
+    error_log("Action: $action");
     
     $database = new Database();
     $db = $database->getConnection();
+    error_log("Conexión a BD establecida");
     
     switch ($action) {
+        case 'myTutor':
+            error_log("=== Ejecutando myTutor ===");
+            // Obtener tutor asignado al estudiante
+            $query = "SELECT 
+                        u.id,
+                        u.nombres,
+                        u.apellidos,
+                        CONCAT(u.nombres, ' ', u.apellidos) as nombre,
+                        u.correo as email,
+                        u.especialidad,
+                        a.fechaAsignacion,
+                        a.estado as estadoAsignacion
+                      FROM asignaciontutor a
+                      INNER JOIN usuariosistema u ON a.idTutor = u.id
+                      WHERE a.idEstudiante = :student_id 
+                      AND a.estado = 'Activa'
+                      ORDER BY a.fechaAsignacion DESC
+                      LIMIT 1";
+            
+            error_log("Query preparada");
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(':student_id', $userId, PDO::PARAM_INT);
+            error_log("Ejecutando query con student_id: $userId");
+            $stmt->execute();
+            $tutor = $stmt->fetch(PDO::FETCH_ASSOC);
+            error_log("Resultado: " . ($tutor ? json_encode($tutor) : "NULL"));
+            
+            if ($tutor) {
+                Response::success($tutor);
+            } else {
+                Response::success(null, 'No tienes tutor asignado');
+            }
+            break;
+            
         case 'stats':
-            // Estadísticas del estudiante
-            $stats = [];
+            error_log("=== Ejecutando stats ===");
             
-            // Total de sesiones
-            $query = "SELECT COUNT(*) as total FROM sessions WHERE student_id = :student_id";
-            $stmt = $db->prepare($query);
-            $stmt->bindParam(':student_id', $userId);
-            $stmt->execute();
-            $stats['totalSessions'] = $stmt->fetchColumn();
+            // Obtener ID de asignación activa
+            $queryAsignacion = "SELECT id FROM asignaciontutor 
+                               WHERE idEstudiante = :student_id 
+                               AND estado = 'Activa' 
+                               LIMIT 1";
+            $stmtAsignacion = $db->prepare($queryAsignacion);
+            $stmtAsignacion->bindParam(':student_id', $userId, PDO::PARAM_INT);
+            $stmtAsignacion->execute();
+            $asignacion = $stmtAsignacion->fetch(PDO::FETCH_ASSOC);
             
-            // Sesiones pendientes
-            $query = "SELECT COUNT(*) as total FROM sessions WHERE student_id = :student_id AND status = 'pending'";
-            $stmt = $db->prepare($query);
-            $stmt->bindParam(':student_id', $userId);
-            $stmt->execute();
-            $stats['pendingSessions'] = $stmt->fetchColumn();
+            if (!$asignacion) {
+                Response::success([
+                    'sesionesCompletadas' => 0,
+                    'porcentajeAvance' => 0,
+                    'horasTotales' => 0,
+                    'proximaSesion' => null
+                ], 'No tienes asignación activa');
+                break;
+            }
             
-            // Sesiones completadas
-            $query = "SELECT COUNT(*) as total FROM sessions WHERE student_id = :student_id AND status = 'completed'";
-            $stmt = $db->prepare($query);
-            $stmt->bindParam(':student_id', $userId);
-            $stmt->execute();
-            $stats['completedSessions'] = $stmt->fetchColumn();
+            $idAsignacion = $asignacion['id'];
             
-            Response::success($stats);
+            // 1. Contar sesiones completadas (Realizada)
+            $querySesiones = "SELECT COUNT(*) as total FROM tutoria 
+                            WHERE idAsignacion = :id_asignacion 
+                            AND estado = 'Realizada'";
+            $stmtSesiones = $db->prepare($querySesiones);
+            $stmtSesiones->bindParam(':id_asignacion', $idAsignacion, PDO::PARAM_INT);
+            $stmtSesiones->execute();
+            $resultSesiones = $stmtSesiones->fetch(PDO::FETCH_ASSOC);
+            $sesionesCompletadas = (int)$resultSesiones['total'];
+            
+            // 2. Calcular porcentaje (100% = 3 sesiones)
+            $porcentajeAvance = round(($sesionesCompletadas / 3) * 100, 2);
+            
+            // 3. Calcular horas totales acumuladas
+            $queryHoras = "SELECT horaInicio, horaFin FROM tutoria 
+                          WHERE idAsignacion = :id_asignacion 
+                          AND estado = 'Realizada'
+                          AND horaInicio IS NOT NULL 
+                          AND horaFin IS NOT NULL";
+            $stmtHoras = $db->prepare($queryHoras);
+            $stmtHoras->bindParam(':id_asignacion', $idAsignacion, PDO::PARAM_INT);
+            $stmtHoras->execute();
+            $sesiones = $stmtHoras->fetchAll(PDO::FETCH_ASSOC);
+            
+            $horasTotales = 0;
+            foreach ($sesiones as $sesion) {
+                $inicio = new DateTime($sesion['horaInicio']);
+                $fin = new DateTime($sesion['horaFin']);
+                $diferencia = $inicio->diff($fin);
+                $horasTotales += $diferencia->h + ($diferencia->i / 60);
+            }
+            $horasTotales = round($horasTotales, 2);
+            
+            // 4. Obtener próxima sesión programada
+            $queryProxima = "SELECT fecha, horaInicio, horaFin, tipo, modalidad 
+                            FROM tutoria 
+                            WHERE idAsignacion = :id_asignacion 
+                            AND fecha >= CURDATE()
+                            AND estado IN ('Programada', 'Pendiente')
+                            ORDER BY fecha ASC, horaInicio ASC
+                            LIMIT 1";
+            $stmtProxima = $db->prepare($queryProxima);
+            $stmtProxima->bindParam(':id_asignacion', $idAsignacion, PDO::PARAM_INT);
+            $stmtProxima->execute();
+            $proximaSesion = $stmtProxima->fetch(PDO::FETCH_ASSOC);
+            
+            Response::success([
+                'sesionesCompletadas' => $sesionesCompletadas,
+                'porcentajeAvance' => $porcentajeAvance,
+                'horasTotales' => $horasTotales,
+                'proximaSesion' => $proximaSesion ?: null
+            ]);
             break;
             
-        case 'tutors':
-            // Listar tutores disponibles
-            $query = "SELECT id, name, email FROM users WHERE role = 'tutor' AND active = 1";
-            $stmt = $db->query($query);
-            $tutors = $stmt->fetchAll();
+        case 'sessions':
+            error_log("=== Ejecutando sessions ===");
             
-            Response::success($tutors);
-            break;
+            // Obtener ID de asignación activa
+            $queryAsignacion = "SELECT id FROM asignaciontutor 
+                               WHERE idEstudiante = :student_id 
+                               AND estado = 'Activa' 
+                               LIMIT 1";
+            $stmtAsignacion = $db->prepare($queryAsignacion);
+            $stmtAsignacion->bindParam(':student_id', $userId, PDO::PARAM_INT);
+            $stmtAsignacion->execute();
+            $asignacion = $stmtAsignacion->fetch(PDO::FETCH_ASSOC);
             
-        case 'requests':
-            // Listar solicitudes del estudiante
-            $query = "SELECT r.*, u.name as tutor_name 
-                      FROM requests r 
-                      JOIN users u ON r.tutor_id = u.id 
-                      WHERE r.student_id = :student_id 
-                      ORDER BY r.created_at DESC";
+            if (!$asignacion) {
+                Response::success([], 'No tienes asignación activa');
+                break;
+            }
             
-            $stmt = $db->prepare($query);
-            $stmt->bindParam(':student_id', $userId);
-            $stmt->execute();
-            $requests = $stmt->fetchAll();
+            $idAsignacion = $asignacion['id'];
             
-            Response::success($requests);
-            break;
+            // Obtener todas las sesiones realizadas
+            $querySesiones = "SELECT 
+                                t.id,
+                                t.fecha,
+                                t.horaInicio,
+                                t.horaFin,
+                                t.tipo,
+                                t.modalidad,
+                                t.fechaRealizada,
+                                t.observaciones,
+                                t.estado,
+                                t.created_at,
+                                c.ambiente,
+                                c.descripcion as cronograma_descripcion
+                            FROM tutoria t
+                            LEFT JOIN cronograma c ON t.idCronograma = c.id
+                            WHERE t.idAsignacion = :id_asignacion 
+                            AND t.estado = 'Realizada'
+                            ORDER BY t.fechaRealizada DESC, t.fecha DESC";
             
-        case 'materials':
-            // Listar materiales disponibles
-            $query = "SELECT m.*, u.name as tutor_name 
-                      FROM materials m 
-                      JOIN users u ON m.tutor_id = u.id 
-                      WHERE m.public = 1 OR m.student_id = :student_id 
-                      ORDER BY m.created_at DESC";
+            $stmtSesiones = $db->prepare($querySesiones);
+            $stmtSesiones->bindParam(':id_asignacion', $idAsignacion, PDO::PARAM_INT);
+            $stmtSesiones->execute();
+            $sesiones = $stmtSesiones->fetchAll(PDO::FETCH_ASSOC);
             
-            $stmt = $db->prepare($query);
-            $stmt->bindParam(':student_id', $userId);
-            $stmt->execute();
-            $materials = $stmt->fetchAll();
-            
-            Response::success($materials);
+            Response::success($sesiones);
             break;
             
         default:
@@ -104,11 +207,15 @@ try {
     }
     
 } catch (Exception $e) {
-    error_log("Error en student.php: " . $e->getMessage());
+    error_log("=== ERROR EN student.php ===");
+    error_log("Mensaje: " . $e->getMessage());
+    error_log("Archivo: " . $e->getFile());
+    error_log("Línea: " . $e->getLine());
+    error_log("Trace: " . $e->getTraceAsString());
     
     if ($e->getMessage() === 'Token expirado') {
         Response::unauthorized('Sesión expirada');
     }
     
-    Response::serverError('Error en el servidor');
+    Response::serverError('Error en el servidor: ' . $e->getMessage());
 }

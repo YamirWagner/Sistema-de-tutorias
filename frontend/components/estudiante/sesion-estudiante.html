@@ -1,0 +1,69 @@
+<!-- Sesión Actual del Estudiante -->
+<div class="sesion-actual-container">
+    <div class="dashboard-header">
+        <h2><i class="fa-solid fa-calendar-check"></i> Sesión Actual</h2>
+        <p>Información de tu sesión de tutoría en curso</p>
+    </div>
+
+    <!-- Estado de la sesión -->
+    <div class="session-status-card">
+        <div id="sessionStatus" class="session-status">
+            <div class="no-session">
+                <i class="fa-solid fa-info-circle"></i>
+                <h3>No hay sesión activa</h3>
+                <p>Actualmente no tienes ninguna sesión de tutoría en curso</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detalles de la sesión activa (se muestra cuando hay sesión) -->
+    <div id="activeSessionDetails" class="active-session" style="display: none;">
+        <div class="session-info-card">
+            <h3><i class="fa-solid fa-user-graduate"></i> Detalles de la Sesión</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <label>Tutor:</label>
+                    <span id="sessionTutor">-</span>
+                </div>
+                <div class="info-item">
+                    <label>Fecha:</label>
+                    <span id="sessionDate">-</span>
+                </div>
+                <div class="info-item">
+                    <label>Hora:</label>
+                    <span id="sessionTime">-</span>
+                </div>
+                <div class="info-item">
+                    <label>Modalidad:</label>
+                    <span id="sessionMode">-</span>
+                </div>
+                <div class="info-item">
+                    <label>Tema:</label>
+                    <span id="sessionTopic">-</span>
+                </div>
+                <div class="info-item">
+                    <label>Estado:</label>
+                    <span id="sessionState" class="badge badge-success">En curso</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Acciones de la sesión -->
+        <div class="session-actions">
+            <button class="btn btn-primary" onclick="joinSession()">
+                <i class="fa-solid fa-video"></i> Unirse a la sesión
+            </button>
+            <button class="btn btn-secondary" onclick="viewSessionMaterials()">
+                <i class="fa-solid fa-folder"></i> Ver materiales
+            </button>
+        </div>
+    </div>
+
+    <!-- Historial reciente -->
+    <div class="recent-sessions-card">
+        <h3><i class="fa-solid fa-clock-rotate-left"></i> Sesiones Recientes</h3>
+        <div id="recentSessions" class="recent-list">
+            <p class="text-muted">No hay sesiones recientes</p>
+        </div>
+    </div>
+</div>

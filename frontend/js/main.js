@@ -479,7 +479,9 @@ function loadDashboardByRole(role) {
             }
             break;
         case 'student':
-            if (typeof loadStudentDashboard === 'function') {
+            if (typeof loadEstudianteContent === 'function') {
+                loadEstudianteContent();
+            } else if (typeof loadStudentDashboard === 'function') {
                 loadStudentDashboard();
             }
             break;
