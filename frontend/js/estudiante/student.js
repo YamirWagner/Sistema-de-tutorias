@@ -7,9 +7,75 @@ async function loadStudentDashboard() {
     // Cargar datos del semestre actual
     await loadCurrentSemester();
     
-    // Cargar estadísticas
-    await loadStudentStats();
+    // Cargar datos del tutor asignado
+    await loadMyTutor();
 
+}
+
+// Cargar datos del tutor asignado
+async function loadMyTutor() {
+    const tutorWidget = document.getElementById('tutorWidget');
+    const noTutorWidget = document.getElementById('noTutorWidget');
+    
+    try {
+        console.log('🔄 Obteniendo datos del tutor asignado...');
+        const response = await apiGet('/student?action=myTutor');
+        
+        if (response?.success && response.data) {
+            const tutor = response.data;
+            console.log('✅ DATOS DEL TUTOR ASIGNADO:', tutor);
+            
+            // Mostrar widget del tutor
+            if (tutorWidget) {
+                tutorWidget.style.display = 'block';
+                
+                // Llenar datos
+                const nombreEl = document.getElementById('tutorNombre');
+                if (nombreEl) nombreEl.textContent = tutor.nombre || `${tutor.nombres} ${tutor.apellidos}`;
+                
+                const especialidadEl = document.getElementById('tutorEspecialidad');
+                if (especialidadEl) especialidadEl.textContent = tutor.especialidad || 'Especialidad no especificada';
+                
+                const emailEl = document.getElementById('tutorEmail');
+                if (emailEl) emailEl.textContent = tutor.email || tutor.correo || '-';
+                
+                const fechaEl = document.getElementById('tutorFechaAsignacion');
+                if (fechaEl && tutor.fechaAsignacion) {
+                    // Formatear fecha
+                    const fecha = new Date(tutor.fechaAsignacion);
+                    const opciones = { year: 'numeric', month: 'long', day: 'numeric' };
+                    fechaEl.textContent = fecha.toLocaleDateString('es-ES', opciones);
+                } else if (fechaEl) {
+                    fechaEl.textContent = '-';
+                }
+            }
+            
+            if (noTutorWidget) noTutorWidget.style.display = 'none';
+            
+        } else {
+            console.log('⚠️ No tienes tutor asignado en este semestre');
+            
+            // Mostrar mensaje de no tutor
+            if (tutorWidget) tutorWidget.style.display = 'none';
+            if (noTutorWidget) noTutorWidget.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('❌ Error al obtener datos del tutor:', error);
+        
+        // Ocultar ambos widgets en caso de error
+        if (tutorWidget) tutorWidget.style.display = 'none';
+        if (noTutorWidget) noTutorWidget.style.display = 'none';
+    }
+}
+
+// Función para contactar al tutor
+function contactarTutor() {
+    const emailEl = document.getElementById('tutorEmail');
+    if (emailEl && emailEl.textContent && emailEl.textContent !== '-') {
+        window.location.href = `mailto:${emailEl.textContent}`;
+    } else {
+        alert('No se ha encontrado el email del tutor');
+    }
 }
 
 // Cargar datos del semestre actual (usa la misma lógica del header)
@@ -100,74 +166,6 @@ async function loadCurrentSemester() {
             estadoSemestreEl.textContent = 'Error';
             estadoSemestreEl.parentElement.style.backgroundColor = '#6b7280';
         }
-    }
-}
-
-// Cargar estadísticas del estudiante
-async function loadStudentStats() {
-    try {
-        // Datos mock mientras se implementa el endpoint
-        console.log('Cargando estadísticas del estudiante (datos temporales)...');
-        document.getElementById('totalSessions').textContent = '0';
-        document.getElementById('pendingSessions').textContent = '0';
-        document.getElementById('completedSessions').textContent = '0';
-        
-        // TODO: Descomentar cuando el endpoint esté listo
-        // const response = await apiGet('/student?action=stats');
-        // if (response.success) {
-        //     document.getElementById('totalSessions').textContent = response.data.totalSessions || 0;
-        //     document.getElementById('pendingSessions').textContent = response.data.pendingSessions || 0;
-        //     document.getElementById('completedSessions').textContent = response.data.completedSessions || 0;
-        // }
-    } catch (error) {
-        console.error('Error al cargar estadísticas:', error);
-    }
-}
-
-// Buscar tutores
-async function searchTutors() {
-    try {
-        const response = await apiGet('/student?action=tutors');
-        
-        if (response.success) {
-            console.log('Tutores disponibles:', response.data);
-            showNotification('Función de búsqueda de tutores en desarrollo', 'info');
-        }
-    } catch (error) {
-        showNotification('Error al buscar tutores', 'error');
-    }
-}
-
-// Solicitar sesión
-async function requestSession() {
-    showNotification('Función de solicitar sesión en desarrollo', 'info');
-}
-
-// Ver mis solicitudes
-async function viewMyRequests() {
-    try {
-        const response = await apiGet('/student?action=requests');
-        
-        if (response.success) {
-            console.log('Mis solicitudes:', response.data);
-            showNotification('Función de solicitudes en desarrollo', 'info');
-        }
-    } catch (error) {
-        showNotification('Error al cargar solicitudes', 'error');
-    }
-}
-
-// Ver materiales
-async function viewMaterials() {
-    try {
-        const response = await apiGet('/student?action=materials');
-        
-        if (response.success) {
-            console.log('Materiales:', response.data);
-            showNotification('Función de materiales en desarrollo', 'info');
-        }
-    } catch (error) {
-        showNotification('Error al cargar materiales', 'error');
     }
 }
 
@@ -302,3 +300,4 @@ async function loadHistorialTutoriasContent() {
 window.loadEstudianteContent = loadEstudianteContent;
 window.loadSesionActualContent = loadSesionActualContent;
 window.loadHistorialTutoriasContent = loadHistorialTutoriasContent;
+window.contactarTutor = contactarTutor;

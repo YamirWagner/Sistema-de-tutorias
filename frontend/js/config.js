@@ -40,7 +40,7 @@
         },
         
         API: {
-            BASE_URL: '/Sistema-de-tutorias/backend/api'
+            BASE_URL: '/Sistema-de-tutorias/api'
         },
         
         ASSETS: {
