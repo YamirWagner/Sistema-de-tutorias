@@ -1,0 +1,132 @@
+<div class="auditoria-container">
+    <!-- Encabezado del módulo -->
+    <div class="auditoria-header">
+        <h1><i class="fas fa-shield-alt"></i> Auditoría del Sistema</h1>
+        <p>Monitoreo y registro de todas las actividades realizadas en el sistema</p>
+    </div>
+
+    <!-- Tarjetas de estadísticas -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-card-icon primary">
+                <i class="fas fa-list"></i>
+            </div>
+            <div class="stat-card-label">Total de Acciones</div>
+            <div class="stat-card-value" id="totalAcciones">0</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-icon success">
+                <i class="fas fa-calendar-day"></i>
+            </div>
+            <div class="stat-card-label">Acciones Hoy</div>
+            <div class="stat-card-value" id="accionesHoy">0</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-icon info">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-card-label">Usuarios Activos (7 días)</div>
+            <div class="stat-card-value" id="usuariosActivos">0</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-icon warning">
+                <i class="fas fa-user-check"></i>
+            </div>
+            <div class="stat-card-label">Asignaciones Activas</div>
+            <div class="stat-card-value" id="asignacionesActivas">0</div>
+        </div>
+    </div>
+
+    <!-- Panel de filtros -->
+    <div class="filters-panel">
+        <h3><i class="fas fa-filter"></i> Filtros de Búsqueda</h3>
+        <div class="filters-grid">
+            <div class="filter-group">
+                <label for="filtroUsuario">Usuario</label>
+                <input 
+                    type="text" 
+                    id="filtroUsuario" 
+                    placeholder="Nombre o código de usuario"
+                    autocomplete="off"
+                >
+            </div>
+
+            <div class="filter-group">
+                <label for="filtroAccion">Acción</label>
+                <input 
+                    type="text" 
+                    id="filtroAccion" 
+                    placeholder="Tipo de acción"
+                    autocomplete="off"
+                >
+            </div>
+
+            <div class="filter-group">
+                <label for="filtroDesde">Fecha Desde</label>
+                <input 
+                    type="datetime-local" 
+                    id="filtroDesde"
+                >
+            </div>
+
+            <div class="filter-group">
+                <label for="filtroHasta">Fecha Hasta</label>
+                <input 
+                    type="datetime-local" 
+                    id="filtroHasta"
+                >
+            </div>
+        </div>
+
+        <div class="filters-actions">
+            <button id="btnLimpiarFiltros" class="btn btn-secondary">
+                <i class="fas fa-eraser"></i> Limpiar Filtros
+            </button>
+            <button id="btnBuscarAuditoria" class="btn btn-primary">
+                <i class="fas fa-search"></i> Buscar
+            </button>
+        </div>
+    </div>
+
+    <!-- Panel de tabla de registros -->
+    <div class="table-panel">
+        <div class="table-header">
+            <h3><i class="fas fa-table"></i> Registros de Auditoría</h3>
+            <div class="table-actions">
+                <span id="contadorRegistros">Cargando...</span>
+                <button class="btn btn-success btn-sm" onclick="exportarAuditoria()" title="Exportar datos">
+                    <i class="fas fa-file-excel"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="auditoria-table">
+                <thead>
+                    <tr>
+                        <th>Fecha y Hora</th>
+                        <th>Usuario</th>
+                        <th>Acción</th>
+                        <th>Descripción</th>
+                        <th>IP Origen</th>
+                        <th>Estado Sesión</th>
+                    </tr>
+                </thead>
+                <tbody id="auditoriaTableBody">
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 2rem; color: #7f8c8d;">
+                            <i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem; display: block;"></i>
+                            <p>Cargando registros...</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Script del módulo -->
+<script src="js/administrador/auditoria.js"></script>
