@@ -154,6 +154,54 @@ try {
             ]);
             break;
             
+        case 'sessions':
+            error_log("=== Ejecutando sessions ===");
+            
+            // Obtener ID de asignación activa
+            $queryAsignacion = "SELECT id FROM asignaciontutor 
+                               WHERE idEstudiante = :student_id 
+                               AND estado = 'Activa' 
+                               LIMIT 1";
+            $stmtAsignacion = $db->prepare($queryAsignacion);
+            $stmtAsignacion->bindParam(':student_id', $userId, PDO::PARAM_INT);
+            $stmtAsignacion->execute();
+            $asignacion = $stmtAsignacion->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$asignacion) {
+                Response::success([], 'No tienes asignación activa');
+                break;
+            }
+            
+            $idAsignacion = $asignacion['id'];
+            
+            // Obtener todas las sesiones realizadas
+            $querySesiones = "SELECT 
+                                t.id,
+                                t.fecha,
+                                t.horaInicio,
+                                t.horaFin,
+                                t.tipo,
+                                t.modalidad,
+                                t.fechaRealizada,
+                                t.observaciones,
+                                t.estado,
+                                t.created_at,
+                                c.ambiente,
+                                c.descripcion as cronograma_descripcion
+                            FROM tutoria t
+                            LEFT JOIN cronograma c ON t.idCronograma = c.id
+                            WHERE t.idAsignacion = :id_asignacion 
+                            AND t.estado = 'Realizada'
+                            ORDER BY t.fechaRealizada DESC, t.fecha DESC";
+            
+            $stmtSesiones = $db->prepare($querySesiones);
+            $stmtSesiones->bindParam(':id_asignacion', $idAsignacion, PDO::PARAM_INT);
+            $stmtSesiones->execute();
+            $sesiones = $stmtSesiones->fetchAll(PDO::FETCH_ASSOC);
+            
+            Response::success($sesiones);
+            break;
+            
         default:
             Response::error('Acción no válida');
     }

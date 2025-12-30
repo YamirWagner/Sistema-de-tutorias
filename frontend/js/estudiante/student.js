@@ -11,6 +11,9 @@ async function loadStudentDashboard() {
     await loadMyTutor();    
     // Cargar estadísticas del estudiante
     await loadMyStats();
+    
+    // Cargar sesiones realizadas
+    await loadMySessions();
 }
 
 // Cargar datos del tutor asignado
@@ -154,6 +157,260 @@ async function loadMyStats() {
         if (progressWidget) {
             progressWidget.style.display = 'none';
         }
+    }
+}
+
+// Cargar sesiones realizadas
+async function loadMySessions() {
+    const sessionsList = document.getElementById('sessionsList');
+    const sessionsContainer = document.getElementById('sessionsContainer');
+    const noSessionsMessage = document.getElementById('noSessionsMessage');
+    
+    try {
+        console.log('\n📚 ============================================');
+        console.log('📚 SESIONES REALIZADAS');
+        console.log('📚 ============================================\n');
+        
+        const response = await apiGet('/student?action=sessions');
+        
+        if (response?.success && response.data && response.data.length > 0) {
+            const sesiones = response.data;
+            
+            // Mostrar sección de sesiones
+            if (sessionsList) sessionsList.style.display = 'block';
+            if (noSessionsMessage) noSessionsMessage.style.display = 'none';
+            
+            console.log(`Total de sesiones realizadas: ${sesiones.length}\n`);
+            
+            // Limpiar contenedor
+            if (sessionsContainer) {
+                sessionsContainer.innerHTML = '';
+                
+                // Crear HTML para cada sesión
+                sesiones.forEach((sesion, index) => {
+                    // Formatear fecha y hora
+                    let fechaFormateada = 'Fecha no disponible';
+                    if (sesion.fechaRealizada || sesion.fecha) {
+                        const fecha = new Date(sesion.fechaRealizada || sesion.fecha);
+                        const dia = fecha.getDate();
+                        const mes = fecha.toLocaleDateString('es-ES', { month: 'long' });
+                        const anio = fecha.getFullYear();
+                        const hora = sesion.horaInicio ? sesion.horaInicio.substring(0, 5) : '';
+                        fechaFormateada = `${dia} de ${mes.charAt(0).toUpperCase() + mes.slice(1)} del ${anio}${hora ? ' - ' + hora : ''}`;
+                    }
+                    
+                    // Determinar icono y color según tipo
+                    let iconoTipo = '📚';
+                    let colorTipo = '#10b981';
+                    let tituloTipo = sesion.tipo || 'Sesión';
+                    
+                    if (sesion.tipo === 'Academica') {
+                        iconoTipo = '📚';
+                        colorTipo = '#10b981';
+                        tituloTipo = 'Tema Académico';
+                    } else if (sesion.tipo === 'Personal') {
+                        iconoTipo = '🧘';
+                        colorTipo = '#ec4899';
+                        tituloTipo = 'Aspecto Personal';
+                    } else if (sesion.tipo === 'Profesional') {
+                        iconoTipo = '💼';
+                        colorTipo = '#8b5cf6';
+                        tituloTipo = 'Desarrollo Profesional';
+                    }
+                    
+                    // Obtener y formatear observaciones como lista desde JSON
+                    let observacionesTexto = sesion.observaciones || sesion.cronograma_descripcion || 'Sin descripción disponible';
+                    observacionesTexto = observacionesTexto.trim();
+                    
+                    // Convertir observaciones en lista
+                    let observacionesHTML = '';
+                    let items = [];
+                    
+                    // Función para formatear nombres de claves JSON
+                    function formatearClave(clave) {
+                        // Convertir camelCase o snake_case a texto legible
+                        let texto = clave
+                            .replace(/([A-Z])/g, ' $1') // Separar camelCase
+                            .replace(/_/g, ' ') // Reemplazar guiones bajos
+                            .trim();
+                        
+                        // Capitalizar cada palabra
+                        texto = texto.split(' ')
+                            .map(palabra => palabra.charAt(0).toUpperCase() + palabra.slice(1).toLowerCase())
+                            .join(' ');
+                        
+                        return texto;
+                    }
+                    
+                    // Intentar parsear como JSON
+                    try {
+                        const jsonData = JSON.parse(observacionesTexto);
+                        
+                        // Si es un array, usar directamente
+                        if (Array.isArray(jsonData)) {
+                            items = jsonData.filter(item => item && item.toString().trim().length > 0);
+                        }
+                        // Si es un objeto, extraer las claves y valores formateados
+                        else if (typeof jsonData === 'object' && jsonData !== null) {
+                            items = Object.entries(jsonData)
+                                .filter(([key, value]) => value && value.toString().trim().length > 0)
+                                .map(([key, value]) => {
+                                    const claveFormateada = formatearClave(key);
+                                    return `<strong>${claveFormateada}:</strong> ${value}`;
+                                });
+                        }
+                        // Si es un string simple
+                        else if (typeof jsonData === 'string') {
+                            items = [jsonData];
+                        }
+                    } catch (e) {
+                        // No es JSON válido, usar el texto como está
+                        if (observacionesTexto.includes('\n')) {
+                            items = observacionesTexto.split('\n').filter(item => item.trim().length > 0);
+                        }
+                        else if (observacionesTexto.includes('. ')) {
+                            items = observacionesTexto.split('. ').filter(item => item.trim().length > 0);
+                            items = items.map((item, index) => {
+                                item = item.trim();
+                                if (index < items.length - 1 && !item.endsWith('.')) {
+                                    return item + '.';
+                                }
+                                return item;
+                            });
+                        }
+                        else if (observacionesTexto.includes(', ')) {
+                            items = observacionesTexto.split(', ').filter(item => item.trim().length > 0);
+                        }
+                        else {
+                            items = [observacionesTexto];
+                        }
+                    }
+                    
+                    // Capitalizar primera letra de cada item (solo si no tiene HTML)
+                    items = items.map(item => {
+                        item = item.toString().trim();
+                        if (item.length > 0 && !item.includes('<strong>')) {
+                            item = item.charAt(0).toUpperCase() + item.slice(1);
+                        }
+                        return item;
+                    });
+                    
+                    // Generar HTML de la lista
+                    if (items.length > 0) {
+                        observacionesHTML = '<ul style="margin: 0; padding-left: 1.25rem; list-style: none;">';
+                        items.forEach(item => {
+                            observacionesHTML += `
+                                <li style="margin-bottom: 0.375rem; position: relative; padding-left: 0.25rem;">
+                                    <span style="color: ${colorTipo}; font-weight: bold; margin-right: 0.5rem;">•</span>
+                                    <span style="color: #4b5563;">${item}</span>
+                                </li>
+                            `;
+                        });
+                        observacionesHTML += '</ul>';
+                    } else {
+                        observacionesHTML = `<p style="font-size: 0.875rem; color: #4b5563; margin: 0; line-height: 1.6; font-style: italic;">Sin descripción disponible</p>`;
+                    }
+                    
+                    const sesionHTML = `
+                        <div style="border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1.25rem; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <i class="fa-solid fa-calendar" style="color: #6b7280; font-size: 0.875rem;"></i>
+                                    <span style="font-weight: 600; color: #1f2937; font-size: 0.9375rem;">${fechaFormateada}</span>
+                                </div>
+                                <span style="background-color: #d1fae5; color: #065f46; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600;">
+                                    Completada
+                                </span>
+                            </div>
+                            
+                            <div style="background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%); border: 1px solid #e5e7eb; border-left: 4px solid ${colorTipo}; border-radius: 0.5rem; padding: 1.125rem; margin-bottom: 0.75rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                                <div style="display: flex; align-items: start; gap: 0.875rem;">
+                                    <div style="background: white; width: 40px; height: 40px; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); flex-shrink: 0;">
+                                        <span style="font-size: 1.25rem;">${iconoTipo}</span>
+                                    </div>
+                                    <div style="flex: 1; min-width: 0;">
+                                        <div style="background: white; border-radius: 0.375rem; padding: 0.75rem; border: 1px solid #e5e7eb;">
+                                            ${observacionesHTML}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            ${sesion.modalidad ? `
+                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.75rem; padding: 0.5rem; background: #f9fafb; border-radius: 0.375rem;">
+                                <i class="fa-solid fa-${sesion.modalidad === 'Virtual' ? 'video' : sesion.modalidad === 'Presencial' ? 'users' : 'desktop'}" style="color: #9B192D; font-size: 0.875rem;"></i>
+                                <span style="font-size: 0.875rem; color: #6b7280; font-weight: 500;">${sesion.modalidad}</span>
+                                ${sesion.ambiente ? `<span style="color: #d1d5db;">•</span><span style="font-size: 0.875rem; color: #6b7280;">${sesion.ambiente}</span>` : ''}
+                            </div>
+                            ` : ''}
+                        </div>
+                    `;
+                    
+                    sessionsContainer.innerHTML += sesionHTML;
+                    
+                    // Log en consola
+                    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+                    console.log(`📌 SESIÓN #${index + 1}`);
+                    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+                    console.log('\n🆔 ID de Sesión:', sesion.id);
+                    console.log('📅 Fecha Programada:', sesion.fecha || 'No especificada');
+                    console.log('📅 Fecha Realizada:', sesion.fechaRealizada || 'No registrada');
+                    
+                    if (sesion.horaInicio && sesion.horaFin) {
+                        const inicio = new Date(`2000-01-01T${sesion.horaInicio}`);
+                        const fin = new Date(`2000-01-01T${sesion.horaFin}`);
+                        const duracion = (fin - inicio) / (1000 * 60 * 60);
+                        console.log('🕐 Horario:', `${sesion.horaInicio} - ${sesion.horaFin}`);
+                        console.log('⏱️  Duración:', `${duracion.toFixed(2)} horas`);
+                    } else {
+                        console.log('🕐 Horario: No especificado');
+                    }
+                    
+                    console.log('📋 Tipo:', sesion.tipo || 'No especificado');
+                    console.log('💻 Modalidad:', sesion.modalidad || 'No especificada');
+                    
+                    if (sesion.ambiente) {
+                        console.log('📍 Ambiente:', sesion.ambiente);
+                    }
+                    
+                    if (sesion.observaciones) {
+                        console.log('\n📝 Observaciones:');
+                        console.log('   ' + sesion.observaciones);
+                    }
+                    
+                    if (sesion.cronograma_descripcion) {
+                        console.log('\n📄 Descripción:');
+                        console.log('   ' + sesion.cronograma_descripcion);
+                    }
+                    
+                    console.log('\n✅ Estado:', sesion.estado);
+                    
+                    if (sesion.created_at) {
+                        const fechaRegistro = new Date(sesion.created_at);
+                        console.log('📝 Registrado:', fechaRegistro.toLocaleString('es-ES'));
+                    }
+                    
+                    console.log('\n');
+                });
+            }
+            
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log(`✅ Total: ${sesiones.length} sesión${sesiones.length !== 1 ? 'es' : ''} realizada${sesiones.length !== 1 ? 's' : ''}`);
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+            
+        } else {
+            console.log('⚠️ No tienes sesiones realizadas todavía\n');
+            
+            // Mostrar mensaje de no sesiones
+            if (sessionsList) sessionsList.style.display = 'block';
+            if (sessionsContainer) sessionsContainer.innerHTML = '';
+            if (noSessionsMessage) noSessionsMessage.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('❌ Error al cargar sesiones:', error);
+        
+        // Ocultar sección en caso de error
+        if (sessionsList) sessionsList.style.display = 'none';
     }
 }
 
