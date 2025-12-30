@@ -14,6 +14,280 @@ async function loadStudentDashboard() {
     
     // Cargar sesiones realizadas
     await loadMySessions();
+    
+    // NO verificar constancia automáticamente, solo cuando el usuario haga clic en "Buscar"
+    
+    // Cargar semestres para búsqueda
+    await cargarSemestresParaBusqueda();
+}
+
+// Verificar si el estudiante tiene constancia disponible
+async function verificarConstancia() {
+    const constanciaEstado = document.getElementById('constanciaEstado');
+    const btnDescargar = document.getElementById('btnDescargarConstancia');
+    const constanciaInfo = document.getElementById('constanciaInfo');
+    const constanciaNoDisponible = document.getElementById('constanciaNoDisponible');
+    
+    try {
+        // Mostrar estado de búsqueda
+        if (constanciaEstado) {
+            constanciaEstado.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Buscando constancia...';
+            constanciaEstado.className = 'constancia-buscando';
+        }
+        
+        // Obtener constancias del estudiante desde la BD
+        const response = await apiGet('/listar-constancias');
+        
+        if (response?.success && response.constancias && response.constancias.length > 0) {
+            // Tiene constancia disponible
+            const constancia = response.constancias[0]; // Tomar la más reciente
+            
+            if (constancia.firmado) {
+                // Constancia firmada y lista para descargar
+                if (constanciaEstado) {
+                    constanciaEstado.innerHTML = '<i class="fa-solid fa-check-circle"></i> Constancia firmada y disponible';
+                    constanciaEstado.className = 'constancia-disponible';
+                }
+                if (btnDescargar) {
+                    btnDescargar.style.display = 'inline-block';
+                    btnDescargar.setAttribute('data-ruta', constancia.rutaPDF);
+                }
+                if (constanciaInfo) {
+                    const fecha = new Date(constancia.fechaGeneracion).toLocaleDateString('es-ES');
+                    constanciaInfo.innerHTML = `
+                        <p>
+                            <i class="fa-solid fa-file-pdf"></i> Tu constancia está firmada y lista para descargar.
+                            <br><small>Generada el: ${fecha}</small>
+                        </p>
+                    `;
+                    constanciaInfo.classList.remove('hidden');
+                }
+                if (constanciaNoDisponible) constanciaNoDisponible.classList.add('hidden');
+            } else {
+                // Constancia generada pero aún no firmada
+                if (constanciaEstado) {
+                    constanciaEstado.innerHTML = '<i class="fa-solid fa-clock"></i> Constancia pendiente de firma';
+                    constanciaEstado.className = 'constancia-pendiente';
+                }
+                if (btnDescargar) btnDescargar.style.display = 'none';
+                if (constanciaInfo) constanciaInfo.classList.add('hidden');
+                if (constanciaNoDisponible) {
+                    constanciaNoDisponible.innerHTML = `
+                        <p>
+                            <i class="fa-solid fa-signature"></i> Tu constancia aún no ha sido firmada por tu tutor. 
+                            Por favor comunícate con tu tutor asignado.
+                        </p>
+                    `;
+                    constanciaNoDisponible.classList.remove('hidden');
+                }
+            }
+        } else {
+            // No tiene constancia aún
+            const statsResponse = await apiGet('/student?action=stats');
+            const sesionesCompletadas = statsResponse?.data?.sesionesCompletadas || 0;
+            
+            if (constanciaEstado) {
+                constanciaEstado.innerHTML = `<i class="fa-solid fa-times-circle"></i> Constancia no disponible`;
+                constanciaEstado.className = 'constancia-no-disponible';
+            }
+            if (btnDescargar) btnDescargar.style.display = 'none';
+            if (constanciaInfo) constanciaInfo.classList.add('hidden');
+            if (constanciaNoDisponible) {
+                const mensaje = sesionesCompletadas >= 3 
+                    ? 'Has completado las 3 sesiones requeridas. Tu tutor debe generar tu constancia.'
+                    : `Debes completar al menos 3 sesiones de tutoría para obtener tu constancia. Llevas ${sesionesCompletadas} sesiones.`;
+                
+                constanciaNoDisponible.innerHTML = `
+                    <p>
+                        <i class="fa-solid fa-exclamation-triangle"></i> 
+                        ${mensaje}
+                    </p>
+                `;
+                constanciaNoDisponible.classList.remove('hidden');
+            }
+        }
+    } catch (error) {
+        console.error('Error al verificar constancia:', error);
+        if (constanciaEstado) {
+            constanciaEstado.innerHTML = '<i class="fa-solid fa-exclamation-circle"></i> Error al buscar';
+            constanciaEstado.className = 'constancia-error';
+        }
+    }
+}
+
+// Descargar constancia del estudiante
+async function descargarMiConstancia() {
+    try {
+        const btnDescargar = document.getElementById('btnDescargarConstancia');
+        const rutaPDF = btnDescargar?.getAttribute('data-ruta');
+        
+        if (!rutaPDF) {
+            showNotification('No se encontró la ruta del PDF', 'error');
+            return;
+        }
+        
+        showNotification('Descargando constancia...', 'info');
+        
+        const token = localStorage.getItem('token');
+        const basePath = window.location.hostname === 'localhost' ? 'http://localhost/Sistema-de-tutorias/backend' : '/backend';
+        
+        // Descargar el PDF desde la ruta almacenada
+        const response = await fetch(`${basePath}/${rutaPDF}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Error al descargar la constancia');
+        }
+        
+        const blob = await response.blob();
+        
+        if (blob.size === 0) {
+            throw new Error('El PDF está vacío');
+        }
+        
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = `Constancia_Tutorias.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(downloadUrl);
+        
+        showNotification('Constancia descargada exitosamente', 'success');
+    } catch (error) {
+        console.error('Error al descargar constancia:', error);
+        showNotification(error.message || 'Error al descargar la constancia', 'error');
+    }
+}
+
+// Cargar semestres para búsqueda de sesiones
+async function cargarSemestresParaBusqueda() {
+    const semestreBusqueda = document.getElementById('semestreBusqueda');
+    
+    try {
+        const response = await apiGet('/semestre?action=list');
+        
+        if (response?.success && response.data) {
+            semestreBusqueda.innerHTML = '<option value="">Semestre Actual</option>';
+            
+            response.data.forEach(semestre => {
+                const option = document.createElement('option');
+                option.value = semestre.id;
+                option.textContent = semestre.nombre;
+                semestreBusqueda.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error('Error al cargar semestres:', error);
+    }
+}
+
+// Buscar sesiones del estudiante
+async function buscarMisSesiones() {
+    const semestreBusqueda = document.getElementById('semestreBusqueda');
+    const misSesionesLista = document.getElementById('misSesionesLista');
+    const semesterId = semestreBusqueda.value;
+    
+    try {
+        misSesionesLista.innerHTML = '<p style="text-align: center; color: #6b7280; padding: 2rem;"><i class="fa-solid fa-spinner fa-spin"></i> Buscando sesiones...</p>';
+        
+        // Obtener sesiones del estudiante
+        let url = '/student?action=sessions';
+        if (semesterId) {
+            url += `&semesterId=${semesterId}`;
+        }
+        
+        const response = await apiGet(url);
+        
+        if (response?.success && response.data && response.data.length > 0) {
+            const sesiones = response.data;
+            
+            let html = `
+                <div style="margin-bottom: 1rem;">
+                    <p style="font-weight: 600; color: #374151;">
+                        <i class="fa-solid fa-calendar-check"></i> Total de sesiones encontradas: ${sesiones.length}
+                    </p>
+                </div>
+                <div style="display: grid; gap: 1rem;">
+            `;
+            
+            sesiones.forEach(sesion => {
+                // Formatear fecha
+                let fechaFormateada = 'Fecha no disponible';
+                if (sesion.fechaRealizada || sesion.fecha) {
+                    const fecha = new Date(sesion.fechaRealizada || sesion.fecha);
+                    const dia = fecha.getDate();
+                    const mes = fecha.toLocaleDateString('es-ES', { month: 'long' });
+                    const anio = fecha.getFullYear();
+                    fechaFormateada = `${dia} de ${mes.charAt(0).toUpperCase() + mes.slice(1)} del ${anio}`;
+                }
+                
+                // Color según estado
+                let estadoColor = '#6b7280';
+                let estadoIcono = 'fa-circle';
+                if (sesion.estado === 'Realizada' || sesion.estado === 'completada') {
+                    estadoColor = '#10b981';
+                    estadoIcono = 'fa-check-circle';
+                } else if (sesion.estado === 'cancelada') {
+                    estadoColor = '#ef4444';
+                    estadoIcono = 'fa-times-circle';
+                } else if (sesion.estado === 'ausente') {
+                    estadoColor = '#f59e0b';
+                    estadoIcono = 'fa-exclamation-circle';
+                }
+                
+                html += `
+                    <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                            <div>
+                                <p style="font-weight: 600; color: #1f2937; margin: 0 0 0.25rem 0;">
+                                    <i class="fa-solid fa-calendar"></i> ${fechaFormateada}
+                                </p>
+                                ${sesion.horaInicio ? `<p style="font-size: 0.875rem; color: #6b7280; margin: 0;"><i class="fa-solid fa-clock"></i> ${sesion.horaInicio.substring(0, 5)}</p>` : ''}
+                            </div>
+                            <span style="display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 600; background-color: ${estadoColor}20; color: ${estadoColor};">
+                                <i class="fa-solid ${estadoIcono}"></i>
+                                ${sesion.estado || 'Sin estado'}
+                            </span>
+                        </div>
+                        <div style="margin-top: 0.75rem;">
+                            <p style="font-size: 0.875rem; color: #6b7280; margin: 0;">
+                                <strong>Tipo:</strong> ${sesion.tipo || 'No especificado'}
+                            </p>
+                            ${sesion.modalidad ? `<p style="font-size: 0.875rem; color: #6b7280; margin: 0.25rem 0 0 0;"><strong>Modalidad:</strong> ${sesion.modalidad}</p>` : ''}
+                            ${sesion.observaciones ? `<p style="font-size: 0.875rem; color: #6b7280; margin: 0.25rem 0 0 0;"><strong>Observaciones:</strong> ${sesion.observaciones}</p>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            misSesionesLista.innerHTML = html;
+            
+        } else {
+            misSesionesLista.innerHTML = `
+                <div style="text-align: center; padding: 3rem;">
+                    <i class="fa-solid fa-calendar-xmark" style="font-size: 3rem; color: #d1d5db; margin-bottom: 1rem;"></i>
+                    <p style="font-weight: 600; color: #6b7280; margin: 0;">No se encontraron sesiones</p>
+                    <p style="font-size: 0.875rem; color: #9ca3af; margin: 0.5rem 0 0 0;">
+                        ${semesterId ? 'No tienes sesiones registradas en este semestre' : 'No tienes sesiones registradas en el semestre actual'}
+                    </p>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error al buscar sesiones:', error);
+        misSesionesLista.innerHTML = `
+            <div style="text-align: center; padding: 2rem; background: #fef2f2; border: 1px solid #fecaca; border-radius: 0.5rem;">
+                <i class="fa-solid fa-exclamation-triangle" style="font-size: 2rem; color: #ef4444; margin-bottom: 0.5rem;"></i>
+                <p style="font-weight: 600; color: #991b1b; margin: 0;">Error al buscar sesiones</p>
+            </div>
+        `;
+    }
 }
 
 // Cargar datos del tutor asignado

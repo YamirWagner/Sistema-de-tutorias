@@ -157,19 +157,45 @@ try {
         case 'sessions':
             error_log("=== Ejecutando sessions ===");
             
-            // Obtener ID de asignación activa
-            $queryAsignacion = "SELECT id FROM asignaciontutor 
-                               WHERE idEstudiante = :student_id 
-                               AND estado = 'Activa' 
-                               LIMIT 1";
-            $stmtAsignacion = $db->prepare($queryAsignacion);
-            $stmtAsignacion->bindParam(':student_id', $userId, PDO::PARAM_INT);
-            $stmtAsignacion->execute();
-            $asignacion = $stmtAsignacion->fetch(PDO::FETCH_ASSOC);
+            // Verificar si se especifica un semestre
+            $semesterId = $_GET['semesterId'] ?? null;
             
-            if (!$asignacion) {
-                Response::success([], 'No tienes asignación activa');
-                break;
+            if ($semesterId) {
+                // Buscar sesiones por semestre específico
+                error_log("Buscando sesiones para semestre: $semesterId");
+                
+                // Obtener ID de asignación para el semestre específico
+                $queryAsignacion = "SELECT id FROM asignaciontutor 
+                                   WHERE idEstudiante = :student_id 
+                                   AND idSemestre = :semestre_id
+                                   LIMIT 1";
+                $stmtAsignacion = $db->prepare($queryAsignacion);
+                $stmtAsignacion->bindParam(':student_id', $userId, PDO::PARAM_INT);
+                $stmtAsignacion->bindParam(':semestre_id', $semesterId, PDO::PARAM_INT);
+                $stmtAsignacion->execute();
+                $asignacion = $stmtAsignacion->fetch(PDO::FETCH_ASSOC);
+                
+                if (!$asignacion) {
+                    Response::success([], 'No tienes asignación en este semestre');
+                    break;
+                }
+            } else {
+                // Obtener ID de asignación activa (semestre actual)
+                error_log("Buscando sesiones del semestre actual");
+                
+                $queryAsignacion = "SELECT id FROM asignaciontutor 
+                                   WHERE idEstudiante = :student_id 
+                                   AND estado = 'Activa' 
+                                   LIMIT 1";
+                $stmtAsignacion = $db->prepare($queryAsignacion);
+                $stmtAsignacion->bindParam(':student_id', $userId, PDO::PARAM_INT);
+                $stmtAsignacion->execute();
+                $asignacion = $stmtAsignacion->fetch(PDO::FETCH_ASSOC);
+                
+                if (!$asignacion) {
+                    Response::success([], 'No tienes asignación activa');
+                    break;
+                }
             }
             
             $idAsignacion = $asignacion['id'];

@@ -48,75 +48,7 @@
         </div>
     </section>
 
-    <!-- Sección 2: Historial Completo de Estudiante -->
-    <section class="report-section">
-        <div class="section-header">
-            <div class="section-title">
-                <i class="fa-solid fa-clock-rotate-left"></i>
-                <h2>Historial Completo de Estudiante</h2>
-            </div>
-            <p class="section-description">
-                Muestra todas las sesiones (académicas, personales y profesionales) de un estudiante a lo largo de todos los semestres.
-            </p>
-        </div>
-
-        <div class="report-controls">
-            <div class="form-group">
-                <label>
-                    <i class="fa-solid fa-user-graduate"></i>
-                    Buscar Estudiante
-                </label>
-                <div class="search-input-wrapper">
-                    <input 
-                        type="text" 
-                        id="student-search" 
-                        class="form-input"
-                        placeholder="Buscar por código o nombre..."
-                    >
-                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                </div>
-                <div id="student-suggestions" class="suggestions-dropdown"></div>
-            </div>
-
-            <div class="action-buttons">
-                <button id="btn-view-history" class="btn-secondary">
-                    <i class="fa-solid fa-eye"></i>
-                    Ver en Pantalla
-                </button>
-                <button id="btn-export-history" class="btn-generate">
-                    <i class="fa-solid fa-file-pdf"></i>
-                    Exportar PDF
-                </button>
-            </div>
-        </div>
-
-        <!-- Tabla de resultados del historial -->
-        <div id="history-results" class="history-results hidden">
-            <div class="results-header">
-                <h3 id="student-name-display"></h3>
-                <span id="total-sessions-badge" class="badge">0 sesiones</span>
-            </div>
-            <div class="table-responsive">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Semestre</th>
-                            <th>Tipo</th>
-                            <th>Tutor</th>
-                            <th>Tema</th>
-                            <th>Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody id="history-table-body">
-                        <!-- Se llenará dinámicamente -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </section>
-
-    <!-- Sección 3: Constancia de Tutoría -->
+    <!-- Sección 2: Constancia de Tutoría -->
     <section class="report-section">
         <div class="section-header">
             <div class="section-title">
@@ -124,7 +56,7 @@
                 <h2>Constancia de Tutoría</h2>
             </div>
             <p class="section-description">
-                Genera una constancia formal que certifica que un estudiante completó su plan de tutorías para un semestre específico.
+                Busca si un estudiante tiene constancia generada y firmada. Ingresa el código del estudiante para verificar.
             </p>
         </div>
 
@@ -142,50 +74,39 @@
             <div class="form-group">
                 <label>
                     <i class="fa-solid fa-user-graduate"></i>
-                    Buscar Estudiante
+                    Código del Estudiante
                 </label>
                 <div class="search-input-wrapper">
                     <input 
                         type="text" 
-                        id="student-constancia" 
+                        id="student-code-constancia" 
                         class="form-input"
-                        placeholder="Buscar por código o nombre..."
+                        placeholder="Ingrese el código del estudiante..."
                     >
                     <i class="fa-solid fa-magnifying-glass search-icon"></i>
                 </div>
-                <div id="student-constancia-suggestions" class="suggestions-dropdown"></div>
             </div>
 
-            <button id="btn-generate-constancia" class="btn-generate">
-                <i class="fa-solid fa-file-pdf"></i>
-                Generar Constancia (PDF)
+            <button id="btn-search-constancia" class="btn-secondary" onclick="buscarConstanciaEstudiante()">
+                <i class="fa-solid fa-search"></i>
+                Buscar Constancia
             </button>
         </div>
 
-        <!-- Información de constancia -->
-        <div id="constancia-info" class="constancia-info hidden">
-            <div class="info-card">
-                <h4>
-                    <i class="fa-solid fa-info-circle"></i>
-                    Información de la Constancia
-                </h4>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <span class="info-label">Estudiante:</span>
-                        <span id="const-student-name" class="info-value"></span>
+        <!-- Resultado de búsqueda de constancia -->
+        <div id="constancia-result" class="constancia-result hidden">
+            <div class="result-card">
+                <div class="result-header">
+                    <h4 id="result-student-name"></h4>
+                    <span id="result-student-code" class="code-badge"></span>
+                </div>
+                <div class="result-body">
+                    <div class="constancia-status" id="constancia-status-container">
+                        <!-- Se llenará dinámicamente -->
                     </div>
-                    <div class="info-item">
-                        <span class="info-label">Código:</span>
-                        <span id="const-student-code" class="info-value"></span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Semestre:</span>
-                        <span id="const-semester" class="info-value"></span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Sesiones Completadas:</span>
-                        <span id="const-sessions" class="info-value"></span>
-                    </div>
+                </div>
+            </div>
+        </div>
                     <div class="info-item">
                         <span class="info-label">Estado:</span>
                         <span id="const-status" class="info-value"></span>
@@ -270,6 +191,48 @@
             </div>
         </div>
     </section>
+</div>
+
+<!-- Modal para visualizar PDF -->
+<div id="pdf-modal" class="pdf-modal" style="display: none;">
+    <div class="pdf-modal-content">
+        <div class="pdf-modal-header">
+            <h3>
+                <i class="fa-solid fa-file-pdf"></i>
+                Vista Previa del Reporte
+            </h3>
+            <button class="pdf-modal-close" onclick="closePdfModal()">
+                <i class="fa-solid fa-times"></i>
+            </button>
+        </div>
+        <div class="pdf-modal-body">
+            <div id="pdf-preview-content" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 40px; text-align: center;">
+                <i class="fa-solid fa-check-circle" style="font-size: 64px; color: #27ae60; margin-bottom: 20px;"></i>
+                <h3 style="color: #2c3e50; margin-bottom: 10px;">PDF Generado Exitosamente</h3>
+                <p style="color: #7f8c8d; margin-bottom: 30px;">El reporte se ha generado correctamente. Puedes descargarlo o abrirlo en una nueva pestaña.</p>
+                <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
+                    <button class="btn-download-pdf" onclick="downloadCurrentPdf()" style="padding: 12px 24px; font-size: 16px;">
+                        <i class="fa-solid fa-download"></i>
+                        Descargar PDF
+                    </button>
+                    <button class="btn-secondary" onclick="openPdfInNewTab()" style="padding: 12px 24px; font-size: 16px;">
+                        <i class="fa-solid fa-external-link-alt"></i>
+                        Abrir en Nueva Pestaña
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="pdf-modal-footer">
+            <button class="btn-download-pdf" onclick="downloadCurrentPdf()">
+                <i class="fa-solid fa-download"></i>
+                Descargar PDF
+            </button>
+            <button class="btn-close-modal" onclick="closePdfModal()">
+                <i class="fa-solid fa-times"></i>
+                Cerrar
+            </button>
+        </div>
+    </div>
 </div>
 
 <!-- Loading overlay -->

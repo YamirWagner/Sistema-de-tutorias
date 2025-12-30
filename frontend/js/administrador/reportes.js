@@ -3,13 +3,15 @@
 // Lógica de reportes y generación de PDFs
 // ================================================
 
+console.log('🔄 Iniciando carga de reportes.js...');
+
 // ===== VARIABLES GLOBALES =====
 let currentStudentData = null;
-let currentHistoryData = [];
 let complianceChart = null;
 
 // ===== FUNCIÓN DE CARGA DEL MÓDULO =====
 async function loadReportesContent() {
+    console.log('🎯 loadReportesContent ejecutándose...');
     const content = document.getElementById('dashboardContent');
     
     if (!content) {
@@ -18,7 +20,7 @@ async function loadReportesContent() {
     }
     
     try {
-        content.innerHTML = '<div class="loading-message" style="text-align:center;padding:40px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:32px;color:#a42727;"></i><p style="margin-top:16px;color:#666;">Cargando módulo...</p></div>';
+        content.innerHTML = '<div class="loading-message"><i class="fa-solid fa-spinner fa-spin"></i><p>Cargando módulo...</p></div>';
         
         const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
         const cssPath = `${basePath}/frontend/css/administrador/reportes.css`;
@@ -29,10 +31,12 @@ async function loadReportesContent() {
             cssLink.rel = 'stylesheet';
             cssLink.href = cssPath;
             document.head.appendChild(cssLink);
+            console.log('✅ CSS de reportes cargado');
         }
         
         // Cargar HTML
         const url = `${basePath}/frontend/components/administrador/reportes.html`;
+        console.log('📄 Cargando HTML desde:', url);
         const response = await fetch(url);
         
         if (!response.ok) {
@@ -41,25 +45,37 @@ async function loadReportesContent() {
         
         const htmlText = await response.text();
         content.innerHTML = htmlText;
+        console.log('✅ HTML de reportes cargado');
         
         // Esperar procesamiento del DOM
         await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
         
         // Inicializar el módulo
         await initializeReports();
+        console.log('✅ Módulo de reportes inicializado completamente');
         
     } catch (error) {
         console.error('❌ Error al cargar módulo de reportes:', error);
         content.innerHTML = `
-            <div class="error-message" style="padding:40px;text-align:center;">
-                <h3 style="color:#dc2626;">Error al cargar el módulo</h3>
-                <p style="color:#666;">${error.message}</p>
+            <div class="error-message">
+                <h3>Error al cargar el módulo</h3>
+                <p>${error.message}</p>
             </div>`;
     }
 }
 
-// Exponer globalmente
+// ===== EXPONER FUNCIONES GLOBALMENTE (INMEDIATAMENTE) =====
 window.loadReportesContent = loadReportesContent;
+
+// Asegurar disponibilidad múltiple
+if (typeof window.modules === 'undefined') {
+    window.modules = {};
+}
+window.modules.reportes = { load: loadReportesContent };
+
+console.log('✅ reportes.js: loadReportesContent expuesta globalmente');
+console.log('📌 Tipo de window.loadReportesContent:', typeof window.loadReportesContent);
+console.log('📌 Disponible en window:', 'loadReportesContent' in window);
 
 // ===== INICIALIZACIÓN =====
 async function initializeReports() {
@@ -75,7 +91,7 @@ async function initializeReports() {
 // ===== CARGAR SEMESTRES =====
 async function loadSemesters() {
     try {
-        const response = await apiGet('/semestre');
+        const response = await apiGet('/semestre?action=list');
         
         if (response.success && response.data) {
             const semestres = response.data;
@@ -116,21 +132,8 @@ function setupEventListeners() {
         btnGenerateTutorList.addEventListener('click', generateTutorListPDF);
     }
     
-    // Sección 2: Historial de Estudiante
-    const studentSearch = document.getElementById('student-search');
-    if (studentSearch) {
-        studentSearch.addEventListener('input', debounce(searchStudents, 300));
-    }
-    
-    const btnViewHistory = document.getElementById('btn-view-history');
-    if (btnViewHistory) {
-        btnViewHistory.addEventListener('click', viewStudentHistory);
-    }
-    
-    const btnExportHistory = document.getElementById('btn-export-history');
-    if (btnExportHistory) {
-        btnExportHistory.addEventListener('click', exportHistoryPDF);
-    }
+    // Sección 2: Historial de Estudiante - Solo botón buscar
+    // (Ya no necesita listeners de input ni sugerencias)
     
     // Sección 3: Constancia de Tutoría
     const studentConstancia = document.getElementById('student-constancia');
@@ -191,21 +194,50 @@ async function generateTutorListPDF() {
     const semesterId = document.getElementById('semester-tutor-list').value;
     const tutorId = document.getElementById('tutor-select').value;
     
-    if (!semesterId || !tutorId) {
-        showNotification('Por favor seleccione semestre y tutor', 'warning');
+    if (!semesterId) {
+        showNotification('Por favor seleccione un semestre', 'warning');
         return;
     }
     
     showLoading(true);
     
     try {
-        const response = await apiGet(`/reportes?action=getTutorStudents&semesterId=${semesterId}&tutorId=${tutorId}`);
+        // Llamar al backend para generar el PDF
+        const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+        let url = `${basePath}/api/reporte-pdf.php?tipo=lista-tutores&semesterId=${semesterId}`;
         
-        if (response.success && response.data) {
-            generatePDFTutorList(response.data);
+        // Si se seleccionó un tutor específico (no "all" ni vacío), agregarlo a la URL
+        if (tutorId && tutorId !== 'all' && tutorId !== '') {
+            url += `&tutorId=${tutorId}`;
+        }
+        
+        console.log('📄 Generando PDF con URL:', url);
+        
+        const token = localStorage.getItem('token');
+        
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            // Mostrar PDF en modal
+            const blob = await response.blob();
+            const pdfUrl = window.URL.createObjectURL(blob);
+            
+            // Guardar la URL para descarga
+            window.currentPdfUrl = pdfUrl;
+            window.currentPdfFilename = `Constancia_Tutores_Semestre_${semesterId}_${new Date().toISOString().split('T')[0]}.pdf`;
+            
+            // Mostrar en modal
+            showPdfModal(pdfUrl);
+            
             showNotification('PDF generado exitosamente', 'success');
         } else {
-            showNotification('No se encontraron datos para generar el reporte', 'warning');
+            const error = await response.json();
+            showNotification(error.error || 'Error al generar el PDF', 'error');
         }
     } catch (error) {
         console.error('❌ Error generando PDF:', error);
@@ -215,295 +247,194 @@ async function generateTutorListPDF() {
     }
 }
 
-function generatePDFTutorList(data) {
-    // Verificar que jsPDF esté disponible
-    if (typeof window.jspdf === 'undefined') {
-        console.error('❌ jsPDF no está cargado');
-        showNotification('Error: Librería PDF no disponible', 'error');
-        return;
+// ===== FUNCIONES DEL MODAL PDF =====
+window.showPdfModal = function(pdfUrl) {
+    console.log('📄 Abriendo modal PDF');
+    const modal = document.getElementById('pdf-modal');
+    
+    if (modal) {
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        console.log('✅ Modal abierto');
+    } else {
+        console.error('❌ No se encontró el modal');
     }
-    
-    if (!data || !data.estudiantes || data.estudiantes.length === 0) {
-        showNotification('No hay estudiantes para generar el PDF', 'warning');
-        return;
-    }
-    
-    try {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-    
-    // Encabezado
-    doc.setFontSize(18);
-    doc.text('Lista de Tutorados por Tutor', 105, 20, { align: 'center' });
-    
-    doc.setFontSize(12);
-    doc.text(`Semestre: ${data.semestre}`, 20, 35);
-    doc.text(`Tutor: ${data.tutor}`, 20, 42);
-    doc.text(`Total de estudiantes: ${data.estudiantes.length}`, 20, 49);
-    
-    // Tabla
-    const tableData = data.estudiantes.map((est, index) => [
-        index + 1,
-        est.codigo,
-        `${est.nombres} ${est.apellidos}`,
-        est.email,
-        est.sesionesCompletadas || 0
-    ]);
-    
-    doc.autoTable({
-        startY: 60,
-        head: [['#', 'Código', 'Nombre Completo', 'Email', 'Sesiones']],
-        body: tableData,
-        theme: 'grid',
-        headStyles: { fillColor: [44, 62, 80] },
-        styles: { fontSize: 10 }
-    });
-    
-    // Fecha de generación
-    const today = new Date().toLocaleDateString('es-PE');
-    doc.setFontSize(9);
-    doc.text(`Generado el: ${today}`, 20, doc.internal.pageSize.height - 10);
-    
-    const filename = `Lista_Tutorados_${(data.semestre || 'reporte').replace(/\s/g, '_')}.pdf`;
-    doc.save(filename);
-    
-    console.log(`✅ PDF generado: ${filename}`);
-    } catch (error) {
-        console.error('❌ Error generando PDF:', error);
-        showNotification('Error al generar el PDF', 'error');
-    }
-}
+};
 
-// ===== SECCIÓN 2: HISTORIAL DE ESTUDIANTE =====
-async function searchStudents() {
-    const searchTerm = document.getElementById('student-search').value.trim();
-    const suggestionsDiv = document.getElementById('student-suggestions');
-    
-    if (searchTerm.length < 3) {
-        suggestionsDiv.classList.add('hidden');
-        return;
+window.openPdfInNewTab = function() {
+    if (window.currentPdfUrl) {
+        window.open(window.currentPdfUrl, '_blank');
+        console.log('📄 PDF abierto en nueva pestaña');
+    } else {
+        showNotification('No hay PDF disponible', 'error');
     }
+};
+
+window.closePdfModal = function() {
+    console.log('🚪 Cerrando modal PDF');
+    const modal = document.getElementById('pdf-modal');
     
-    try {
-        const response = await apiGet(`/reportes?action=searchStudents&query=${encodeURIComponent(searchTerm)}`);
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
         
-        if (response.success && response.data && response.data.length > 0) {
-            displayStudentSuggestions(response.data, suggestionsDiv);
-        } else {
-            suggestionsDiv.innerHTML = '<div class="suggestion-item" style="text-align:center;color:#999;">No se encontraron estudiantes</div>';
-            suggestionsDiv.classList.remove('hidden');
-        }
-    } catch (error) {
-        console.error('❌ Error buscando estudiantes:', error);
+        // Liberar URL del blob después de un delay para permitir descargas pendientes
+        setTimeout(() => {
+            if (window.currentPdfUrl) {
+                URL.revokeObjectURL(window.currentPdfUrl);
+                window.currentPdfUrl = null;
+            }
+        }, 1000);
+        
+        console.log('✅ Modal cerrado');
     }
-}
+};
 
-function displayStudentSuggestions(students, container) {
-    container.innerHTML = '';
-    container.classList.remove('hidden');
+window.downloadCurrentPdf = function() {
+    console.log('💾 Descargando PDF:', window.currentPdfFilename);
+    if (window.currentPdfUrl && window.currentPdfFilename) {
+        const link = document.createElement('a');
+        link.href = window.currentPdfUrl;
+        link.download = window.currentPdfFilename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showNotification('PDF descargado exitosamente', 'success');
+        console.log('✅ PDF descargado');
+    } else {
+        console.error('❌ No hay PDF para descargar');
+        showNotification('No hay PDF para descargar', 'error');
+    }
+};
+
+// ===== SECCIÓN 2: CONSTANCIA DE TUTORÍA =====
+window.buscarConstanciaEstudiante = async function() {
+    const semesterId = document.getElementById('semester-constancia').value;
+    const codigoEstudiante = document.getElementById('student-code-constancia').value.trim();
     
-    if (students.length === 0) {
-        container.innerHTML = '<div class="suggestion-item" style="text-align:center;color:#999;">No se encontraron estudiantes</div>';
+    if (!semesterId) {
+        showNotification('Por favor seleccione un semestre', 'warning');
         return;
     }
     
-    students.forEach(student => {
-        const item = document.createElement('div');
-        item.className = 'suggestion-item';
-        item.innerHTML = `
-            <strong>${student.nombres} ${student.apellidos}</strong>
-            <small>Código: ${student.codigo}</small>
-        `;
-        item.addEventListener('click', () => selectStudent(student, container));
-        container.appendChild(item);
-    });
-}
-
-function selectStudent(student, container) {
-    if (!student) return;
-    
-    currentStudentData = student;
-    const searchInput = document.getElementById('student-search');
-    if (searchInput) {
-        searchInput.value = `${student.codigo} - ${student.nombres} ${student.apellidos}`;
-    }
-    if (container) {
-        container.classList.add('hidden');
-    }
-    console.log('✅ Estudiante seleccionado:', student);
-}
-
-async function viewStudentHistory() {
-    if (!currentStudentData) {
-        showNotification('Por favor seleccione un estudiante', 'warning');
+    if (!codigoEstudiante) {
+        showNotification('Por favor ingrese el código del estudiante', 'warning');
         return;
     }
     
     showLoading(true);
     
     try {
-        const response = await apiGet(`/reportes?action=getStudentHistory&studentId=${currentStudentData.id}`);
+        // Buscar estudiante por código
+        const studentResponse = await apiGet(`/reportes?action=searchStudentByCode&codigo=${encodeURIComponent(codigoEstudiante)}`);
         
-        if (response.success && response.data) {
-            currentHistoryData = response.data.sesiones;
-            displayHistoryTable(response.data);
-        } else {
-            showNotification('No se encontró historial para este estudiante', 'warning');
+        if (!studentResponse.success || !studentResponse.data) {
+            showNotification('No se encontró un estudiante con ese código', 'error');
+            document.getElementById('constancia-result').classList.add('hidden');
+            return;
         }
+        
+        const estudiante = studentResponse.data;
+        
+        // Buscar constancia en la BD
+        const constanciaResponse = await apiGet(`/listar-constancias?semesterId=${semesterId}&estudianteId=${estudiante.id}`);
+        
+        // Mostrar resultado
+        mostrarResultadoConstancia(estudiante, constanciaResponse.data, semesterId);
+        
     } catch (error) {
-        console.error('❌ Error cargando historial:', error);
-        showNotification('Error al cargar el historial', 'error');
+        console.error('❌ Error buscando constancia:', error);
+        showNotification('Error al buscar la constancia', 'error');
     } finally {
         showLoading(false);
     }
-}
+};
 
-function displayHistoryTable(data) {
-    const resultsDiv = document.getElementById('history-results');
-    const nameDisplay = document.getElementById('student-name-display');
-    const badge = document.getElementById('total-sessions-badge');
-    const tableBody = document.getElementById('history-table-body');
+function mostrarResultadoConstancia(estudiante, constancias, semesterId) {
+    const resultDiv = document.getElementById('constancia-result');
+    const nameDisplay = document.getElementById('result-student-name');
+    const codeDisplay = document.getElementById('result-student-code');
+    const statusContainer = document.getElementById('constancia-status-container');
     
-    if (!data || !data.estudiante || !data.sesiones) {
-        console.error('❌ Datos incompletos para mostrar historial');
-        return;
-    }
+    // Mostrar nombre y código del estudiante
+    nameDisplay.textContent = `${estudiante.nombres} ${estudiante.apellidos}`;
+    codeDisplay.textContent = estudiante.codigo;
     
-    if (nameDisplay) {
-        nameDisplay.textContent = `${data.estudiante.nombres} ${data.estudiante.apellidos}`;
-    }
-    if (badge) {
-        badge.textContent = `${data.sesiones.length} sesiones`;
-    }
+    // Verificar si tiene constancia
+    const constancia = constancias && constancias.length > 0 ? constancias[0] : null;
     
-    if (!tableBody) {
-        console.error('❌ Tabla de historial no encontrada');
-        return;
-    }
-    
-    tableBody.innerHTML = '';
-    
-    data.sesiones.forEach(sesion => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${formatDate(sesion.fecha)}</td>
-            <td>${sesion.semestre}</td>
-            <td>${sesion.tipo}</td>
-            <td>${sesion.tutor}</td>
-            <td>${sesion.tema}</td>
-            <td><span class="status-badge ${sesion.estado}">${sesion.estado}</span></td>
-        `;
-        tableBody.appendChild(row);
-    });
-    
-    if (resultsDiv) {
-        resultsDiv.classList.remove('hidden');
-    }
-}
-
-async function exportHistoryPDF() {
-    if (!currentHistoryData || currentHistoryData.length === 0) {
-        showNotification('No hay datos para exportar', 'warning');
-        return;
-    }
-    
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    
-    // Encabezado
-    doc.setFontSize(18);
-    doc.text('Historial Completo de Estudiante', 105, 20, { align: 'center' });
-    
-    doc.setFontSize(12);
-    doc.text(`Estudiante: ${currentStudentData.nombres} ${currentStudentData.apellidos}`, 20, 35);
-    doc.text(`Código: ${currentStudentData.codigo}`, 20, 42);
-    doc.text(`Total de sesiones: ${currentHistoryData.length}`, 20, 49);
-    
-    // Tabla
-    const tableData = currentHistoryData.map(sesion => [
-        formatDate(sesion.fecha),
-        sesion.semestre,
-        sesion.tipo,
-        sesion.tutor,
-        sesion.tema,
-        sesion.estado
-    ]);
-    
-    doc.autoTable({
-        startY: 60,
-        head: [['Fecha', 'Semestre', 'Tipo', 'Tutor', 'Tema', 'Estado']],
-        body: tableData,
-        theme: 'grid',
-        headStyles: { fillColor: [44, 62, 80] },
-        styles: { fontSize: 9 }
-    });
-    
-    const today = new Date().toLocaleDateString('es-PE');
-    doc.setFontSize(9);
-    doc.text(`Generado el: ${today}`, 20, doc.internal.pageSize.height - 10);
-    
-    doc.save(`Historial_${currentStudentData.codigo}.pdf`);
-    showNotification('PDF exportado exitosamente', 'success');
-}
-
-// ===== SECCIÓN 3: CONSTANCIA DE TUTORÍA =====
-async function searchStudentsConstancia() {
-    const searchTerm = document.getElementById('student-constancia').value.trim();
-    const suggestionsDiv = document.getElementById('student-constancia-suggestions');
-    
-    if (searchTerm.length < 3) {
-        suggestionsDiv.classList.add('hidden');
-        return;
-    }
-    
-    try {
-        const response = await apiGet(`/reportes?action=searchStudents&query=${encodeURIComponent(searchTerm)}`);
+    if (constancia && constancia.rutaPDF) {
+        // Tiene constancia
+        const estaFirmada = constancia.firmado == 1;
+        const fechaGeneracion = constancia.fechaGeneracion ? new Date(constancia.fechaGeneracion).toLocaleDateString('es-PE') : 'N/A';
+        const fechaFirma = constancia.fechaFirma ? new Date(constancia.fechaFirma).toLocaleDateString('es-PE') : null;
         
-        if (response.success && response.data && response.data.length > 0) {
-            displayConstanciaSuggestions(response.data, suggestionsDiv);
-        } else {
-            suggestionsDiv.innerHTML = '<div class="suggestion-item" style="text-align:center;color:#999;">No se encontraron estudiantes</div>';
-            suggestionsDiv.classList.remove('hidden');
-        }
-    } catch (error) {
-        console.error('❌ Error buscando estudiantes:', error);
-    }
-}
-
-function displayConstanciaSuggestions(students, container) {
-    container.innerHTML = '';
-    container.classList.remove('hidden');
-    
-    if (students.length === 0) {
-        container.innerHTML = '<div class="suggestion-item" style="text-align:center;color:#999;">No se encontraron estudiantes</div>';
-        return;
-    }
-    
-    students.forEach(student => {
-        const item = document.createElement('div');
-        item.className = 'suggestion-item';
-        item.innerHTML = `
-            <strong>${student.nombres} ${student.apellidos}</strong>
-            <small>Código: ${student.codigo}</small>
+        statusContainer.innerHTML = `
+            <div class="constancia-found">
+                <div class="pdf-icon">
+                    <i class="fa-solid fa-file-pdf"></i>
+                </div>
+                <div class="constancia-details">
+                    <h5>
+                        <i class="fa-solid fa-check-circle"></i>
+                        Constancia Encontrada
+                    </h5>
+                    <p><strong>Estado:</strong> ${estaFirmada ? '<span class="badge-firmada">Firmada</span>' : '<span class="badge-pendiente">Sin firmar</span>'}</p>
+                    <p><strong>Fecha de generación:</strong> ${fechaGeneracion}</p>
+                    ${fechaFirma ? `<p><strong>Fecha de firma:</strong> ${fechaFirma}</p>` : ''}
+                    <div class="constancia-actions">
+                        <button class="btn-download-pdf" onclick="descargarConstancia('${constancia.rutaPDF}', '${estudiante.codigo}')">
+                            <i class="fa-solid fa-download"></i>
+                            Descargar PDF
+                        </button>
+                        <button class="btn-secondary" onclick="verConstancia('${constancia.rutaPDF}')">
+                            <i class="fa-solid fa-eye"></i>
+                            Ver PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
         `;
-        item.addEventListener('click', () => selectConstanciaStudent(student, container));
-        container.appendChild(item);
-    });
+    } else {
+        // No tiene constancia
+        statusContainer.innerHTML = `
+            <div class="constancia-not-found">
+                <div class="no-icon">
+                    <i class="fa-solid fa-file-circle-xmark"></i>
+                </div>
+                <div class="no-details">
+                    <h5>
+                        <i class="fa-solid fa-info-circle"></i>
+                        No se encontró constancia
+                    </h5>
+                    <p>Este estudiante no tiene una constancia generada para el semestre seleccionado.</p>
+                    <p class="help-text">La constancia se genera automáticamente cuando el estudiante completa las 3 sesiones requeridas (Académica, Personal y Profesional).</p>
+                </div>
+            </div>
+        `;
+    }
+    
+    resultDiv.classList.remove('hidden');
 }
 
-function selectConstanciaStudent(student, container) {
-    if (!student) return;
-    
-    currentStudentData = student;
-    const constanciaInput = document.getElementById('student-constancia');
-    if (constanciaInput) {
-        constanciaInput.value = `${student.codigo} - ${student.nombres} ${student.apellidos}`;
-    }
-    if (container) {
-        container.classList.add('hidden');
-    }
-    console.log('✅ Estudiante seleccionado para constancia:', student);
-}
+window.descargarConstancia = function(rutaPDF, codigoEstudiante) {
+    const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+    const url = `${basePath}/backend/${rutaPDF}`;
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `constancia_${codigoEstudiante}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showNotification('Descargando constancia...', 'success');
+};
+
+window.verConstancia = function(rutaPDF) {
+    const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+    const url = `${basePath}/backend/${rutaPDF}`;
+    window.open(url, '_blank');
+};
 
 async function generateConstanciaPDF() {
     const semesterId = document.getElementById('semester-constancia').value;
@@ -516,12 +447,36 @@ async function generateConstanciaPDF() {
     showLoading(true);
     
     try {
+        // Primero obtener datos para mostrar en pantalla
         const response = await apiGet(`/reportes?action=getConstanciaData&semesterId=${semesterId}&studentId=${currentStudentData.id}`);
         
         if (response.success && response.data) {
             displayConstanciaInfo(response.data);
-            generatePDFConstancia(response.data);
-            showNotification('Constancia generada exitosamente', 'success');
+            
+            // Ahora generar el PDF desde el backend usando reporte-pdf.php
+            const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+            const url = `${basePath}/api/reporte-pdf.php?tipo=constancia&estudianteId=${currentStudentData.id}&semesterId=${semesterId}`;
+            const token = localStorage.getItem('token');
+            
+            const pdfResponse = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (pdfResponse.ok) {
+                const blob = await pdfResponse.blob();
+                const filename = `Constancia_${currentStudentData.codigo}_${response.data.semestre.replace(/\s/g, '_')}.pdf`;
+                
+                // Abrir modal con PDF
+                openPdfModal(blob, filename);
+                
+                showNotification('Constancia generada exitosamente', 'success');
+            } else {
+                const error = await pdfResponse.json();
+                showNotification(error.error || 'Error al generar la constancia', 'error');
+            }
         } else {
             showNotification('No se puede generar la constancia. Verifica que el estudiante haya completado las tutorías.', 'warning');
         }
@@ -560,44 +515,6 @@ function displayConstanciaInfo(data) {
     if (infoDiv) {
         infoDiv.classList.remove('hidden');
     }
-}
-
-function generatePDFConstancia(data) {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    
-    // Encabezado formal
-    doc.setFontSize(16);
-    doc.setFont('helvetica', 'bold');
-    doc.text('CONSTANCIA DE TUTORÍA', 105, 30, { align: 'center' });
-    
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'normal');
-    
-    const yStart = 60;
-    const lineHeight = 10;
-    
-    doc.text('La Oficina de Tutorías de la Universidad Nacional de San Antonio Abad del Cusco', 20, yStart);
-    doc.text('certifica que:', 20, yStart + lineHeight);
-    
-    doc.setFont('helvetica', 'bold');
-    doc.text(`${data.estudiante.nombres} ${data.estudiante.apellidos}`, 105, yStart + lineHeight * 2.5, { align: 'center' });
-    doc.text(`Código: ${data.estudiante.codigo}`, 105, yStart + lineHeight * 3.5, { align: 'center' });
-    
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Ha completado satisfactoriamente el plan de tutorías correspondiente al ${data.semestre},`, 20, yStart + lineHeight * 5);
-    doc.text(`habiendo asistido a un total de ${data.sesionesCompletadas} sesiones de tutoría académica, personal y profesional.`, 20, yStart + lineHeight * 6);
-    
-    doc.text('Se expide la presente constancia a solicitud del interesado para los fines que estime conveniente.', 20, yStart + lineHeight * 8);
-    
-    const today = new Date().toLocaleDateString('es-PE', { year: 'numeric', month: 'long', day: 'numeric' });
-    doc.text(`Cusco, ${today}`, 105, yStart + lineHeight * 11, { align: 'center' });
-    
-    // Firma
-    doc.line(70, yStart + lineHeight * 15, 140, yStart + lineHeight * 15);
-    doc.text('Coordinador de Tutorías', 105, yStart + lineHeight * 15.5, { align: 'center' });
-    
-    doc.save(`Constancia_${data.estudiante.codigo}_${data.semestre.replace(/\s/g, '_')}.pdf`);
 }
 
 // ===== SECCIÓN 4: REPORTE DE CUMPLIMIENTO =====
@@ -682,9 +599,10 @@ function renderComplianceChart(data) {
                 datasets: [{
                     label: 'Sesiones Registradas',
                     data: data.tutores.map(t => t.sesiones || 0),
-                    backgroundColor: 'rgba(52, 152, 219, 0.6)',
-                    borderColor: 'rgba(52, 152, 219, 1)',
-                    borderWidth: 2
+                    backgroundColor: 'rgba(155, 25, 45, 0.7)',
+                    borderColor: 'rgba(155, 25, 45, 1)',
+                    borderWidth: 2,
+                    hoverBackgroundColor: 'rgba(155, 25, 45, 0.9)'
                 }]
             },
             options: {
@@ -697,7 +615,12 @@ function renderComplianceChart(data) {
                     },
                     title: {
                         display: true,
-                        text: 'Sesiones Registradas por Tutor'
+                        text: 'Sesiones Registradas por Tutor',
+                        font: {
+                            size: 16,
+                            weight: 'bold'
+                        },
+                        color: '#9B192D'
                     }
                 },
                 scales: {
@@ -705,11 +628,20 @@ function renderComplianceChart(data) {
                         beginAtZero: true,
                         ticks: {
                             stepSize: 1
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
                         }
                     }
                 }
             }
         });
+        
         console.log('✅ Gráfico de cumplimiento renderizado');
     } catch (error) {
         console.error('❌ Error renderizando gráfico:', error);
@@ -743,7 +675,7 @@ function showNotification(message, type = 'info') {
         top: 80px;
         right: 20px;
         padding: 15px 20px;
-        background: ${type === 'success' ? '#27ae60' : type === 'error' ? '#e74c3c' : type === 'warning' ? '#f39c12' : '#3498db'};
+        background: ${type === 'success' ? '#27ae60' : type === 'error' ? '#e74c3c' : type === 'warning' ? '#f39c12' : '#9B192D'};
         color: white;
         border-radius: 8px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.2);
@@ -797,7 +729,72 @@ document.addEventListener('click', (e) => {
     });
 });
 
-// ===== EXPONER FUNCIONES GLOBALES =====
-window.initializeReports = initializeReports;
+// ===== FUNCIONES PARA MODAL PDF =====
+let currentPdfBlob = null;
+let currentPdfFilename = 'reporte.pdf';
 
-console.log('✅ reportes.js cargado correctamente');
+function openPdfModal(blob, filename) {
+    currentPdfBlob = blob;
+    currentPdfFilename = filename;
+    
+    const pdfUrl = window.URL.createObjectURL(blob);
+    const modal = document.getElementById('pdf-modal');
+    const iframe = document.getElementById('pdf-viewer');
+    
+    iframe.src = pdfUrl;
+    modal.style.display = 'flex';
+    
+    // Prevenir scroll del body
+    document.body.style.overflow = 'hidden';
+}
+
+function closePdfModal() {
+    const modal = document.getElementById('pdf-modal');
+    const iframe = document.getElementById('pdf-viewer');
+    
+    // Limpiar recursos
+    if (iframe.src) {
+        window.URL.revokeObjectURL(iframe.src);
+        iframe.src = '';
+    }
+    
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+    
+    currentPdfBlob = null;
+    currentPdfFilename = 'reporte.pdf';
+}
+
+function downloadCurrentPdf() {
+    if (!currentPdfBlob) {
+        showNotification('No hay PDF para descargar', 'warning');
+        return;
+    }
+    
+    const downloadUrl = window.URL.createObjectURL(currentPdfBlob);
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    a.download = currentPdfFilename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(downloadUrl);
+    a.remove();
+    
+    showNotification('Descarga iniciada', 'success');
+}
+
+// Exponer funciones globalmente para onclick
+window.closePdfModal = closePdfModal;
+window.downloadCurrentPdf = downloadCurrentPdf;
+
+// Cerrar modal con ESC
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('pdf-modal');
+        if (modal && modal.style.display === 'flex') {
+            closePdfModal();
+        }
+    }
+});
+
+console.log('✅ reportes.js cargado correctamente en el DOM');

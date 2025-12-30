@@ -99,6 +99,9 @@ $routes = [
     // Rutas de reportes
     'GET|api/reportes' => 'api/reportes.php',
     'POST|api/reportes' => 'api/reportes.php',
+    
+    // Rutas de generación de PDFs de reportes
+    'GET|api/reporte-pdf.php' => 'api/reporte-pdf.php',
 
     // Rutas de bitácora (log de acceso/actividad)
     'GET|api/log' => 'api/log.php',

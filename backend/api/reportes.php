@@ -8,33 +8,64 @@ require_once __DIR__ . '/../core/jwt.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
-// Verificar autenticación
-$headers = getallheaders();
-$token = isset($headers['Authorization']) ? str_replace('Bearer ', '', $headers['Authorization']) : null;
+// Configurar logging
+$logFile = __DIR__ . '/../storage/logs/reportes_' . date('Y-m-d') . '.log';
+ini_set('error_log', $logFile);
+ini_set('log_errors', 1);
 
-if (!$token) {
-    Response::error('Token no proporcionado', 401);
-    exit;
-}
-
-$decoded = JWT::decode($token);
-if (!$decoded) {
-    Response::error('Token inválido o expirado', 401);
-    exit;
-}
-
-// Verificar que sea administrador
-if ($decoded['role'] !== 'Administrador') {
-    Response::error('Acceso denegado. Solo administradores pueden acceder a reportes', 403);
-    exit;
-}
-
-// Obtener parámetros
-$method = $_SERVER['REQUEST_METHOD'];
-$action = $_GET['action'] ?? '';
+// Log de inicio
+error_log("=== REPORTES.PHP INICIADO ===" . PHP_EOL, 3, $logFile);
+error_log("REQUEST_METHOD: " . $_SERVER['REQUEST_METHOD'] . PHP_EOL, 3, $logFile);
+error_log("REQUEST_URI: " . $_SERVER['REQUEST_URI'] . PHP_EOL, 3, $logFile);
+error_log("ACTION: " . ($_GET['action'] ?? 'NO ACTION') . PHP_EOL, 3, $logFile);
 
 try {
-    $db = Database::getInstance()->getConnection();
+    // Verificar autenticación
+    $headers = getallheaders();
+    $token = isset($headers['Authorization']) ? str_replace('Bearer ', '', $headers['Authorization']) : null;
+
+    if (!$token) {
+        Response::error('Token no proporcionado', 401);
+        exit;
+    }
+
+    $decoded = JWT::decode($token);
+    if (!$decoded) {
+        Response::error('Token inválido o expirado', 401);
+        exit;
+    }
+
+    $userRole = $decoded['role'] ?? $decoded['rol'] ?? null;
+    $userId = $decoded['id'] ?? $decoded['user_id'] ?? null;
+
+    // Log para debug
+    error_log("Reportes - Usuario ID: " . $userId . ", Rol: " . $userRole);
+
+    // Normalizar el rol y verificar roles permitidos
+    $roleMap = [
+        'admin' => 'Administrador',
+        'tutor' => 'Tutor',
+        'verifier' => 'Verificador',
+        'Administrador' => 'Administrador',
+        'Tutor' => 'Tutor',
+        'Verificador' => 'Verificador'
+    ];
+
+    $normalizedRole = $roleMap[$userRole] ?? null;
+    $allowedRoles = ['Administrador', 'Tutor', 'Verificador'];
+
+    if (!$normalizedRole || !in_array($normalizedRole, $allowedRoles)) {
+        Response::error('Acceso denegado. Rol no autorizado para acceder a reportes', 403);
+        exit;
+    }
+
+    // Obtener parámetros
+    $method = $_SERVER['REQUEST_METHOD'];
+    $action = $_GET['action'] ?? '';
+    
+    // Conectar a la base de datos
+    $database = new Database();
+    $db = $database->getConnection();
     
     // Manejar diferentes acciones según el método
     switch($method) {
@@ -65,8 +96,8 @@ function handleGetRequest($db, $action) {
         case 'searchStudents':
             searchStudents($db);
             break;
-        case 'getStudentHistory':
-            getStudentHistory($db);
+        case 'searchStudentByCode':
+            searchStudentByCode($db);
             break;
         case 'getConstanciaData':
             getConstanciaData($db);
@@ -90,34 +121,43 @@ function handlePostRequest($db) {
  * Obtener tutores por semestre
  */
 function getTutorsBySemester($db) {
-    $semesterId = $_GET['semesterId'] ?? null;
-    
-    if (!$semesterId) {
-        Response::error('ID de semestre requerido', 400);
-        return;
+    try {
+        $semesterId = $_GET['semesterId'] ?? null;
+        
+        if (!$semesterId) {
+            Response::error('ID de semestre requerido', 400);
+            return;
+        }
+        
+        error_log("getTutorsBySemester - SemestreID: " . $semesterId);
+        
+        $query = "SELECT DISTINCT 
+                    u.id,
+                    u.nombres,
+                    u.apellidos,
+                    u.especialidad,
+                    COUNT(DISTINCT a.idEstudiante) as estudiantesAsignados
+                  FROM usuariosistema u
+                  INNER JOIN asignaciontutor a ON u.id = a.idTutor
+                  WHERE u.rol = 'Tutor' 
+                    AND a.idSemestre = :semesterId
+                    AND a.estado = 'Activa'
+                  GROUP BY u.id, u.nombres, u.apellidos, u.especialidad
+                  ORDER BY u.apellidos, u.nombres";
+        
+        $stmt = $db->prepare($query);
+        $stmt->bindParam(':semesterId', $semesterId, PDO::PARAM_INT);
+        $stmt->execute();
+        
+        $tutors = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        error_log("getTutorsBySemester - Tutores encontrados: " . count($tutors));
+        
+        Response::success($tutors, 'Tutores obtenidos');
+    } catch (Exception $e) {
+        error_log("Error en getTutorsBySemester: " . $e->getMessage());
+        Response::error('Error al obtener tutores: ' . $e->getMessage(), 500);
     }
-    
-    $query = "SELECT DISTINCT 
-                u.id,
-                u.nombres,
-                u.apellidos,
-                u.especialidad,
-                COUNT(DISTINCT a.idEstudiante) as estudiantesAsignados
-              FROM usuariosistema u
-              INNER JOIN asignaciontutor a ON u.id = a.idTutor
-              WHERE u.rol = 'Tutor' 
-                AND a.idSemestre = :semesterId
-                AND a.estado = 'Activa'
-              GROUP BY u.id, u.nombres, u.apellidos, u.especialidad
-              ORDER BY u.apellidos, u.nombres";
-    
-    $stmt = $db->prepare($query);
-    $stmt->bindParam(':semesterId', $semesterId, PDO::PARAM_INT);
-    $stmt->execute();
-    
-    $tutors = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
-    Response::success('Tutores obtenidos', $tutors);
 }
 
 /**
@@ -194,7 +234,7 @@ function getTutorStudents($db) {
         'estudiantes' => $estudiantes
     ];
     
-    Response::success('Estudiantes obtenidos', $data);
+    Response::success($data, 'Estudiantes obtenidos');
 }
 
 /**
@@ -234,72 +274,7 @@ function searchStudents($db) {
     
     $estudiantes = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    Response::success('Estudiantes encontrados', $estudiantes);
-}
-
-/**
- * Obtener historial completo de un estudiante
- */
-function getStudentHistory($db) {
-    $studentId = $_GET['studentId'] ?? null;
-    
-    if (!$studentId) {
-        Response::error('ID de estudiante requerido', 400);
-        return;
-    }
-    
-    // Obtener información del estudiante
-    $queryStudent = "SELECT codigo, nombres, apellidos, correo FROM estudiante WHERE id = :studentId";
-    $stmtStudent = $db->prepare($queryStudent);
-    $stmtStudent->bindParam(':studentId', $studentId, PDO::PARAM_INT);
-    $stmtStudent->execute();
-    $estudiante = $stmtStudent->fetch(PDO::FETCH_ASSOC);
-    
-    if (!$estudiante) {
-        Response::error('Estudiante no encontrado', 404);
-        return;
-    }
-    
-    // Obtener todas las sesiones
-    $querySesiones = "SELECT 
-                        t.id,
-                        t.tipo,
-                        t.fechaRealizada as fecha,
-                        t.observaciones as tema,
-                        t.estado,
-                        s.nombre as semestre,
-                        CONCAT(u.nombres, ' ', u.apellidos) as tutor,
-                        c.fecha as fechaCronograma,
-                        c.horaInicio,
-                        c.horaFin,
-                        c.ambiente
-                      FROM tutoria t
-                      INNER JOIN asignaciontutor a ON t.idAsignacion = a.id
-                      INNER JOIN semestre s ON a.idSemestre = s.id
-                      INNER JOIN usuariosistema u ON a.idTutor = u.id
-                      INNER JOIN cronograma c ON t.idCronograma = c.id
-                      WHERE a.idEstudiante = :studentId
-                      ORDER BY t.fechaRealizada DESC, c.fecha DESC";
-    
-    $stmtSesiones = $db->prepare($querySesiones);
-    $stmtSesiones->bindParam(':studentId', $studentId, PDO::PARAM_INT);
-    $stmtSesiones->execute();
-    $sesiones = $stmtSesiones->fetchAll(PDO::FETCH_ASSOC);
-    
-    // Formatear estados para el frontend
-    foreach ($sesiones as &$sesion) {
-        $sesion['estado'] = strtolower($sesion['estado']);
-        if ($sesion['estado'] === 'realizada') {
-            $sesion['estado'] = 'completada';
-        }
-    }
-    
-    $data = [
-        'estudiante' => $estudiante,
-        'sesiones' => $sesiones
-    ];
-    
-    Response::success('Historial obtenido', $data);
+    Response::success($estudiantes, 'Estudiantes encontrados');
 }
 
 /**
@@ -364,7 +339,7 @@ function getConstanciaData($db) {
         'completado' => $completado
     ];
     
-    Response::success('Datos de constancia obtenidos', $data);
+    Response::success($data, 'Datos de constancia obtenidos');
 }
 
 /**
@@ -434,5 +409,50 @@ function getComplianceStats($db) {
         'tutores' => $tutoresDetalle
     ];
     
-    Response::success('Estadísticas obtenidas', $data);
+    Response::success($data, 'Estadísticas obtenidas');
+}
+
+/**
+ * Buscar estudiante por código
+ */
+function searchStudentByCode($db) {
+    try {
+        $codigo = $_GET['codigo'] ?? null;
+        
+        if (!$codigo) {
+            Response::error('Código de estudiante requerido', 400);
+            return;
+        }
+        
+        error_log("searchStudentByCode - Código: " . $codigo);
+        
+        $query = "SELECT 
+                    id,
+                    codigo,
+                    nombres,
+                    apellidos,
+                    correo,
+                    semestre
+                  FROM estudiante
+                  WHERE codigo = :codigo
+                  LIMIT 1";
+        
+        $stmt = $db->prepare($query);
+        $stmt->bindParam(':codigo', $codigo, PDO::PARAM_STR);
+        $stmt->execute();
+        
+        $student = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$student) {
+            Response::error('Estudiante no encontrado', 404);
+            return;
+        }
+        
+        error_log("searchStudentByCode - Estudiante encontrado: " . $student['nombres'] . " " . $student['apellidos']);
+        
+        Response::success($student, 'Estudiante encontrado');
+    } catch (Exception $e) {
+        error_log("Error en searchStudentByCode: " . $e->getMessage());
+        Response::error('Error al buscar estudiante: ' . $e->getMessage(), 500);
+    }
 }

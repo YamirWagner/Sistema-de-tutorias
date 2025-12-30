@@ -49,7 +49,7 @@ try {
     $role = strtolower($payload['role'] ?? '');
     $isAdmin = ($role === 'admin' || $role === 'administrador');
     $isTutor = ($role === 'tutor');
-    $isEstudiante = ($role === 'estudiante');
+    $isEstudiante = ($role === 'estudiante' || $role === 'student');
     
     $userId = $payload['user_id'] ?? null;
     
@@ -58,6 +58,10 @@ try {
         echo json_encode(['error' => 'ID de usuario no encontrado en el token']);
         exit;
     }
+    
+    // Obtener parámetros de filtrado opcional
+    $semesterId = $_GET['semesterId'] ?? null;
+    $estudianteId = $_GET['estudianteId'] ?? null;
     
     // Construir query según el rol
     if ($isAdmin) {
@@ -70,10 +74,34 @@ try {
                  INNER JOIN usuariosistema t ON c.idTutor = t.id
                  INNER JOIN estudiante e ON c.idEstudiante = e.id
                  INNER JOIN semestre s ON c.idSemestre = s.id
-                 WHERE c.estado = 'Activo'
-                 ORDER BY c.fechaGeneracion DESC";
+                 WHERE c.estado = 'Activo'";
+        
+        // Agregar filtros opcionales
+        $conditions = [];
+        $params = [];
+        
+        if ($semesterId) {
+            $conditions[] = "c.idSemestre = :semestre_id";
+            $params[':semestre_id'] = $semesterId;
+        }
+        
+        if ($estudianteId) {
+            $conditions[] = "c.idEstudiante = :estudiante_id";
+            $params[':estudiante_id'] = $estudianteId;
+        }
+        
+        if (!empty($conditions)) {
+            $query .= " AND " . implode(" AND ", $conditions);
+        }
+        
+        $query .= " ORDER BY c.fechaGeneracion DESC";
         
         $stmt = $db->prepare($query);
+        
+        // Bind parameters dinámicamente
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value, PDO::PARAM_INT);
+        }
         
     } elseif ($isTutor) {
         // Tutor solo ve sus constancias
@@ -143,6 +171,7 @@ try {
     
     echo json_encode([
         'success' => true,
+        'data' => $resultado,
         'constancias' => $resultado,
         'total' => count($resultado)
     ]);
