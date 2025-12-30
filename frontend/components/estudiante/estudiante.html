@@ -30,4 +30,43 @@
         <i class="fa-solid fa-user-slash" style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.5;"></i>
         <p style="margin: 0; font-weight: 600;">No tienes tutor asignado en este semestre</p>
     </div>
+
+    <!-- Widget de Progreso -->
+    <div id="progressWidget" style="margin-bottom: 1.5rem; display: none;">
+        <h2 style="font-size: 1.5rem; font-weight: 700; color: #1f2937; margin: 0 0 1rem 0;">Tu Progreso</h2>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+            <!-- Sesiones completadas -->
+            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                <p style="font-size: 0.875rem; color: #6b7280; margin: 0 0 0.5rem 0;">Sesiones completadas</p>
+                <p style="font-size: 2rem; font-weight: 700; color: #9B192D; margin: 0;" id="sesionesCompletadas">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.5rem;"></i>
+                </p>
+            </div>
+            
+            <!-- Avance de las sesiones -->
+            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                <p style="font-size: 0.875rem; color: #6b7280; margin: 0 0 0.5rem 0;">Avance de las sesiones de tutorías</p>
+                <p style="font-size: 2rem; font-weight: 700; color: #9B192D; margin: 0;" id="porcentajeAvance">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.5rem;"></i>
+                </p>
+            </div>
+            
+            <!-- Horas de Tutoría -->
+            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                <p style="font-size: 0.875rem; color: #6b7280; margin: 0 0 0.5rem 0;">Horas de Tutoría</p>
+                <p style="font-size: 2rem; font-weight: 700; color: #9B192D; margin: 0;" id="horasTutoria">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.5rem;"></i>
+                </p>
+            </div>
+            
+            <!-- Sesión más próxima -->
+            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                <p style="font-size: 0.875rem; color: #6b7280; margin: 0 0 0.5rem 0;">Sesión más próxima</p>
+                <p style="font-size: 1.25rem; font-weight: 700; color: #9B192D; margin: 0; line-height: 1.4;" id="proximaSesion">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 1rem;"></i>
+                </p>
+            </div>
+        </div>
+    </div>
 </div>

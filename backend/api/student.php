@@ -75,6 +75,85 @@ try {
             }
             break;
             
+        case 'stats':
+            error_log("=== Ejecutando stats ===");
+            
+            // Obtener ID de asignación activa
+            $queryAsignacion = "SELECT id FROM asignaciontutor 
+                               WHERE idEstudiante = :student_id 
+                               AND estado = 'Activa' 
+                               LIMIT 1";
+            $stmtAsignacion = $db->prepare($queryAsignacion);
+            $stmtAsignacion->bindParam(':student_id', $userId, PDO::PARAM_INT);
+            $stmtAsignacion->execute();
+            $asignacion = $stmtAsignacion->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$asignacion) {
+                Response::success([
+                    'sesionesCompletadas' => 0,
+                    'porcentajeAvance' => 0,
+                    'horasTotales' => 0,
+                    'proximaSesion' => null
+                ], 'No tienes asignación activa');
+                break;
+            }
+            
+            $idAsignacion = $asignacion['id'];
+            
+            // 1. Contar sesiones completadas (Realizada)
+            $querySesiones = "SELECT COUNT(*) as total FROM tutoria 
+                            WHERE idAsignacion = :id_asignacion 
+                            AND estado = 'Realizada'";
+            $stmtSesiones = $db->prepare($querySesiones);
+            $stmtSesiones->bindParam(':id_asignacion', $idAsignacion, PDO::PARAM_INT);
+            $stmtSesiones->execute();
+            $resultSesiones = $stmtSesiones->fetch(PDO::FETCH_ASSOC);
+            $sesionesCompletadas = (int)$resultSesiones['total'];
+            
+            // 2. Calcular porcentaje (100% = 3 sesiones)
+            $porcentajeAvance = round(($sesionesCompletadas / 3) * 100, 2);
+            
+            // 3. Calcular horas totales acumuladas
+            $queryHoras = "SELECT horaInicio, horaFin FROM tutoria 
+                          WHERE idAsignacion = :id_asignacion 
+                          AND estado = 'Realizada'
+                          AND horaInicio IS NOT NULL 
+                          AND horaFin IS NOT NULL";
+            $stmtHoras = $db->prepare($queryHoras);
+            $stmtHoras->bindParam(':id_asignacion', $idAsignacion, PDO::PARAM_INT);
+            $stmtHoras->execute();
+            $sesiones = $stmtHoras->fetchAll(PDO::FETCH_ASSOC);
+            
+            $horasTotales = 0;
+            foreach ($sesiones as $sesion) {
+                $inicio = new DateTime($sesion['horaInicio']);
+                $fin = new DateTime($sesion['horaFin']);
+                $diferencia = $inicio->diff($fin);
+                $horasTotales += $diferencia->h + ($diferencia->i / 60);
+            }
+            $horasTotales = round($horasTotales, 2);
+            
+            // 4. Obtener próxima sesión programada
+            $queryProxima = "SELECT fecha, horaInicio, horaFin, tipo, modalidad 
+                            FROM tutoria 
+                            WHERE idAsignacion = :id_asignacion 
+                            AND fecha >= CURDATE()
+                            AND estado IN ('Programada', 'Pendiente')
+                            ORDER BY fecha ASC, horaInicio ASC
+                            LIMIT 1";
+            $stmtProxima = $db->prepare($queryProxima);
+            $stmtProxima->bindParam(':id_asignacion', $idAsignacion, PDO::PARAM_INT);
+            $stmtProxima->execute();
+            $proximaSesion = $stmtProxima->fetch(PDO::FETCH_ASSOC);
+            
+            Response::success([
+                'sesionesCompletadas' => $sesionesCompletadas,
+                'porcentajeAvance' => $porcentajeAvance,
+                'horasTotales' => $horasTotales,
+                'proximaSesion' => $proximaSesion ?: null
+            ]);
+            break;
+            
         default:
             Response::error('Acción no válida');
     }

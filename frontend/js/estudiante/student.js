@@ -8,8 +8,9 @@ async function loadStudentDashboard() {
     await loadCurrentSemester();
     
     // Cargar datos del tutor asignado
-    await loadMyTutor();
-
+    await loadMyTutor();    
+    // Cargar estadísticas del estudiante
+    await loadMyStats();
 }
 
 // Cargar datos del tutor asignado
@@ -75,6 +76,84 @@ function contactarTutor() {
         window.location.href = `mailto:${emailEl.textContent}`;
     } else {
         alert('No se ha encontrado el email del tutor');
+    }
+}
+
+// Cargar estadísticas del estudiante
+async function loadMyStats() {
+    const progressWidget = document.getElementById('progressWidget');
+    
+    try {
+        console.log('\n📊 ============================================');
+        console.log('📊 ESTADÍSTICAS DE TUTORÍAS');
+        console.log('📊 ============================================');
+        
+        const response = await apiGet('/student?action=stats');
+        
+        if (response?.success && response.data) {
+            const stats = response.data;
+            
+            // Mostrar widget de progreso
+            if (progressWidget) {
+                progressWidget.style.display = 'block';
+            }
+            
+            // Sesiones completadas
+            const sesionesEl = document.getElementById('sesionesCompletadas');
+            if (sesionesEl) {
+                sesionesEl.textContent = stats.sesionesCompletadas;
+            }
+            console.log('\n✅ Sesiones Completadas:', stats.sesionesCompletadas, 'de 3');
+            
+            // Porcentaje de avance
+            const porcentajeEl = document.getElementById('porcentajeAvance');
+            if (porcentajeEl) {
+                porcentajeEl.textContent = stats.porcentajeAvance + '%';
+            }
+            console.log('📈 Porcentaje de Avance:', stats.porcentajeAvance + '%', '(100% = 3 sesiones)');
+            
+            // Horas totales
+            const horasEl = document.getElementById('horasTutoria');
+            if (horasEl) {
+                horasEl.textContent = stats.horasTotales + 'h';
+            }
+            console.log('⏱️  Horas Totales de Tutoría:', stats.horasTotales, 'horas');
+            
+            // Próxima sesión
+            const proximaEl = document.getElementById('proximaSesion');
+            if (stats.proximaSesion) {
+                if (proximaEl) {
+                    const fecha = new Date(stats.proximaSesion.fecha + 'T' + stats.proximaSesion.horaInicio);
+                    const opciones = { day: 'numeric', month: 'long' };
+                    const fechaFormateada = fecha.toLocaleDateString('es-ES', opciones);
+                    const hora = stats.proximaSesion.horaInicio.substring(0, 5);
+                    proximaEl.textContent = `${fechaFormateada}, ${hora}`;
+                }
+                console.log('\n📅 Próxima Sesión:');
+                console.log('   • Fecha:', stats.proximaSesion.fecha);
+                console.log('   • Hora:', stats.proximaSesion.horaInicio, '-', stats.proximaSesion.horaFin);
+                console.log('   • Tipo:', stats.proximaSesion.tipo);
+                console.log('   • Modalidad:', stats.proximaSesion.modalidad || 'No especificada');
+            } else {
+                if (proximaEl) {
+                    proximaEl.textContent = 'Ninguna';
+                    proximaEl.style.fontSize = '1rem';
+                }
+                console.log('\n📅 Próxima Sesión: Ninguna');
+            }
+            
+            console.log('\n📊 ============================================\n');
+        } else {
+            console.log('⚠️ No se pudieron cargar las estadísticas');
+            if (progressWidget) {
+                progressWidget.style.display = 'none';
+            }
+        }
+    } catch (error) {
+        console.error('❌ Error al cargar estadísticas:', error);
+        if (progressWidget) {
+            progressWidget.style.display = 'none';
+        }
     }
 }
 
