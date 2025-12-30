@@ -112,16 +112,27 @@ function inicializarAuditoria() {
 
 async function cargarEstadisticas() {
     try {
+        const token = localStorage.getItem('token');
+        console.log('🔑 Token presente:', token ? 'SÍ' : 'NO');
+        console.log('🔑 Primeros 50 caracteres del token:', token ? token.substring(0, 50) : 'N/A');
+        
         const apiUrl = window.APP_CONFIG?.API.BASE_URL || '/Sistema-de-tutorias/backend/api';
-        const response = await fetch(`${apiUrl}/auditoria?action=estadisticas`, {
+        const url = `${apiUrl}/auditoria?action=estadisticas`;
+        console.log('📡 URL estadísticas:', url);
+        
+        const response = await fetch(url, {
             method: 'GET',
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             }
         });
         
+        console.log('📊 Response status:', response.status);
+        console.log('📊 Response OK:', response.ok);
+        
         const data = await response.json();
+        console.log('📊 Datos recibidos:', data);
         
         if (data.success) {
             const stats = data.data;
@@ -130,10 +141,12 @@ async function cargarEstadisticas() {
             document.getElementById('statUsuariosActivos').textContent = stats.usuariosActivos || 0;
             document.getElementById('statAsignaciones').textContent = stats.asignaciones || 0;
             
-            console.log('✅ Estadísticas cargadas');
+            console.log('✅ Estadísticas cargadas:', stats);
+        } else {
+            console.error('❌ Error en respuesta:', data.message);
         }
     } catch (error) {
-        console.error('Error al cargar estadísticas:', error);
+        console.error('❌ Error al cargar estadísticas:', error);
     }
 }
 
