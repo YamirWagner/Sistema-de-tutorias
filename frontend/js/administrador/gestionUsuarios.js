@@ -8,6 +8,15 @@ const GestionUsuariosModule = {
     }
 };
 
+const GESTION_API_BASE = (() => {
+    const configured = window.APP_CONFIG?.API?.BASE_URL;
+    if (configured) {
+        return configured.replace(/\/$/, '');
+    }
+    const basePath = (window.APP_BASE_PATH || '/Sistema-de-tutorias').replace(/\/$/, '');
+    return `${basePath}/api`;
+})();
+
 // ============= CONFIGURACIÓN DE EVENTOS =============
 
 function setupEventListeners() {
@@ -285,8 +294,7 @@ function resetRegisterForm() {
 
 async function loadUsers(role = null, estado = null, search = null) {
     try {
-        const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
-        let url = `${basePath}/backend/api/gestionUsuarios.php?action=list`;
+        let url = `${GESTION_API_BASE}/gestionUsuarios?action=list`;
         
         if (role) url += `&role=${encodeURIComponent(role)}`;
         if (estado) url += `&estado=${encodeURIComponent(estado)}`;
@@ -444,8 +452,7 @@ async function saveNewUser() {
     }
     
     try {
-        const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
-        const response = await fetch(`${basePath}/backend/api/gestionUsuarios.php`, {
+        const response = await fetch(`${GESTION_API_BASE}/gestionUsuarios`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -470,8 +477,7 @@ async function toggleUserStatus(userId, userType, activate) {
     const action = activate ? 'activate' : 'deactivate';
     
     try {
-        const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
-        const response = await fetch(`${basePath}/backend/api/gestionUsuarios.php`, {
+        const response = await fetch(`${GESTION_API_BASE}/gestionUsuarios`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action, userId, userType })
@@ -585,8 +591,7 @@ async function saveEditUser() {
     }
     
     try {
-        const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
-        const response = await fetch(`${basePath}/backend/api/gestionUsuarios.php`, {
+        const response = await fetch(`${GESTION_API_BASE}/gestionUsuarios`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)

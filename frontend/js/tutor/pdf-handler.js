@@ -437,12 +437,12 @@ console.log('🚀 [PDF-HANDLER] Iniciando carga del módulo...');
             
             const baseApi = (window.APP_CONFIG && window.APP_CONFIG.API && window.APP_CONFIG.API.BASE_URL)
                 ? window.APP_CONFIG.API.BASE_URL
-                : '/Sistema-de-tutorias/backend/api';
+                : '/Sistema-de-tutorias/api';
             
             // Usar endpoint diferente según si es reporte o constancia individual
             const url = esReporte 
-                ? `${baseApi}/generar-reporte-estudiantes.php`
-                : `${baseApi}/generar-pdf.php?estudianteId=${encodeURIComponent(estudianteId)}`;
+                ? `${baseApi}/generar-reporte-estudiantes`
+                : `${baseApi}/generar-pdf?estudianteId=${encodeURIComponent(estudianteId)}`;
             
             console.log('📡 Petición:', url);
             
@@ -541,10 +541,10 @@ console.log('🚀 [PDF-HANDLER] Iniciando carga del módulo...');
             
             const baseApi = (window.APP_CONFIG && window.APP_CONFIG.API && window.APP_CONFIG.API.BASE_URL)
                 ? window.APP_CONFIG.API.BASE_URL
-                : '/Sistema-de-tutorias/backend/api';
+                : '/Sistema-de-tutorias/api';
             
             // Regenerar PDF con firma
-            const url = `${baseApi}/generar-pdf.php?estudianteId=${encodeURIComponent(currentEstudianteId)}&firmar=1`;
+            const url = `${baseApi}/generar-pdf?estudianteId=${encodeURIComponent(currentEstudianteId)}&firmar=1`;
             console.log('📡 Regenerando PDF con firma:', url);
             
             const response = await fetch(url, {
@@ -597,10 +597,10 @@ console.log('🚀 [PDF-HANDLER] Iniciando carga del módulo...');
             
             const baseApi = (window.APP_CONFIG && window.APP_CONFIG.API && window.APP_CONFIG.API.BASE_URL)
                 ? window.APP_CONFIG.API.BASE_URL
-                : '/Sistema-de-tutorias/backend/api';
+                : '/Sistema-de-tutorias/api';
             
             // Guardar en BD
-            const url = `${baseApi}/generar-pdf.php?estudianteId=${encodeURIComponent(currentEstudianteId)}&guardar=1`;
+            const url = `${baseApi}/generar-pdf?estudianteId=${encodeURIComponent(currentEstudianteId)}&guardar=1`;
             console.log('📡 Guardando constancia:', url);
             
             const response = await fetch(url, {

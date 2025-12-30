@@ -1183,7 +1183,7 @@ async function handleAuditSearch() {
     params.append('limit', '200');
 
     try {
-        const response = await apiGet('/log.php?' + params.toString());
+        const response = await apiGet('/log?' + params.toString());
         const wrap = document.getElementById('auditTableWrap');
         if (!response || !response.success) {
             wrap.innerHTML = `<p class="text-red-500 text-center py-4">${response?.message || 'Error al consultar auditoría'}</p>`;

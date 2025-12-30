@@ -219,7 +219,7 @@
     async function cargarEstudiantes() {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`${APP_CONFIG.API.BASE_URL}/asignacionTutor.php?action=estudiantes`, {
+            const response = await fetch(`${APP_CONFIG.API.BASE_URL}/asignacionTutor?action=estudiantes`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -248,7 +248,7 @@
             
             console.log('📅 Cargando agendamientos para:', mesFormateado, '- Fecha actual:', currentDate);
             
-            const response = await fetch(`${APP_CONFIG.API.BASE_URL}/asignacionTutor.php?action=agendamientos&mes=${mesFormateado}`, {
+            const response = await fetch(`${APP_CONFIG.API.BASE_URL}/asignacionTutor?action=agendamientos&mes=${mesFormateado}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -627,7 +627,7 @@
     async function cargarSemestreActivo() {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`${APP_CONFIG.API.BASE_URL}/semestre.php?action=current`, {
+            const response = await fetch(`${APP_CONFIG.API.BASE_URL}/semestre?action=current`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -947,8 +947,8 @@
         try {
             const token = localStorage.getItem('token');
             const url = agendamientoId 
-                ? `${APP_CONFIG.API.BASE_URL}/asignacionTutor.php?action=actualizar`
-                : `${APP_CONFIG.API.BASE_URL}/asignacionTutor.php?action=crear`;
+                ? `${APP_CONFIG.API.BASE_URL}/asignacionTutor?action=actualizar`
+                : `${APP_CONFIG.API.BASE_URL}/asignacionTutor?action=crear`;
             
             const method = agendamientoId ? 'PUT' : 'POST';
 
@@ -991,7 +991,7 @@
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`${APP_CONFIG.API.BASE_URL}/asignacionTutor.php?action=cancelar`, {
+            const response = await fetch(`${APP_CONFIG.API.BASE_URL}/asignacionTutor?action=cancelar`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,

@@ -621,7 +621,7 @@ async function guardarTutoriaParcial(datos, tipoNombre, action) {
             }, 1500);
             return;
         }
-        const response = await fetch(`${APP_CONFIG.API.BASE_URL}/atencionTutoria.php?action=${action}`, {
+        const response = await fetch(`${APP_CONFIG.API.BASE_URL}/atencionTutoria?action=${action}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -776,7 +776,7 @@ async function ejecutarFinalizacion(datosCompletos) {
         
         const token = localStorage.getItem('token');
         const response = await fetch(
-            `${APP_CONFIG.API.BASE_URL}/atencionTutoria.php?action=registrar-final`,
+            `${APP_CONFIG.API.BASE_URL}/atencionTutoria?action=registrar-final`,
             {
                 method: 'POST',
                 headers: {
@@ -896,7 +896,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 const token = localStorage.getItem('token');
                 const response = await fetch(
-                    `${APP_CONFIG.API.BASE_URL}/atencionTutoria.php?action=registrar`,
+                    `${APP_CONFIG.API.BASE_URL}/atencionTutoria?action=registrar`,
                     {
                         method: 'POST',
                         headers: {

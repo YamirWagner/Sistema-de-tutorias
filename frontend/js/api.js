@@ -2,8 +2,19 @@
 
 // Configuración de la URL base del API (rutas limpias sin .php)
 const API_BASE_URL = (function() {
-    const base = window.APP_BASE_PATH || '/Sistema-de-tutorias';
-    return base.replace(/\/$/, '') + '/api';
+    const appConfig = window.APP_CONFIG || {};
+    const configuredBase = appConfig.API?.BASE_URL;
+    if (configuredBase) {
+        return configuredBase.replace(/\/$/, '');
+    }
+
+    const fallbackPath = appConfig.PATHS?.API;
+    if (fallbackPath && !/backend\/api/i.test(fallbackPath)) {
+        return fallbackPath.replace(/\/$/, '');
+    }
+
+    const basePath = (window.APP_BASE_PATH || '/Sistema-de-tutorias').replace(/\/$/, '');
+    return `${basePath}/api`;
 })();
 
 // Exponer para depuración
