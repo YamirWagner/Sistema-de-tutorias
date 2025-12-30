@@ -221,7 +221,7 @@ async function loadSidebarMenu() {
         ],
         student: [
             { icon: 'fa-solid fa-house', text: 'Inicio', module: null, active: true },
-            { icon: 'fa-solid fa-calendar-check', text: 'Sesión actual', module: 'sesion-actual' },
+            { icon: 'fa-solid fa-calendar-check', text: 'Mis sesiones', module: 'sesion-actual' },
             { icon: 'fa-solid fa-clock-rotate-left', text: 'Historial de tutorías', module: 'historial-tutorias' },
         ],
         verifier: [
