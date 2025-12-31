@@ -273,6 +273,70 @@ function registrarSesionFinal($db, $tutorId, $data) {
             throw new Exception('Error al actualizar el estado de la tutoría');
         }
         
+        // Guardar materiales en la tabla materiales si existen
+        if (!empty($data['materialesApoyo'])) {
+            $materialesArray = is_string($data['materialesApoyo']) 
+                ? explode("\n", trim($data['materialesApoyo'])) 
+                : (is_array($data['materialesApoyo']) ? $data['materialesApoyo'] : []);
+            
+            foreach ($materialesArray as $material) {
+                $material = trim($material);
+                if (empty($material)) continue;
+                
+                // Determinar tipo de material
+                $tipo = 'Documento';
+                if (preg_match('/\.(pdf)$/i', $material)) $tipo = 'PDF';
+                elseif (preg_match('/\.(docx?|odt)$/i', $material)) $tipo = 'Documento';
+                elseif (preg_match('/\.(xlsx?|csv)$/i', $material)) $tipo = 'Documento';
+                elseif (preg_match('/\.(pptx?|odp)$/i', $material)) $tipo = 'Documento';
+                elseif (preg_match('/(youtube\.com|youtu\.be|vimeo\.com)/i', $material)) $tipo = 'Video';
+                elseif (preg_match('/^https?:\/\//i', $material)) $tipo = 'Enlace';
+                
+                $queryMaterial = "INSERT INTO materiales 
+                                 (idTutoria, titulo, descripcion, tipo, enlace, fechaRegistro) 
+                                 VALUES (:idTutoria, :titulo, :descripcion, :tipo, :enlace, CURDATE())";
+                
+                $stmtMaterial = $db->prepare($queryMaterial);
+                $stmtMaterial->execute([
+                    ':idTutoria' => $idTutoria,
+                    ':titulo' => 'Material de apoyo',
+                    ':descripcion' => $material,
+                    ':tipo' => $tipo,
+                    ':enlace' => $material,
+                ]);
+            }
+        }
+        
+        // Guardar recursos recomendados como materiales
+        if (!empty($data['recursosRecomendados'])) {
+            $recursosArray = is_string($data['recursosRecomendados']) 
+                ? explode("\n", trim($data['recursosRecomendados'])) 
+                : (is_array($data['recursosRecomendados']) ? $data['recursosRecomendados'] : []);
+            
+            foreach ($recursosArray as $recurso) {
+                $recurso = trim($recurso);
+                if (empty($recurso)) continue;
+                
+                // Determinar tipo
+                $tipo = 'Otro';
+                if (preg_match('/(youtube\.com|youtu\.be|vimeo\.com)/i', $recurso)) $tipo = 'Video';
+                elseif (preg_match('/^https?:\/\//i', $recurso)) $tipo = 'Enlace';
+                
+                $queryRecurso = "INSERT INTO materiales 
+                                (idTutoria, titulo, descripcion, tipo, enlace, fechaRegistro) 
+                                VALUES (:idTutoria, :titulo, :descripcion, :tipo, :enlace, CURDATE())";
+                
+                $stmtRecurso = $db->prepare($queryRecurso);
+                $stmtRecurso->execute([
+                    ':idTutoria' => $idTutoria,
+                    ':titulo' => 'Recurso recomendado',
+                    ':descripcion' => $recurso,
+                    ':tipo' => $tipo,
+                    ':enlace' => $recurso,
+                ]);
+            }
+        }
+        
         $db->commit();
         
         error_log("Tutoría $idTutoria finalizada correctamente por tutor $tutorId");

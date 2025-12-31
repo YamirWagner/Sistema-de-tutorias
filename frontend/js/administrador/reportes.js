@@ -204,7 +204,7 @@ async function generateTutorListPDF() {
     try {
         // Llamar al backend para generar el PDF
         const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
-        let url = `${basePath}/api/reporte-pdf.php?tipo=lista-tutores&semesterId=${semesterId}`;
+        let url = `${basePath}/api/reporte-pdf?tipo=lista-tutores&semesterId=${semesterId}`;
         
         // Si se seleccionó un tutor específico (no "all" ni vacío), agregarlo a la URL
         if (tutorId && tutorId !== 'all' && tutorId !== '') {
@@ -453,9 +453,9 @@ async function generateConstanciaPDF() {
         if (response.success && response.data) {
             displayConstanciaInfo(response.data);
             
-            // Ahora generar el PDF desde el backend usando reporte-pdf.php
+            // Ahora generar el PDF desde el backend usando reporte-pdf
             const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
-            const url = `${basePath}/api/reporte-pdf.php?tipo=constancia&estudianteId=${currentStudentData.id}&semesterId=${semesterId}`;
+            const url = `${basePath}/api/reporte-pdf?tipo=constancia&estudianteId=${currentStudentData.id}&semesterId=${semesterId}`;
             const token = localStorage.getItem('token');
             
             const pdfResponse = await fetch(url, {

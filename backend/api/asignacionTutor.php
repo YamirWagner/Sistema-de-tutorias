@@ -392,7 +392,8 @@ function crearAgendamiento($db, $tutorId, $data) {
         }
         
         // Verificar disponibilidad de horario con LEFT JOIN para incluir todos los agendamientos
-        $queryConflicto = "SELECT COUNT(*) as conflictos
+        $queryConflicto = "SELECT COUNT(*) as conflictos,
+                          GROUP_CONCAT(CONCAT(TIME_FORMAT(t.horaInicio, '%H:%i'), '-', TIME_FORMAT(t.horaFin, '%H:%i')) SEPARATOR ', ') as horarios_ocupados
                           FROM tutoria t
                           LEFT JOIN asignaciontutor asig ON t.idAsignacion = asig.id
                           WHERE asig.idTutor = :tutor_id
@@ -417,7 +418,11 @@ function crearAgendamiento($db, $tutorId, $data) {
         $conflicto = $stmtConflicto->fetch(PDO::FETCH_ASSOC);
         
         if ($conflicto['conflictos'] > 0) {
-            Response::error('Ya existe un agendamiento en este horario', 409);
+            $mensaje = 'Ya existe un agendamiento en este horario';
+            if ($conflicto['horarios_ocupados']) {
+                $mensaje .= '. Horarios ocupados: ' . $conflicto['horarios_ocupados'];
+            }
+            Response::error($mensaje, 409);
         }
         
         // Insertar agendamiento
@@ -539,7 +544,8 @@ function actualizarAgendamiento($db, $tutorId, $data) {
             $horaInicioVerificar = $data['horaInicio'] ?? $agendamiento['horaInicio'];
             $horaFinVerificar = $data['horaFin'] ?? $agendamiento['horaFin'];
             
-            $queryConflicto = "SELECT COUNT(*) as conflictos
+            $queryConflicto = "SELECT COUNT(*) as conflictos,
+                              GROUP_CONCAT(CONCAT(TIME_FORMAT(t.horaInicio, '%H:%i'), '-', TIME_FORMAT(t.horaFin, '%H:%i')) SEPARATOR ', ') as horarios_ocupados
                               FROM tutoria t
                               LEFT JOIN asignaciontutor asig ON t.idAsignacion = asig.id
                               WHERE asig.idTutor = :tutor_id
@@ -564,7 +570,11 @@ function actualizarAgendamiento($db, $tutorId, $data) {
             $conflicto = $stmtConflicto->fetch(PDO::FETCH_ASSOC);
             
             if ($conflicto['conflictos'] > 0) {
-                Response::error('Ya existe un agendamiento en este horario', 409);
+                $mensaje = 'Ya existe un agendamiento en este horario';
+                if ($conflicto['horarios_ocupados']) {
+                    $mensaje .= '. Horarios ocupados: ' . $conflicto['horarios_ocupados'];
+                }
+                Response::error($mensaje, 409);
             }
         }
         

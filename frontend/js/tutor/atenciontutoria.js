@@ -326,7 +326,7 @@ function mostrarModalConfirmacion(titulo, mensaje, onConfirm) {
                     <p>${mensaje}</p>
                 </div>
                 <div class="modal-confirm-footer">
-                    <button class="btn-confirm-cancel" onclick="cerrarModalConfirmacion()">Cancelar</button>
+                    <button class="btn-confirm-cancel" onclick="cerrarModalConfirmacionAtencion()">Cancelar</button>
                     <button class="btn-confirm-ok" onclick="confirmarAccion()">Confirmar</button>
                 </div>
             </div>
@@ -336,18 +336,18 @@ function mostrarModalConfirmacion(titulo, mensaje, onConfirm) {
     document.body.insertAdjacentHTML('beforeend', modalHtml);
     
     window.confirmarAccion = function() {
-        cerrarModalConfirmacion();
+        cerrarModalConfirmacionAtencion();
         if (onConfirm) onConfirm();
     };
 }
 
-function cerrarModalConfirmacion() {
+function cerrarModalConfirmacionAtencion() {
     const modal = document.getElementById('modalConfirmAtencion');
     if (modal) modal.remove();
     window.confirmarAccion = null;
 }
 
-window.cerrarModalConfirmacion = cerrarModalConfirmacion;
+window.cerrarModalConfirmacionAtencion = cerrarModalConfirmacionAtencion;
 
 // ==================== GESTIÓN DE MATERIALES ====================
 let archivosCargados = [];
@@ -545,6 +545,7 @@ window.guardarSeccionAcademica = async function() {
         actividadesRealizadas: document.getElementById('actividadesRealizadasAtencion').value,
         tareasAsignadas: document.getElementById('tareasAsignadasAtencion').value,
         recursosRecomendados: document.getElementById('recursosRecomendadosAtencion').value,
+        materialesApoyo: document.getElementById('descripcionMateriales')?.value || '',
         notasAdicionales: document.getElementById('notasAdicionalesAtencion')?.value || ''
     };
 
@@ -571,8 +572,8 @@ window.guardarSeccionPersonal = async function() {
         observacionesPersonales: obtenerValor('observacionesPersonales'),
         accionesTomadas: obtenerValor('accionesTomadas'),
         requiereDerivacion: obtenerValor('requiereDerivacion'),
-        motivoDerivacion: obtenerValor('motivoDerivacion'),
-        notasAdicionales: obtenerValor('notasComentarios')
+        motivoDerivacion: obtenerValor('motivoDerivacion'),        recursosRecomendados: document.getElementById('recursosRecomendadosAtencion')?.value || '',
+        materialesApoyo: document.getElementById('descripcionMateriales')?.value || '',        notasAdicionales: obtenerValor('notasComentarios')
     };
 
     if (!datosPersonales.situacionPersonal || !datosPersonales.estadoEmocional || !datosPersonales.observacionesPersonales) {
@@ -596,8 +597,8 @@ window.guardarSeccionProfesional = async function() {
         descripcionTema: obtenerValor('descripcionTema'),
         avancesLogros: obtenerValor('avancesLogros'),
         observacionesProfesionales: obtenerValor('observacionesProfesionales'),
-        recursosContactos: obtenerValor('recursosContactos'),
-        notasAdicionales: obtenerValor('notasComentarios')
+        recursosContactos: obtenerValor('recursosContactos'),        recursosRecomendados: document.getElementById('recursosRecomendadosAtencion')?.value || '',
+        materialesApoyo: document.getElementById('descripcionMateriales')?.value || '',        notasAdicionales: obtenerValor('notasComentarios')
     };
 
     if (!datosProfesionales.temaProfesional || !datosProfesionales.descripcionTema || !datosProfesionales.observacionesProfesionales) {
@@ -680,7 +681,8 @@ window.finalizarTutoria = async function() {
             observacionesDesempeno: document.getElementById('observacionesDesempenoAtencion').value,
             actividadesRealizadas: document.getElementById('actividadesRealizadasAtencion').value,
             tareasAsignadas: document.getElementById('tareasAsignadasAtencion').value,
-            recursosRecomendados: document.getElementById('recursosRecomendadosAtencion').value
+            recursosRecomendados: document.getElementById('recursosRecomendadosAtencion').value,
+            materialesApoyo: document.getElementById('descripcionMateriales')?.value || ''
         };
         
         // Validar campos obligatorios
@@ -696,7 +698,9 @@ window.finalizarTutoria = async function() {
             observacionesPersonales: document.getElementById('observacionesPersonales').value,
             accionesTomadas: document.getElementById('accionesTomadas').value,
             requiereDerivacion: document.getElementById('requiereDerivacion').value,
-            motivoDerivacion: document.getElementById('motivoDerivacion').value
+            motivoDerivacion: document.getElementById('motivoDerivacion').value,
+            recursosRecomendados: document.getElementById('recursosRecomendadosAtencion')?.value || '',
+            materialesApoyo: document.getElementById('descripcionMateriales')?.value || ''
         };
         
         // Validar campos obligatorios
@@ -711,7 +715,9 @@ window.finalizarTutoria = async function() {
             descripcionTema: document.getElementById('descripcionTema').value,
             avancesLogros: document.getElementById('avancesLogros').value,
             observacionesProfesionales: document.getElementById('observacionesProfesionales').value,
-            recursosContactos: document.getElementById('recursosContactos').value
+            recursosContactos: document.getElementById('recursosContactos').value,
+            recursosRecomendados: document.getElementById('recursosRecomendadosAtencion')?.value || '',
+            materialesApoyo: document.getElementById('descripcionMateriales')?.value || ''
         };
         
         // Validar campos obligatorios
@@ -861,6 +867,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 datosRegistro.actividadesRealizadas = document.getElementById('actividadesRealizadasAtencion').value;
                 datosRegistro.tareasAsignadas = document.getElementById('tareasAsignadasAtencion').value;
                 datosRegistro.recursosRecomendados = document.getElementById('recursosRecomendadosAtencion').value;
+                datosRegistro.materialesApoyo = document.getElementById('descripcionMateriales')?.value || '';
                 
                 if (!datosRegistro.temaPrincipal || !datosRegistro.contenidoEspecifico || !datosRegistro.observacionesDesempeno) {
                     mostrarError('Por favor, complete los campos obligatorios (*)');
@@ -873,6 +880,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 datosRegistro.accionesTomadas = document.getElementById('accionesTomadas').value;
                 datosRegistro.requiereDerivacion = document.getElementById('requiereDerivacion').value;
                 datosRegistro.motivoDerivacion = document.getElementById('motivoDerivacion').value;
+                datosRegistro.recursosRecomendados = document.getElementById('recursosRecomendadosAtencion')?.value || '';
+                datosRegistro.materialesApoyo = document.getElementById('descripcionMateriales')?.value || '';
                 
                 if (!datosRegistro.situacionPersonal || !datosRegistro.estadoEmocional || !datosRegistro.observacionesPersonales) {
                     mostrarError('Por favor, complete los campos obligatorios (*)');
@@ -884,6 +893,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 datosRegistro.avancesLogros = document.getElementById('avancesLogros').value;
                 datosRegistro.observacionesProfesionales = document.getElementById('observacionesProfesionales').value;
                 datosRegistro.recursosContactos = document.getElementById('recursosContactos').value;
+                datosRegistro.recursosRecomendados = document.getElementById('recursosRecomendadosAtencion')?.value || '';
+                datosRegistro.materialesApoyo = document.getElementById('descripcionMateriales')?.value || '';
                 
                 if (!datosRegistro.temaProfesional || !datosRegistro.descripcionTema || !datosRegistro.observacionesProfesionales) {
                     mostrarError('Por favor, complete los campos obligatorios (*)');

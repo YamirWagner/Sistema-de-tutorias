@@ -1,69 +1,85 @@
-<!-- Historial de Tutorías del Estudiante -->
+<!-- Historial de Sesiones - Módulo Estudiante -->
 <div class="historial-tutorias-container">
+    <!-- Encabezado -->
     <div class="dashboard-header">
-        <h2><i class="fa-solid fa-clock-rotate-left"></i> Historial de Tutorías</h2>
-        <p>Registro completo de tus sesiones de tutoría</p>
+        <h2><i class="fa-solid fa-history"></i> Historial de Sesiones</h2>
+        <p>Consulta tus sesiones pasadas y verifica las pendientes</p>
     </div>
 
-    <!-- Filtros de búsqueda -->
-    <div class="filters-card">
-        <div class="filters-grid">
-            <div class="filter-item">
-                <label for="filterFechaInicio">Fecha Inicio:</label>
-                <input type="date" id="filterFechaInicio" class="form-control">
-            </div>
-            <div class="filter-item">
-                <label for="filterFechaFin">Fecha Fin:</label>
-                <input type="date" id="filterFechaFin" class="form-control">
-            </div>
-            <div class="filter-item">
-                <label for="filterEstado">Estado:</label>
-                <select id="filterEstado" class="form-control">
-                    <option value="">Todos</option>
-                    <option value="completada">Completada</option>
-                    <option value="cancelada">Cancelada</option>
-                    <option value="ausente">Ausente</option>
-                </select>
-            </div>
-            <div class="filter-actions">
-                <button class="btn btn-primary" onclick="buscarHistorial()">
-                    <i class="fa-solid fa-search"></i> Buscar
-                </button>
-                <button class="btn btn-secondary" onclick="limpiarFiltros()">
-                    <i class="fa-solid fa-eraser"></i> Limpiar
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Estadísticas del historial -->
+    <!-- Estadísticas -->
     <div class="historial-stats">
         <div class="stat-item">
             <i class="fa-solid fa-calendar-check"></i>
             <div>
-                <h4 id="totalHistorial">0</h4>
+                <h4 id="statTotal">0</h4>
                 <p>Total de sesiones</p>
             </div>
         </div>
         <div class="stat-item">
-            <i class="fa-solid fa-check-circle"></i>
+            <i class="fa-solid fa-circle-check"></i>
             <div>
-                <h4 id="completadasHistorial">0</h4>
+                <h4 id="statCompletadas">0</h4>
                 <p>Completadas</p>
-            </div>
-        </div>
-        <div class="stat-item">
-            <i class="fa-solid fa-times-circle"></i>
-            <div>
-                <h4 id="canceladasHistorial">0</h4>
-                <p>Canceladas</p>
             </div>
         </div>
         <div class="stat-item">
             <i class="fa-solid fa-clock"></i>
             <div>
-                <h4 id="horasTotales">0</h4>
-                <p>Horas totales</p>
+                <h4 id="statPendientes">0</h4>
+                <p>Pendientes</p>
+            </div>
+        </div>
+        <div class="stat-item">
+            <i class="fa-solid fa-circle-xmark"></i>
+            <div>
+                <h4 id="statCanceladas">0</h4>
+                <p>Canceladas</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filters-card">
+        <div class="filters-grid">
+            <div class="filter-item">
+                <label for="filtroEstado">Estado</label>
+                <select id="filtroEstado" class="form-control">
+                    <option value="todos">Todos los estados</option>
+                    <option value="completada">Completadas</option>
+                    <option value="pendiente">Pendientes</option>
+                    <option value="cancelada">Canceladas</option>
+                </select>
+            </div>
+
+            <div class="filter-item">
+                <label for="filtroTipo">Tipo de tutoría</label>
+                <select id="filtroTipo" class="form-control">
+                    <option value="todos">Todos los tipos</option>
+                    <option value="academica">Académica</option>
+                    <option value="personal">Personal</option>
+                    <option value="profesional">Profesional</option>
+                </select>
+            </div>
+
+            <div class="filter-item">
+                <label for="filtroFechaInicio">Fecha inicio</label>
+                <input type="date" id="filtroFechaInicio" class="form-control">
+            </div>
+
+            <div class="filter-item">
+                <label for="filtroFechaFin">Fecha fin</label>
+                <input type="date" id="filtroFechaFin" class="form-control">
+            </div>
+
+            <div class="filter-item filter-actions">
+                <button id="btnFiltrar" class="btn btn-primary">
+                    <i class="fa-solid fa-filter"></i>
+                    Filtrar
+                </button>
+                <button id="btnLimpiarFiltros" class="btn btn-secondary">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    Limpiar
+                </button>
             </div>
         </div>
     </div>
@@ -71,43 +87,451 @@
     <!-- Tabla de historial -->
     <div class="historial-table-card">
         <div class="table-header">
-            <h3><i class="fa-solid fa-list"></i> Registro de Sesiones</h3>
-            <button class="btn btn-success" onclick="exportarHistorial()">
-                <i class="fa-solid fa-download"></i> Exportar
+            <h3><i class="fa-solid fa-list"></i> Listado de sesiones</h3>
+            <button id="btnExportar" class="btn btn-success">
+                <i class="fa-solid fa-file-export"></i>
+                Exportar a CSV
             </button>
         </div>
+
         <div class="table-responsive">
-            <table id="historialTable" class="table">
+            <table class="table">
                 <thead>
                     <tr>
                         <th>Fecha</th>
-                        <th>Hora</th>
                         <th>Tutor</th>
-                        <th>Tema</th>
+                        <th>Tipo</th>
                         <th>Modalidad</th>
-                        <th>Duración</th>
                         <th>Estado</th>
-                        <th>Acciones</th>
+                        <th class="text-center">Acciones</th>
                     </tr>
                 </thead>
                 <tbody id="historialTableBody">
-                    <tr>
-                        <td colspan="8" class="text-center text-muted">
-                            No hay registros para mostrar
+                    <tr id="noDataMessage">
+                        <td colspan="6" class="text-center text-muted">
+                            <i class="fa-solid fa-inbox" style="font-size:48px;display:block;margin:20px 0;color:#ddd;"></i>
+                            No hay sesiones para mostrar
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
     </div>
+</div>
 
-    <!-- Paginación -->
-    <div class="pagination-container">
-        <div id="paginationInfo" class="pagination-info">
-            Mostrando 0 de 0 registros
+<!-- Modal: Detalles de Sesión -->
+<div id="modalDetallesSesion" class="modal-overlay" style="display: none;">
+    <div class="modal-container modal-large">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-circle-info"></i> Detalles de la Sesión</h3>
+            <button class="modal-close" onclick="cerrarModalDetalles()">&times;</button>
         </div>
-        <div id="paginationButtons" class="pagination-buttons">
-            <!-- Los botones se generarán dinámicamente -->
+        <div class="modal-body">
+            <div class="detalles-grid">
+                <!-- Información básica -->
+                <div class="detalle-section">
+                    <h4><i class="fa-solid fa-calendar-days"></i> Información General</h4>
+                    <div class="detalle-item">
+                        <span class="detalle-label">Fecha:</span>
+                        <span class="detalle-value" id="detalleFecha">-</span>
+                    </div>
+                    <div class="detalle-item">
+                        <span class="detalle-label">Horario:</span>
+                        <span class="detalle-value" id="detalleHorario">-</span>
+                    </div>
+                    <div class="detalle-item">
+                        <span class="detalle-label">Tipo:</span>
+                        <span class="detalle-value" id="detalleTipo">-</span>
+                    </div>
+                    <div class="detalle-item">
+                        <span class="detalle-label">Modalidad:</span>
+                        <span class="detalle-value" id="detalleModalidad">-</span>
+                    </div>
+                    <div class="detalle-item">
+                        <span class="detalle-label">Estado:</span>
+                        <span class="detalle-value" id="detalleEstado">-</span>
+                    </div>
+                </div>
+
+                <!-- Información del tutor -->
+                <div class="detalle-section">
+                    <h4><i class="fa-solid fa-user-tie"></i> Tutor Asignado</h4>
+                    <div class="tutor-info-detalle">
+                        <div class="tutor-avatar-detalle">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <div>
+                            <div class="detalle-item">
+                                <span class="detalle-label">Nombre:</span>
+                                <span class="detalle-value" id="detalleTutorNombre">-</span>
+                            </div>
+                            <div class="detalle-item">
+                                <span class="detalle-label">Especialidad:</span>
+                                <span class="detalle-value" id="detalleTutorEspecialidad">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ubicación -->
+                <div class="detalle-section" id="seccionAmbiente" style="display:none;">
+                    <h4><i class="fa-solid fa-location-dot"></i> Ubicación</h4>
+                    <div class="detalle-item">
+                        <span class="detalle-label">Ambiente:</span>
+                        <span class="detalle-value" id="detalleAmbiente">-</span>
+                    </div>
+                </div>
+
+                <!-- Observaciones -->
+                <div class="detalle-section full-width">
+                    <h4><i class="fa-solid fa-clipboard"></i> Observaciones</h4>
+                    <div class="detalle-observaciones" id="detalleObservaciones">
+                        <p class="text-muted">Sin observaciones registradas</p>
+                    </div>
+                </div>
+
+                <!-- Archivos adjuntos -->
+                <div class="detalle-section full-width" id="seccionArchivos" style="display:none;">
+                    <h4><i class="fa-solid fa-paperclip"></i> Archivos Adjuntos</h4>
+                    <div id="detalleArchivos" class="archivos-list">
+                        <!-- Se llenará dinámicamente -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-secondary" onclick="cerrarModalDetalles()">Cerrar</button>
         </div>
     </div>
 </div>
+
+<!-- Estilos adicionales inline -->
+<style>
+.badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-block;
+}
+
+.badge-success {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.badge-warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.badge-danger {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.badge-tipo-academica {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.badge-tipo-personal {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.badge-tipo-profesional {
+    background: #e0e7ff;
+    color: #4338ca;
+}
+
+.btn-icon {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+}
+
+.btn-view {
+    background: #f5f5f5;
+    color: #666;
+}
+
+.btn-view:hover {
+    background: #e0e0e0;
+    transform: scale(1.1);
+}
+
+/* Modal Detalles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s ease;
+}
+
+.modal-large {
+    max-width: 900px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.modal-header h3 {
+    color: #a42727;
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 28px;
+    color: #999;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.modal-close:hover {
+    background: #f5f5f5;
+    color: #333;
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 16px 24px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.detalles-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.detalle-section {
+    background: #f9f9f9;
+    padding: 16px;
+    border-radius: 8px;
+    border-left: 4px solid #a42727;
+}
+
+.detalle-section.full-width {
+    grid-column: 1 / -1;
+}
+
+.detalle-section h4 {
+    color: #a42727;
+    font-size: 14px;
+    font-weight: 700;
+    margin: 0 0 12px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.detalle-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.detalle-item:last-child {
+    border-bottom: none;
+}
+
+.detalle-label {
+    font-weight: 600;
+    color: #666;
+    font-size: 13px;
+}
+
+.detalle-value {
+    color: #333;
+    font-weight: 500;
+    font-size: 13px;
+}
+
+.tutor-info-detalle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.tutor-avatar-detalle {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #a42727, #8a2020);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+}
+
+.detalle-observaciones {
+    background: white;
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid #e5e5e5;
+    min-height: 80px;
+    color: #333;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.archivos-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.archivo-item {
+    background: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 2px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.3s;
+}
+
+.archivo-item:hover {
+    border-color: #a42727;
+    box-shadow: 0 2px 8px rgba(164, 39, 39, 0.1);
+}
+
+.archivo-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.archivo-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.archivo-details h5 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+}
+
+.archivo-details p {
+    margin: 4px 0 0 0;
+    font-size: 12px;
+    color: #999;
+}
+
+.archivo-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-download-file {
+    padding: 8px 16px;
+    background: #a42727;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-download-file:hover {
+    background: #8a2020;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(164, 39, 39, 0.3);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 768px) {
+    .detalles-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .modal-container {
+        width: 95%;
+        max-height: 95vh;
+    }
+    
+    .modal-body {
+        padding: 16px;
+    }
+}
+</style>

@@ -7,26 +7,22 @@ DirectoryIndex frontend/index.html
   RewriteBase /Sistema-de-tutorias/
 
   # ============================================
-  # BACKEND API - Rutas sin extensión .php
+  # BACKEND API - Rutas sin extensión .php (MÁXIMA PRIORIDAD)
   # ============================================
   
-  # Bloquear acceso directo a archivos PHP del backend
+  # Permitir acceso directo a archivos estáticos del backend ANTES de bloquear
+  RewriteRule ^backend/(storage|vendor)/(.*)$ backend/$1/$2 [L,NC]
+  
+  # Todas las rutas /backend/api/* van al enrutador routes.php
+  RewriteRule ^backend/api/(.*)$ backend/routes.php [L,QSA]
+  
+  # Todas las rutas /api/* también van al enrutador (compatibilidad sin prefijo backend)
+  RewriteRule ^api/(.*)$ backend/routes.php [L,QSA]
+  
+  # Bloquear acceso directo a archivos PHP del backend (después de permitir rutas API)
   RewriteCond %{REQUEST_URI} backend/.*\.php$
   RewriteCond %{REQUEST_URI} !backend/routes\.php$
-  RewriteCond %{REQUEST_URI} !backend/api/gestionUsuarios\.php$
-  RewriteCond %{REQUEST_URI} !backend/api/asignacionTutor\.php$
-  RewriteCond %{REQUEST_URI} !backend/api/semestre\.php$
-  RewriteCond %{REQUEST_URI} !backend/api/atencionTutoria\.php$
-  RewriteCond %{REQUEST_URI} !backend/api/sesionActual\.php$
   RewriteRule .* - [F,L]
-  
-  # Todas las rutas /api/* van al enrutador routes.php
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule ^api/(.*)$ backend/routes.php [L,QSA]
-
-  # Permitir acceso directo a archivos estáticos del backend
-  RewriteRule ^backend/(storage|vendor)/(.*)$ backend/$1/$2 [L,NC]
 
   # ============================================
   # FRONTEND - Rutas limpias sin .html

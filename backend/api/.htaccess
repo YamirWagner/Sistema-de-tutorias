@@ -1,7 +1,9 @@
+# Preservar el header de Authorization para JWT
 RewriteEngine On
 RewriteCond %{HTTP:Authorization} ^(.*)
 RewriteRule .* - [e=HTTP_AUTHORIZATION:%1]
 
+# Permitir acceso a generar-pdf.php
 <Files "generar-pdf.php">
     Require all granted
 </Files>

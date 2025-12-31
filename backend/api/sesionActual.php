@@ -70,6 +70,10 @@ try {
                 getAdministradores($db);
                 break;
                 
+            case 'materials':
+                getMaterials($db, $userId);
+                break;
+                
             default:
                 getActiveSesion($db, $userId);
                 break;
@@ -430,6 +434,41 @@ function getAdministradores($db) {
         
     } catch (Exception $e) {
         error_log("❌ Error en getAdministradores: " . $e->getMessage());
+        throw $e;
+    }
+}
+
+/**
+ * Obtener todos los materiales disponibles para el estudiante
+ */
+function getMaterials($db, $userId) {
+    try {
+        $query = "SELECT 
+                    m.id,
+                    m.titulo,
+                    m.descripcion,
+                    m.tipo,
+                    m.enlace,
+                    m.fechaRegistro,
+                    t.id as tutoriaId,
+                    t.tipo as tipoTutoria,
+                    t.fecha as fechaTutoria,
+                    t.estado as estadoTutoria
+                  FROM materiales m
+                  INNER JOIN tutoria t ON m.idTutoria = t.id
+                  INNER JOIN asignaciontutor a ON t.idAsignacion = a.id
+                  WHERE a.idEstudiante = :student_id
+                  ORDER BY m.fechaRegistro DESC";
+        
+        $stmt = $db->prepare($query);
+        $stmt->bindParam(':student_id', $userId, PDO::PARAM_INT);
+        $stmt->execute();
+        $materiales = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        Response::success($materiales);
+        
+    } catch (Exception $e) {
+        error_log("❌ Error en getMaterials: " . $e->getMessage());
         throw $e;
     }
 }

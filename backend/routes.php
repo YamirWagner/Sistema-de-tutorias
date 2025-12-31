@@ -48,6 +48,11 @@ if (strpos($path, $basePath) === 0) {
     $path = substr($path, strlen($basePath));
 }
 
+// Remover el prefijo /backend si existe
+if (strpos($path, '/backend') === 0) {
+    $path = substr($path, strlen('/backend'));
+}
+
 $path = trim($path, '/');
 
 // Definir rutas del API
@@ -84,6 +89,9 @@ $routes = [
     'GET|api/sesionActual' => 'api/sesionActual.php',
     'POST|api/sesionActual' => 'api/sesionActual.php',
     
+    // Rutas de historial de sesiones del estudiante
+    'GET|api/historiaestudiante' => 'api/historiaestudiante.php',
+    
     // Rutas de verificador
     'GET|api/verifier' => 'api/verifier.php',
     'POST|api/verifier' => 'api/verifier.php',
@@ -105,7 +113,7 @@ $routes = [
     'POST|api/reportes' => 'api/reportes.php',
     
     // Rutas de generación de PDFs de reportes
-    'GET|api/reporte-pdf.php' => 'api/reporte-pdf.php',
+    'GET|api/reporte-pdf' => 'api/reporte-pdf.php',
 
     // Rutas de bitácora (log de acceso/actividad)
     'GET|api/log' => 'api/log.php',
@@ -141,6 +149,10 @@ $routes = [
     'POST|api/firmar-constancia' => 'api/firmar-constancia.php',
     'GET|api/generar-reporte-estudiantes' => 'api/generar-reporte-estudiantes.php',
     'GET|api/generar-pdf' => 'api/generar-pdf.php',
+
+    // Rutas de contacto y solicitudes del estudiante
+    'POST|api/contactarTutor' => 'api/contactarTutor.php',
+    'POST|api/solicitarCambio' => 'api/solicitarCambio.php',
 
     // Rutas de gestión de usuarios
     'GET|api/gestionUsuarios' => 'api/gestionUsuarios.php',

@@ -14,6 +14,7 @@
     // Variable global para almacenar todas las sesiones
     let allSessions = [];
     let filteredSessions = [];
+    let constanciasData = [];
 
     /**
      * Cargar contenido del módulo "Mis sesiones"
@@ -36,7 +37,7 @@
             
             // Cargar HTML
             const url = '/Sistema-de-tutorias/frontend/components/estudiante/sesion-estudiante.html';
-            const response = await fetch(url, { cache: 'no-store' });
+            const response = await fetch(url);
             if (!response.ok) throw new Error(`Error al cargar: ${response.status}`);
             
             const htmlText = await response.text();
@@ -86,24 +87,8 @@
      */
     async function getActiveSesion() {
         try {
-            const token = localStorage.getItem('token');
-            if (!token) return null;
-
-            const response = await fetch('/Sistema-de-tutorias/backend/api/sesionActual.php?action=active', {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                console.error('Error HTTP:', response.status);
-                return null;
-            }
-
-            const data = await response.json();
-            return data.success && data.data ? data.data : null;
+            const response = await apiGet('/sesionActual?action=active');
+            return response.success && response.data ? response.data : null;
         } catch (error) {
             console.error('❌ Error al obtener sesión activa:', error);
             return null;
@@ -140,21 +125,8 @@
      */
     async function getUpcomingSessions() {
         try {
-            const token = localStorage.getItem('token');
-            if (!token) return [];
-
-            const response = await fetch('/Sistema-de-tutorias/backend/api/sesionActual.php?action=upcoming', {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (!response.ok) return [];
-
-            const data = await response.json();
-            return data.success && data.data ? data.data : [];
+            const response = await apiGet('/sesionActual?action=upcoming');
+            return response.success && response.data ? response.data : [];
         } catch (error) {
             console.error('❌ Error al obtener próximas sesiones:', error);
             return [];
@@ -216,20 +188,8 @@
         if (list) list.style.display = 'none';
 
         try {
-            const token = localStorage.getItem('token');
-            if (!token) throw new Error('No hay token');
 
-            const response = await fetch('/Sistema-de-tutorias/backend/api/student.php?action=sessions', {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
-
-            const data = await response.json();
+            const data = await apiGet('/student?action=sessions');
             allSessions = data.success && data.data ? data.data : [];
             filteredSessions = [...allSessions];
             displaySessions(allSessions);
@@ -279,17 +239,27 @@
             const tipo = session.tipo || 'General';
             const modalidad = session.modalidad || 'presencial';
 
+            // Procesar observaciones - no mostrar si es JSON
+            let observacionesHTML = '';
+            if (session.observaciones && !session.observaciones.trim().startsWith('{')) {
+                observacionesHTML = `
+                    <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid #f0f0f0;">
+                        <p style="color:#666;margin:0;font-size:0.9rem;line-height:1.5;"><i class="fa-solid fa-note-sticky" style="color:#9B192D;margin-right:0.5rem;"></i>${session.observaciones}</p>
+                    </div>
+                `;
+            }
+
             return `
                 <div class="session-card ${estado.toLowerCase()}">
                     <div class="session-card-header">
                         <div class="session-main-info">
-                            <h4>${tipo}</h4>
+                            <h4><i class="fa-solid fa-graduation-cap" style="color:#9B192D;margin-right:0.5rem;"></i>${tipo}</h4>
                             <div class="session-tutor">
-                                <i class="fa-solid fa-user"></i>
+                                <i class="fa-solid fa-user-tie"></i>
                                 Tutor asignado
                             </div>
                             <div class="session-date">
-                                <i class="fa-solid fa-calendar"></i>
+                                <i class="fa-solid fa-calendar-days"></i>
                                 ${fechaStr}
                             </div>
                         </div>
@@ -299,7 +269,7 @@
                             <span class="badge estado-${estado.toLowerCase()}">${estado}</span>
                         </div>
                     </div>
-                    ${session.observaciones ? `<p style="color:#666;margin:0;font-size:0.9rem;">${session.observaciones}</p>` : ''}
+                    ${observacionesHTML}
                 </div>
             `;
         }).join('');
@@ -314,53 +284,8 @@
         if (!container) return;
 
         try {
-            const token = localStorage.getItem('token');
-            if (!token) return;
-
-            // Obtener todas las sesiones del estudiante
-            const response = await fetch('/Sistema-de-tutorias/backend/api/student.php?action=sessions', {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (!response.ok) throw new Error('Error al cargar materiales');
-
-            const data = await response.json();
-            const sesiones = data.success && data.data ? data.data : [];
-
-            // Obtener IDs de tutorías realizadas
-            const tutoriaIds = sesiones
-                .filter(s => s.estado === 'Realizada')
-                .map(s => s.id);
-
-            if (tutoriaIds.length === 0) {
-                if (noMaterialsMsg) noMaterialsMsg.style.display = 'block';
-                container.style.display = 'none';
-                return;
-            }
-
-            // Cargar materiales de cada tutoría
-            const materialsPromises = tutoriaIds.map(async (id) => {
-                const matResponse = await fetch(`/Sistema-de-tutorias/backend/api/student.php?action=materials&tutoriaId=${id}`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (matResponse.ok) {
-                    const matData = await matResponse.json();
-                    return matData.success && matData.data ? matData.data : [];
-                }
-                return [];
-            });
-
-            const allMaterialsArrays = await Promise.all(materialsPromises);
-            const materials = allMaterialsArrays.flat();
+            const response = await apiGet('/sesionActual?action=materials');
+            const materials = response.success && response.data ? response.data : [];
 
             if (materials.length === 0) {
                 if (noMaterialsMsg) noMaterialsMsg.style.display = 'block';
@@ -380,22 +305,33 @@
                     'Otro': 'fa-file'
                 };
 
+                const tipoColor = {
+                    'PDF': '#dc2626',
+                    'Video': '#9333ea',
+                    'Documento': '#2563eb',
+                    'Enlace': '#059669',
+                    'Otro': '#6b7280'
+                };
+
                 return `
                     <div class="material-card">
+                        <div class="material-icon" style="background:${tipoColor[material.tipo] || '#6b7280'}20;color:${tipoColor[material.tipo] || '#6b7280'};">
+                            <i class="fa-solid ${tipoIcon[material.tipo] || 'fa-file'}"></i>
+                        </div>
                         <div class="material-info">
-                            <h5>
-                                <i class="fa-solid ${tipoIcon[material.tipo] || 'fa-file'}"></i>
-                                ${material.titulo}
-                            </h5>
+                            <h5>${material.titulo}</h5>
                             <p>${material.descripcion || 'Material de apoyo'}</p>
-                            <span class="material-type">${material.tipo}</span>
+                            <div class="material-meta">
+                                <span class="material-type" style="background:${tipoColor[material.tipo] || '#6b7280'}20;color:${tipoColor[material.tipo] || '#6b7280'};"><i class="fa-solid ${tipoIcon[material.tipo] || 'fa-file'}" style="margin-right:0.25rem;"></i>${material.tipo}</span>
+                                <span style="color:#999;font-size:0.75rem;"><i class="fa-solid fa-calendar" style="margin-right:0.25rem;"></i>${new Date(material.fechaRegistro).toLocaleDateString('es-ES')}</span>
+                            </div>
                         </div>
                         <div class="material-actions">
-                            <button class="btn-view" onclick="verMaterial('${material.enlace}', '${material.tipo}')">
-                                <i class="fa-solid fa-eye"></i> Ver
+                            <button class="btn-view" onclick="verMaterial('${material.enlace}', '${material.tipo}')" title="Ver material">
+                                <i class="fa-solid fa-eye"></i>
                             </button>
-                            <button class="btn-download" onclick="descargarMaterial('${material.enlace}', '${material.titulo}')">
-                                <i class="fa-solid fa-download"></i> Descargar
+                            <button class="btn-download" onclick="descargarMaterial('${material.enlace}', '${material.titulo}')" title="Descargar">
+                                <i class="fa-solid fa-download"></i>
                             </button>
                         </div>
                     </div>
@@ -410,7 +346,7 @@
     }
 
     /**
-     * Cargar constancias del estudiante
+     * Cargar constancias del estudiante desde la BD
      */
     async function loadConstancias() {
         const container = document.getElementById('constanciasList');
@@ -419,22 +355,16 @@
 
         try {
             const token = localStorage.getItem('token');
-            if (!token) return;
-
             const response = await fetch('/Sistema-de-tutorias/backend/api/listar-constancias.php', {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
+                headers: { 'Authorization': `Bearer ${token}` }
             });
 
             if (!response.ok) throw new Error('Error al cargar constancias');
 
             const data = await response.json();
-            const constancias = data.constancias || data.data || [];
+            constanciasData = data.data || [];
 
-            if (constancias.length === 0) {
+            if (constanciasData.length === 0) {
                 if (noConstanciasMsg) noConstanciasMsg.style.display = 'block';
                 container.style.display = 'none';
                 return;
@@ -443,9 +373,8 @@
             if (noConstanciasMsg) noConstanciasMsg.style.display = 'none';
             container.style.display = 'grid';
 
-            container.innerHTML = constancias.map(constancia => {
-                const firmada = constancia.firmado || constancia.firmada;
-                const fechaGen = new Date(constancia.fechaGeneracion);
+            container.innerHTML = constanciasData.map(c => {
+                const fechaGen = new Date(c.fechaGeneracion);
                 const fechaStr = fechaGen.toLocaleDateString('es-ES', {
                     year: 'numeric',
                     month: 'long',
@@ -453,10 +382,10 @@
                 });
 
                 return `
-                    <div class="constancia-card ${firmada ? 'firmada' : 'sin-firmar'}">
+                    <div class="constancia-card ${c.firmado ? 'firmada' : 'sin-firmar'}">
                         <div class="constancia-header">
-                            <span class="constancia-badge ${firmada ? 'firmada' : 'sin-firmar'}">
-                                ${firmada ? '✓ Firmada' : 'Pendiente de firma'}
+                            <span class="constancia-badge ${c.firmado ? 'firmada' : 'sin-firmar'}">
+                                ${c.firmado ? '✓ Firmada' : 'Pendiente de firma'}
                             </span>
                         </div>
                         <div class="constancia-info">
@@ -468,26 +397,26 @@
                                 </span>
                                 <span>
                                     <i class="fa-solid fa-user"></i>
-                                    ${constancia.tutorNombres} ${constancia.tutorApellidos}
+                                    ${c.tutor.nombreCompleto}
                                 </span>
                                 <span>
                                     <i class="fa-solid fa-graduation-cap"></i>
-                                    ${constancia.semestreNombre || 'Semestre actual'}
+                                    ${c.semestre.nombre}
                                 </span>
-                                ${constancia.fechaFirma ? `
+                                ${c.fechaFirma ? `
                                 <span>
                                     <i class="fa-solid fa-pen"></i>
-                                    Firmada: ${new Date(constancia.fechaFirma).toLocaleDateString('es-ES')}
+                                    Firmada: ${new Date(c.fechaFirma).toLocaleDateString('es-ES')}
                                 </span>
                                 ` : ''}
                             </div>
                         </div>
                         <div class="constancia-actions">
-                            <button class="btn-view-constancia" onclick="verConstancia(${constancia.id})">
+                            <button class="btn-view-constancia" onclick="verConstancia(${c.id})">
                                 <i class="fa-solid fa-eye"></i>
                                 Ver
                             </button>
-                            <button class="btn-download-constancia" onclick="descargarConstancia(${constancia.id})">
+                            <button class="btn-download-constancia" onclick="descargarConstancia(${c.id})">
                                 <i class="fa-solid fa-download"></i>
                                 Descargar
                             </button>
@@ -514,87 +443,38 @@
                 return;
             }
 
-            // Obtener lista de administradores
-            const responseAdmins = await fetch('/Sistema-de-tutorias/backend/api/sesionActual.php?action=administradores', {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
+            // Obtener administradores y tutor en paralelo
+            const [responseAdmins, responseTutor] = await Promise.all([
+                apiGet('/sesionActual?action=administradores'),
+                apiGet('/sesionActual?action=myTutor')
+            ]);
 
-            if (!responseAdmins.ok) {
-                console.error('Error HTTP:', responseAdmins.status);
-                throw new Error('Error al obtener administradores');
-            }
-            const dataAdmins = await responseAdmins.json();
-
-            console.log('Respuesta administradores:', dataAdmins);
-            console.log('dataAdmins.data es array?', Array.isArray(dataAdmins.data));
-            console.log('Contenido de dataAdmins.data:', dataAdmins.data);
-
-            if (dataAdmins.success && dataAdmins.data) {
-                const administradores = Array.isArray(dataAdmins.data) ? dataAdmins.data : [dataAdmins.data];
-                
-                console.log('Administradores procesados:', administradores);
-                
-                if (administradores.length === 0) {
-                    alert('No hay administradores disponibles');
-                    return;
-                }
-                
-                // Llenar select de administradores
+            // Procesar administradores
+            if (responseAdmins.success && responseAdmins.data && responseAdmins.data.length > 0) {
                 const selectAdmin = document.getElementById('cambioAdministrador');
-                if (!selectAdmin) {
-                    console.error('No se encontró el elemento #cambioAdministrador');
-                    return;
+                if (selectAdmin) {
+                    selectAdmin.innerHTML = '<option value="">Seleccione un administrador</option>' +
+                        responseAdmins.data.map(admin => 
+                            `<option value="${admin.id}">${admin.nombre}</option>`
+                        ).join('');
                 }
-                
-                selectAdmin.innerHTML = '<option value="">Seleccione un administrador</option>';
-                
-                administradores.forEach(admin => {
-                    console.log('Agregando admin:', admin);
-                    const option = document.createElement('option');
-                    option.value = admin.id;
-                    // Solo mostrar nombre, sin especialidad para administradores
-                    option.textContent = admin.nombre;
-                    selectAdmin.appendChild(option);
-                });
-                
-                console.log('Total opciones agregadas:', selectAdmin.options.length - 1);
             } else {
-                console.error('Respuesta sin éxito o sin datos:', dataAdmins);
                 alert('No hay administradores disponibles');
                 return;
             }
 
-            // Obtener datos del tutor
-            const response = await fetch('/Sistema-de-tutorias/backend/api/sesionActual.php?action=myTutor', {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (!response.ok) throw new Error('Error al obtener datos del tutor');
-
-            const data = await response.json();
-            
-            if (data.success && data.data) {
-                const tutor = data.data;
-                // Llenar datos en el modal
+            // Procesar tutor
+            if (responseTutor.success && responseTutor.data) {
+                const tutor = responseTutor.data;
                 document.getElementById('cambioTutorNombre').textContent = tutor.nombre || 'No asignado';
                 document.getElementById('cambioTutorEspecialidad').textContent = tutor.especialidad || '-';
                 document.getElementById('cambioTutorCorreo').textContent = tutor.email || '-';
-                
-                // Mostrar modal
                 document.getElementById('modalSolicitarCambio').style.display = 'flex';
             } else {
                 alert('No tienes un tutor asignado actualmente');
             }
         } catch (error) {
-            console.error('Error:', error);
+            console.error('❌ Error:', error);
             alert('Error al cargar información. Intenta nuevamente.');
         }
     };
@@ -604,40 +484,20 @@
      */
     window.contactarTutor = async function() {
         try {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                alert('Sesión expirada. Por favor, inicia sesión nuevamente.');
-                return;
-            }
-
-            // Obtener datos del tutor
-            const response = await fetch('/Sistema-de-tutorias/backend/api/sesionActual.php?action=myTutor', {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (!response.ok) throw new Error('Error al obtener datos del tutor');
-
-            const data = await response.json();
+            const response = await apiGet('/sesionActual?action=myTutor');
             
-            if (data.success && data.data) {
-                const tutor = data.data;
-                // Llenar datos en el modal
+            if (response.success && response.data) {
+                const tutor = response.data;
                 document.getElementById('contactTutorNombre').textContent = tutor.nombre || 'No asignado';
                 document.getElementById('contactTutorEspecialidad').textContent = tutor.especialidad || '-';
                 document.getElementById('contactTutorCorreo').textContent = tutor.email || '-';
-                
-                // Mostrar modal
                 document.getElementById('modalContactarTutor').style.display = 'flex';
             } else {
                 alert('No tienes un tutor asignado actualmente');
             }
         } catch (error) {
-            console.error('Error:', error);
-            alert('Error al cargar información. Intenta nuevamente.');
+            console.error('❌ Error:', error);
+            alert('Error al cargar información del tutor');
         }
     };
 
@@ -725,20 +585,7 @@
                 body: JSON.stringify({ idAdministrador, motivo, detalles })
             });
             
-            // Capturar el texto de la respuesta primero
-            const responseText = await response.text();
-            console.log('Respuesta raw del servidor:', responseText);
-            
-            // Intentar parsear como JSON
-            let data;
-            try {
-                data = JSON.parse(responseText);
-            } catch (parseError) {
-                console.error('Error al parsear JSON:', parseError);
-                console.error('Texto recibido:', responseText);
-                alert('Error del servidor. Revisa la consola para más detalles.');
-                return;
-            }
+            const data = await response.json();
             
             if (data.success) {
                 cerrarModalSolicitud();
@@ -859,37 +706,48 @@
     };
 
     /**
-     * Ver constancia
+     * Ver constancia (desde rutaPDF de la BD)
      */
     window.verConstancia = function(constanciaId) {
         console.log('Ver constancia:', constanciaId);
         
-        const token = localStorage.getItem('token');
-        if (!token) {
-            alert('Sesión expirada');
+        const constancia = constanciasData.find(c => c.id === constanciaId);
+        if (!constancia || !constancia.rutaPDF) {
+            alert('No se encontró la ruta del PDF');
             return;
         }
 
-        // Abrir PDF de constancia en nueva pestaña
-        const url = `/Sistema-de-tutorias/backend/api/generar-pdf.php?id=${constanciaId}`;
+        // Construir ruta completa (agregar backend/ si no lo tiene)
+        let rutaPDF = constancia.rutaPDF;
+        if (!rutaPDF.startsWith('backend/')) {
+            rutaPDF = 'backend/' + rutaPDF;
+        }
+        
+        const url = `/Sistema-de-tutorias/${rutaPDF}`;
         window.open(url, '_blank');
     };
 
     /**
-     * Descargar constancia
+     * Descargar constancia (desde rutaPDF de la BD)
      */
     window.descargarConstancia = function(constanciaId) {
         console.log('Descargar constancia:', constanciaId);
         
-        const token = localStorage.getItem('token');
-        if (!token) {
-            alert('Sesión expirada');
+        const constancia = constanciasData.find(c => c.id === constanciaId);
+        if (!constancia || !constancia.rutaPDF) {
+            alert('No se encontró la ruta del PDF');
             return;
         }
 
-        // Descargar PDF de constancia
+        // Construir ruta completa (agregar backend/ si no lo tiene)
+        let rutaPDF = constancia.rutaPDF;
+        if (!rutaPDF.startsWith('backend/')) {
+            rutaPDF = 'backend/' + rutaPDF;
+        }
+
+        // Descargar PDF desde la ruta almacenada en la BD
         const link = document.createElement('a');
-        link.href = `/Sistema-de-tutorias/backend/api/generar-pdf.php?id=${constanciaId}&download=1`;
+        link.href = `/Sistema-de-tutorias/${rutaPDF}`;
         link.download = `constancia_${constanciaId}.pdf`;
         link.target = '_blank';
         document.body.appendChild(link);

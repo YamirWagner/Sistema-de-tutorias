@@ -14,7 +14,7 @@
         PATHS: {
             FRONTEND: '/Sistema-de-tutorias/frontend',
             BACKEND: '/Sistema-de-tutorias/backend',
-            API: '/Sistema-de-tutorias/backend/api',
+            API: '/Sistema-de-tutorias/api',
             ASSETS: '/Sistema-de-tutorias/frontend/assets',
             CSS: '/Sistema-de-tutorias/frontend/css',
             JS: '/Sistema-de-tutorias/frontend/js',
@@ -40,7 +40,7 @@
         },
         
         API: {
-            BASE_URL: '/Sistema-de-tutorias/backend/api'
+            BASE_URL: '/Sistema-de-tutorias/api'
         },
         
         ASSETS: {

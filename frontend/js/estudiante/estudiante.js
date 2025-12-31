@@ -32,19 +32,21 @@
  * Carga todos los componentes del panel: semestre, tutor, estadísticas y sesiones
  */
 async function loadStudentDashboard() {
-    console.log('Cargando dashboard de estudiante...');
-    
-    // Cargar datos del semestre actual
-    await loadCurrentSemestre();
-    
-    // Cargar datos del tutor asignado
-    await loadMyTutor();    
-    
-    // Cargar estadísticas del estudiante
-    await loadMyStats();
-    
-    // Cargar últimas sesiones realizadas
-    await loadMySessions();
+    try {
+        // Cargar datos del semestre actual
+        await loadCurrentSemestre();
+        
+        // Cargar datos del tutor asignado (no detiene si falla)
+        await loadMyTutor().catch(err => console.warn('Tutor no disponible:', err.message));
+        
+        // Cargar estadísticas del estudiante (no detiene si falla)
+        await loadMyStats().catch(err => console.warn('Estadísticas no disponibles:', err.message));
+        
+        // Cargar últimas sesiones realizadas (no detiene si falla)
+        await loadMySessions().catch(err => console.warn('Sesiones no disponibles:', err.message));
+    } catch (error) {
+        console.error('Error crítico al cargar dashboard:', error);
+    }
 }
 
 // ============================================
@@ -59,12 +61,17 @@ async function loadMyTutor() {
     const noTutorWidget = document.getElementById('noTutorWidget');
     
     try {
-        console.log('🔄 Obteniendo datos del tutor asignado...');
-        const response = await apiGet('/sesionActual.php?action=myTutor');
+        const response = await apiGet('/sesionActual?action=myTutor');
         
-        if (response?.success && response.data) {
+        if (!response || !response.success) {
+            // No hay tutor asignado - mostrar mensaje informativo
+            if (tutorWidget) tutorWidget.style.display = 'none';
+            if (noTutorWidget) noTutorWidget.style.display = 'block';
+            return;
+        }
+        
+        if (response.data) {
             const tutor = response.data;
-            console.log('✅ DATOS DEL TUTOR ASIGNADO:', tutor);
             
             // Mostrar widget del tutor
             if (tutorWidget) {
@@ -82,7 +89,6 @@ async function loadMyTutor() {
                 
                 const fechaEl = document.getElementById('tutorFechaAsignacion');
                 if (fechaEl && tutor.fechaAsignacion) {
-                    // Formatear fecha
                     const fecha = new Date(tutor.fechaAsignacion);
                     const opciones = { year: 'numeric', month: 'long', day: 'numeric' };
                     fechaEl.textContent = fecha.toLocaleDateString('es-ES', opciones);
@@ -92,20 +98,15 @@ async function loadMyTutor() {
             }
             
             if (noTutorWidget) noTutorWidget.style.display = 'none';
-            
         } else {
-            console.log('⚠️ No tienes tutor asignado en este semestre');
-            
-            // Mostrar mensaje de no tutor
+            // No hay datos de tutor
             if (tutorWidget) tutorWidget.style.display = 'none';
             if (noTutorWidget) noTutorWidget.style.display = 'block';
         }
     } catch (error) {
-        console.error('❌ Error al obtener datos del tutor:', error);
-        
-        // Ocultar ambos widgets en caso de error
+        console.error('Error al cargar tutor:', error);
         if (tutorWidget) tutorWidget.style.display = 'none';
-        if (noTutorWidget) noTutorWidget.style.display = 'none';
+        if (noTutorWidget) noTutorWidget.style.display = 'block';
     }
 }
 
@@ -129,13 +130,13 @@ async function loadMyStats() {
     const progressWidget = document.getElementById('progressWidget');
     
     try {
-        console.log('\n📊 ============================================');
-        console.log('📊 ESTADÍSTICAS DE TUTORÍAS');
-        console.log('📊 ============================================');
+        const response = await apiGet('/student?action=stats');
         
-        const response = await apiGet('/student.php?action=stats');
+        if (!response || !response.success) {
+            throw new Error(response?.message || 'No se pudieron cargar las estadísticas');
+        }
         
-        if (response?.success && response.data) {
+        if (response.data) {
             const stats = response.data;
             
             // Mostrar widget de progreso
@@ -148,21 +149,18 @@ async function loadMyStats() {
             if (sesionesEl) {
                 sesionesEl.textContent = stats.sesionesCompletadas;
             }
-            console.log('\n✅ Sesiones Completadas:', stats.sesionesCompletadas, 'de 3');
             
             // Porcentaje de avance
             const porcentajeEl = document.getElementById('porcentajeAvance');
             if (porcentajeEl) {
                 porcentajeEl.textContent = stats.porcentajeAvance + '%';
             }
-            console.log('📈 Porcentaje de Avance:', stats.porcentajeAvance + '%', '(100% = 3 sesiones)');
             
             // Horas totales
             const horasEl = document.getElementById('horasTutoria');
             if (horasEl) {
                 horasEl.textContent = stats.horasTotales + 'h';
             }
-            console.log('⏱️  Horas Totales de Tutoría:', stats.horasTotales, 'horas');
             
             // Próxima sesión
             const proximaEl = document.getElementById('proximaSesion');
@@ -174,31 +172,19 @@ async function loadMyStats() {
                     const hora = stats.proximaSesion.horaInicio.substring(0, 5);
                     proximaEl.textContent = `${fechaFormateada}, ${hora}`;
                 }
-                console.log('\n📅 Próxima Sesión:');
-                console.log('   • Fecha:', stats.proximaSesion.fecha);
-                console.log('   • Hora:', stats.proximaSesion.horaInicio, '-', stats.proximaSesion.horaFin);
-                console.log('   • Tipo:', stats.proximaSesion.tipo);
-                console.log('   • Modalidad:', stats.proximaSesion.modalidad || 'No especificada');
             } else {
                 if (proximaEl) {
                     proximaEl.textContent = 'Ninguna';
-                    proximaEl.style.fontSize = '1rem';
                 }
-                console.log('\n📅 Próxima Sesión: Ninguna');
             }
-            
-            console.log('\n📊 ============================================\n');
         } else {
-            console.log('⚠️ No se pudieron cargar las estadísticas');
-            if (progressWidget) {
-                progressWidget.style.display = 'none';
-            }
+            // No hay datos de estadísticas
+            if (progressWidget) progressWidget.style.display = 'none';
+            throw new Error('No se pudieron cargar las estadísticas');
         }
     } catch (error) {
-        console.error('❌ Error al cargar estadísticas:', error);
-        if (progressWidget) {
-            progressWidget.style.display = 'none';
-        }
+        if (progressWidget) progressWidget.style.display = 'none';
+        throw error; // Re-lanzar para que loadStudentDashboard lo maneje
     }
 }
 
@@ -212,21 +198,19 @@ async function loadMySessions() {
     const noSessionsMessage = document.getElementById('noSessionsMessage');
     
     try {
-        console.log('\n📚 ============================================');
-        console.log('📚 ÚLTIMAS SESIONES REALIZADAS');
-        console.log('📚 ============================================\n');
+        const response = await apiGet('/student?action=sessions');
         
-        const response = await apiGet('/student.php?action=sessions');
+        if (!response || !response.success) {
+            throw new Error(response?.message || 'No se pudieron cargar las sesiones');
+        }
         
-        if (response?.success && response.data && response.data.length > 0) {
+        if (response.data && response.data.length > 0) {
             // Limitar a las últimas 4 sesiones
             const sesiones = response.data.slice(0, 4);
             
             // Mostrar sección de sesiones
             if (sessionsList) sessionsList.style.display = 'block';
             if (noSessionsMessage) noSessionsMessage.style.display = 'none';
-            
-            console.log(`Mostrando las últimas ${sesiones.length} de ${response.data.length} sesiones\n`);
             
             // Limpiar contenedor
             if (sessionsContainer) {
@@ -393,69 +377,23 @@ async function loadMySessions() {
                     `;
                     
                     sessionsContainer.innerHTML += sesionHTML;
-                    
-                    // Log en consola
-                    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-                    console.log(`📌 SESIÓN #${index + 1}`);
-                    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-                    console.log('\n🆔 ID de Sesión:', sesion.id);
-                    console.log('📅 Fecha Programada:', sesion.fecha || 'No especificada');
-                    console.log('📅 Fecha Realizada:', sesion.fechaRealizada || 'No registrada');
-                    
-                    if (sesion.horaInicio && sesion.horaFin) {
-                        const inicio = new Date(`2000-01-01T${sesion.horaInicio}`);
-                        const fin = new Date(`2000-01-01T${sesion.horaFin}`);
-                        const duracion = (fin - inicio) / (1000 * 60 * 60);
-                        console.log('🕐 Horario:', `${sesion.horaInicio} - ${sesion.horaFin}`);
-                        console.log('⏱️  Duración:', `${duracion.toFixed(2)} horas`);
-                    } else {
-                        console.log('🕐 Horario: No especificado');
-                    }
-                    
-                    console.log('📋 Tipo:', sesion.tipo || 'No especificado');
                     console.log('💻 Modalidad:', sesion.modalidad || 'No especificada');
                     
                     if (sesion.ambiente) {
                         console.log('📍 Ambiente:', sesion.ambiente);
                     }
                     
-                    if (sesion.observaciones) {
-                        console.log('\n📝 Observaciones:');
-                        console.log('   ' + sesion.observaciones);
-                    }
-                    
-                    if (sesion.cronograma_descripcion) {
-                        console.log('\n📄 Descripción:');
-                        console.log('   ' + sesion.cronograma_descripcion);
-                    }
-                    
-                    console.log('\n✅ Estado:', sesion.estado);
-                    
-                    if (sesion.created_at) {
-                        const fechaRegistro = new Date(sesion.created_at);
-                        console.log('📝 Registrado:', fechaRegistro.toLocaleString('es-ES'));
-                    }
-                    
-                    console.log('\n');
                 });
             }
             
-            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            console.log(`✅ Total: ${sesiones.length} sesión${sesiones.length !== 1 ? 'es' : ''} realizada${sesiones.length !== 1 ? 's' : ''}`);
-            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-            
         } else {
-            console.log('⚠️ No tienes sesiones realizadas todavía\n');
-            
-            // Mostrar mensaje de no sesiones
+            // No hay sesiones
             if (sessionsList) sessionsList.style.display = 'block';
             if (sessionsContainer) sessionsContainer.innerHTML = '';
             if (noSessionsMessage) noSessionsMessage.style.display = 'block';
         }
     } catch (error) {
-        console.error('❌ Error al cargar sesiones:', error);
-        
-        // Ocultar sección en caso de error
+        console.error('Error al cargar sesiones:', error);
         if (sessionsList) sessionsList.style.display = 'none';
     }
 }
@@ -466,11 +404,9 @@ async function loadMySessions() {
  */
 async function loadCurrentSemestre() {
     try {
-        console.log('🔄 Cargando semestre actual en dashboard estudiante...');
-        
         // Intentar obtener del API (misma lógica que header_panel.js)
         try {
-            const response = await apiGet('/semestre.php?action=current');
+            const response = await apiGet('/semestre?action=current');
             
             if (response?.success && response.data?.semester) {
                 const semester = response.data.semester;

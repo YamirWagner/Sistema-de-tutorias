@@ -376,7 +376,7 @@ function navigateToModule(element) {
         // Estudiante
         'estudiante': 'loadEstudianteContent',
         'sesion-actual': 'loadSesionActualContent',
-        'historial-tutorias': 'loadHistorialTutoriasContent',
+        'historial-tutorias': 'loadHistorialEstudianteContent',
         // Verificador
         'asistencias': 'loadAsistenciasContent',
         'buscar-tutorias': 'loadBuscarTutoriasContent',
