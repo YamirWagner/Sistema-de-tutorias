@@ -1,152 +1,94 @@
 <!-- Panel de Inicio del Estudiante -->
-<div class="estudiante-dashboard" style="padding: 0.5%; margin: 0 auto;">
+<div class="estudiante-dashboard">
     <!-- Widget de Estado del Semestre -->
-    <div style="background: linear-gradient(135deg, #9B192D 0%, #7B1113 100%); color: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); margin-bottom: 1.5rem;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div style="width: 100%;">
-                <h3 style="font-size: 0.875rem; font-weight: 600; opacity: 0.9; margin-bottom: 0.5rem;">ESTADO DEL SEMESTRE</h3>
-                <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
-                    <h2 style="font-size: 1.5rem; line-height: 2rem; font-weight: 700; margin: 0;" id="semestreActual">
+    <div class="semester-widget">
+        <div class="semester-widget-content">
+            <div class="semester-info">
+                <h3 class="semester-title">ESTADO DEL SEMESTRE</h3>
+                <div class="semester-name-container">
+                    <h2 class="semester-name" id="semestreActual">
                         <i class="fa-solid fa-spinner fa-spin"></i>
                     </h2>
-                    <span style="display: inline-flex; align-items: center; gap: 0.5rem; background-color: #10b981; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 600;">
-                        <i class="fa-solid fa-circle" style="font-size: 0.75rem;"></i>
+                    <span id="estadoBadge" class="status-badge">
+                        <i class="fa-solid fa-circle"></i>
                         <span id="estadoSemestre">Cargando...</span>
                     </span>
                 </div>
+                <p id="periodoSemestre" class="semester-period">
+                    <i class="fa-solid fa-spinner fa-spin"></i> Cargando período...
+                </p>
             </div>
         </div>
     </div>
 
     <!-- Widget de Tutor Asignado -->
-    <div id="tutorWidget" style="background: linear-gradient(135deg, #9B192D 0%, #7B1113 100%); color: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); margin-bottom: 1.5rem; display: none;">
-        <p style="font-size: 0.875rem; font-weight: 600; opacity: 0.9; margin: 0 0 0.5rem 0;">Tu Tutor Asignado</p>
-        <h2 style="font-size: 1.875rem; font-weight: 700; margin: 0 0 0.25rem 0;" id="tutorNombre">Cargando...</h2>
-        <p style="font-size: 1rem; opacity: 0.9; margin: 0;" id="tutorEspecialidad"></p>
+    <div id="tutorWidget" class="tutor-widget">
+        <p class="tutor-label">Tu Tutor Asignado</p>
+        <h2 class="tutor-name" id="tutorNombre">Cargando...</h2>
+        <p class="tutor-specialty" id="tutorEspecialidad"></p>
     </div>
 
     <!-- Mensaje cuando no hay tutor asignado -->
-    <div id="noTutorWidget" style="background: #f3f4f6; color: #6b7280; padding: 1.5rem; border-radius: 0.5rem; border: 2px dashed #d1d5db; margin-bottom: 1.5rem; text-align: center; display: none;">
-        <i class="fa-solid fa-user-slash" style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.5;"></i>
-        <p style="margin: 0; font-weight: 600;">No tienes tutor asignado en este semestre</p>
+    <div id="noTutorWidget" class="no-tutor-widget">
+        <i class="fa-solid fa-user-slash"></i>
+        <p>No tienes tutor asignado en este semestre</p>
     </div>
 
     <!-- Widget de Progreso -->
-    <div id="progressWidget" style="margin-bottom: 1.5rem; display: none;">
-        <h2 style="font-size: 1.5rem; font-weight: 700; color: #1f2937; margin: 0 0 1rem 0;">Tu Progreso</h2>
+    <div id="progressWidget" class="progress-widget">
+        <h2 class="progress-title">Tu Progreso</h2>
         
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+        <div class="progress-grid">
             <!-- Sesiones completadas -->
-            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                <p style="font-size: 0.875rem; color: #6b7280; margin: 0 0 0.5rem 0;">Sesiones completadas</p>
-                <p style="font-size: 2rem; font-weight: 700; color: #9B192D; margin: 0;" id="sesionesCompletadas">
-                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.5rem;"></i>
+            <div class="progress-card">
+                <p class="progress-card-label">Sesiones completadas</p>
+                <p class="progress-card-value" id="sesionesCompletadas">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
                 </p>
             </div>
             
             <!-- Avance de las sesiones -->
-            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                <p style="font-size: 0.875rem; color: #6b7280; margin: 0 0 0.5rem 0;">Avance de las sesiones de tutorías</p>
-                <p style="font-size: 2rem; font-weight: 700; color: #9B192D; margin: 0;" id="porcentajeAvance">
-                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.5rem;"></i>
+            <div class="progress-card">
+                <p class="progress-card-label">Avance de las sesiones de tutorías</p>
+                <p class="progress-card-value" id="porcentajeAvance">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
                 </p>
             </div>
             
             <!-- Horas de Tutoría -->
-            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                <p style="font-size: 0.875rem; color: #6b7280; margin: 0 0 0.5rem 0;">Horas de Tutoría</p>
-                <p style="font-size: 2rem; font-weight: 700; color: #9B192D; margin: 0;" id="horasTutoria">
-                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.5rem;"></i>
+            <div class="progress-card">
+                <p class="progress-card-label">Horas de Tutoría</p>
+                <p class="progress-card-value" id="horasTutoria">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
                 </p>
             </div>
             
             <!-- Sesión más próxima -->
-            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                <p style="font-size: 0.875rem; color: #6b7280; margin: 0 0 0.5rem 0;">Sesión más próxima</p>
-                <p style="font-size: 1.25rem; font-weight: 700; color: #9B192D; margin: 0; line-height: 1.4;" id="proximaSesion">
-                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 1rem;"></i>
-                </p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Sección de Constancia -->
-    <div style="margin-bottom: 1.5rem;">
-        <h2 style="font-size: 1.5rem; font-weight: 700; color: #1f2937; margin: 0 0 0.5rem 0;">Constancia de Tutoría</h2>
-        <p style="font-size: 0.875rem; color: #6b7280; margin: 0 0 1rem 0;">
-            Genera una constancia formal que certifica que un estudiante completó su plan de tutorías para un semestre específico.
-        </p>
-        
-        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
-                <div style="flex: 1;">
-                    <p style="font-size: 0.875rem; color: #6b7280; margin: 0 0 0.5rem 0;">Estado de tu constancia</p>
-                    <p id="constanciaEstado" style="font-size: 1.25rem; font-weight: 600; color: #6b7280; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
-                        <i class="fa-solid fa-search"></i> Haz clic en "Buscar Constancia"
-                    </p>
-                </div>
-                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                    <button onclick="verificarConstancia()" class="btn btn-primary">
-                        <i class="fa-solid fa-search"></i> Buscar Constancia
-                    </button>
-                    <button id="btnDescargarConstancia" onclick="descargarMiConstancia()" class="btn btn-success" style="display: none;">
-                        <i class="fa-solid fa-file-pdf"></i> Descargar PDF
-                    </button>
-                </div>
-            </div>
-            <div id="constanciaInfo" style="display: none; background: #f0fdf4; padding: 1rem; border-radius: 0.375rem; border-left: 4px solid #10b981;">
-                <p style="margin: 0; font-size: 0.875rem; color: #065f46;">
-                    <i class="fa-solid fa-check-circle"></i> Tu constancia está firmada y lista para descargar.
-                </p>
-            </div>
-            <div id="constanciaNoDisponible" style="display: none; background: #fef3c7; padding: 1rem; border-radius: 0.375rem; border-left: 4px solid #f59e0b;">
-                <p style="margin: 0; font-size: 0.875rem; color: #92400e;">
-                    <i class="fa-solid fa-exclamation-triangle"></i> Debes completar al menos 3 sesiones de tutoría para obtener tu constancia.
-                </p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Sección de Mis Sesiones -->
-    <div style="margin-bottom: 1.5rem;">
-        <h2 style="font-size: 1.5rem; font-weight: 700; color: #1f2937; margin: 0 0 1rem 0;">Mis Sesiones de Tutoría</h2>
-        
-        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1rem;">
-            <div style="display: flex; gap: 1rem; align-items: end; flex-wrap: wrap;">
-                <div style="flex: 1; min-width: 200px;">
-                    <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">
-                        Buscar por Semestre:
-                    </label>
-                    <select id="semestreBusqueda" class="form-control" style="width: 100%;">
-                        <option value="">Semestre Actual</option>
-                    </select>
-                </div>
-                <button onclick="buscarMisSesiones()" class="btn btn-primary">
-                    <i class="fa-solid fa-search"></i> Buscar Sesiones
-                </button>
-            </div>
-        </div>
-        
-        <div id="misSesionesContainer" style="background: white; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-            <div id="misSesionesLista">
-                <p style="text-align: center; color: #6b7280; padding: 2rem;">
-                    <i class="fa-solid fa-search"></i> Selecciona un semestre para buscar tus sesiones
+            <div class="progress-card">
+                <p class="progress-card-label">Sección más próxima</p>
+                <p class="progress-card-value-small" id="proximaSesion">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
                 </p>
             </div>
         </div>
     </div>
 
     <!-- Sección de Últimas Sesiones -->
-    <div id="sessionsList" style="margin-bottom: 1.5rem; display: none;">
-        <h2 style="font-size: 1.5rem; font-weight: 700; color: #1f2937; margin: 0 0 1rem 0;">Ultimas Sesiones</h2>
+    <div id="sessionsList" class="sessions-list">
+        <div class="sessions-header">
+            <h2 class="sessions-title">Últimas Sesiones</h2>
+            <button onclick="window.loadHistorialTutoriasContent()" class="btn btn-secondary">
+                Ver todo el historial
+            </button>
+        </div>
         
-        <div id="sessionsContainer" style="display: flex; flex-direction: column; gap: 1rem;">
+        <div id="sessionsContainer" class="sessions-container">
             <!-- Las sesiones se cargarán aquí dinámicamente -->
         </div>
         
-        <div id="noSessionsMessage" style="background: #f3f4f6; color: #6b7280; padding: 2rem; border-radius: 0.5rem; text-align: center; display: none;">
-            <i class="fa-solid fa-calendar-xmark" style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.5;"></i>
-            <p style="margin: 0; font-weight: 600;">No tienes sesiones realizadas todavía</p>
+        <div id="noSessionsMessage" class="no-sessions-message">
+            <i class="fa-solid fa-calendar-xmark"></i>
+            <p>No tienes sesiones realizadas todavía</p>
         </div>
     </div>
 </div>

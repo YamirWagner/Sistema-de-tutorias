@@ -1,303 +1,66 @@
-// student.js - Panel del Estudiante
+/**
+ * ============================================
+ * STUDENT.JS - Panel del Estudiante
+ * ============================================
+ * 
+ * Archivo JavaScript principal para el panel del estudiante.
+ * Gestiona todos los componentes del dashboard del estudiante.
+ * 
+ * FUNCIONES PRINCIPALES:
+ * - loadStudentDashboard() - Carga el dashboard completo
+ * - loadMyTutor() - Información del tutor asignado
+ * - loadMyStats() - Estadísticas de tutorías
+ * - loadMySessions() - Últimas 4 sesiones
+ * - loadCurrentSemestre() - Datos del semestre actual
+ * 
+ * NAVEGACIÓN ENTRE MÓDULOS:
+ * - loadEstudianteContent() - Panel principal (inicio)
+ * - loadHistorialTutoriasContent() - Historial completo
+ * 
+ * Nota: loadSesionActualContent() está en sesion-actual.js
+ * 
+ * @author Sistema de Tutorías
+ * @version 2.0
+ */
 
-// Cargar dashboard del estudiante
+// ============================================
+// FUNCIÓN PRINCIPAL
+// ============================================
+
+/**
+ * Cargar dashboard del estudiante
+ * Carga todos los componentes del panel: semestre, tutor, estadísticas y sesiones
+ */
 async function loadStudentDashboard() {
     console.log('Cargando dashboard de estudiante...');
     
     // Cargar datos del semestre actual
-    await loadCurrentSemester();
+    await loadCurrentSemestre();
     
     // Cargar datos del tutor asignado
     await loadMyTutor();    
+    
     // Cargar estadísticas del estudiante
     await loadMyStats();
     
-    // Cargar sesiones realizadas
+    // Cargar últimas sesiones realizadas
     await loadMySessions();
-    
-    // NO verificar constancia automáticamente, solo cuando el usuario haga clic en "Buscar"
-    
-    // Cargar semestres para búsqueda
-    await cargarSemestresParaBusqueda();
 }
 
-// Verificar si el estudiante tiene constancia disponible
-async function verificarConstancia() {
-    const constanciaEstado = document.getElementById('constanciaEstado');
-    const btnDescargar = document.getElementById('btnDescargarConstancia');
-    const constanciaInfo = document.getElementById('constanciaInfo');
-    const constanciaNoDisponible = document.getElementById('constanciaNoDisponible');
-    
-    try {
-        // Mostrar estado de búsqueda
-        if (constanciaEstado) {
-            constanciaEstado.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Buscando constancia...';
-            constanciaEstado.className = 'constancia-buscando';
-        }
-        
-        // Obtener constancias del estudiante desde la BD
-        const response = await apiGet('/listar-constancias');
-        
-        if (response?.success && response.constancias && response.constancias.length > 0) {
-            // Tiene constancia disponible
-            const constancia = response.constancias[0]; // Tomar la más reciente
-            
-            if (constancia.firmado) {
-                // Constancia firmada y lista para descargar
-                if (constanciaEstado) {
-                    constanciaEstado.innerHTML = '<i class="fa-solid fa-check-circle"></i> Constancia firmada y disponible';
-                    constanciaEstado.className = 'constancia-disponible';
-                }
-                if (btnDescargar) {
-                    btnDescargar.style.display = 'inline-block';
-                    btnDescargar.setAttribute('data-ruta', constancia.rutaPDF);
-                }
-                if (constanciaInfo) {
-                    const fecha = new Date(constancia.fechaGeneracion).toLocaleDateString('es-ES');
-                    constanciaInfo.innerHTML = `
-                        <p>
-                            <i class="fa-solid fa-file-pdf"></i> Tu constancia está firmada y lista para descargar.
-                            <br><small>Generada el: ${fecha}</small>
-                        </p>
-                    `;
-                    constanciaInfo.classList.remove('hidden');
-                }
-                if (constanciaNoDisponible) constanciaNoDisponible.classList.add('hidden');
-            } else {
-                // Constancia generada pero aún no firmada
-                if (constanciaEstado) {
-                    constanciaEstado.innerHTML = '<i class="fa-solid fa-clock"></i> Constancia pendiente de firma';
-                    constanciaEstado.className = 'constancia-pendiente';
-                }
-                if (btnDescargar) btnDescargar.style.display = 'none';
-                if (constanciaInfo) constanciaInfo.classList.add('hidden');
-                if (constanciaNoDisponible) {
-                    constanciaNoDisponible.innerHTML = `
-                        <p>
-                            <i class="fa-solid fa-signature"></i> Tu constancia aún no ha sido firmada por tu tutor. 
-                            Por favor comunícate con tu tutor asignado.
-                        </p>
-                    `;
-                    constanciaNoDisponible.classList.remove('hidden');
-                }
-            }
-        } else {
-            // No tiene constancia aún
-            const statsResponse = await apiGet('/student?action=stats');
-            const sesionesCompletadas = statsResponse?.data?.sesionesCompletadas || 0;
-            
-            if (constanciaEstado) {
-                constanciaEstado.innerHTML = `<i class="fa-solid fa-times-circle"></i> Constancia no disponible`;
-                constanciaEstado.className = 'constancia-no-disponible';
-            }
-            if (btnDescargar) btnDescargar.style.display = 'none';
-            if (constanciaInfo) constanciaInfo.classList.add('hidden');
-            if (constanciaNoDisponible) {
-                const mensaje = sesionesCompletadas >= 3 
-                    ? 'Has completado las 3 sesiones requeridas. Tu tutor debe generar tu constancia.'
-                    : `Debes completar al menos 3 sesiones de tutoría para obtener tu constancia. Llevas ${sesionesCompletadas} sesiones.`;
-                
-                constanciaNoDisponible.innerHTML = `
-                    <p>
-                        <i class="fa-solid fa-exclamation-triangle"></i> 
-                        ${mensaje}
-                    </p>
-                `;
-                constanciaNoDisponible.classList.remove('hidden');
-            }
-        }
-    } catch (error) {
-        console.error('Error al verificar constancia:', error);
-        if (constanciaEstado) {
-            constanciaEstado.innerHTML = '<i class="fa-solid fa-exclamation-circle"></i> Error al buscar';
-            constanciaEstado.className = 'constancia-error';
-        }
-    }
-}
+// ============================================
+// FUNCIONES DE COMPONENTES DEL PANEL
+// ============================================
 
-// Descargar constancia del estudiante
-async function descargarMiConstancia() {
-    try {
-        const btnDescargar = document.getElementById('btnDescargarConstancia');
-        const rutaPDF = btnDescargar?.getAttribute('data-ruta');
-        
-        if (!rutaPDF) {
-            showNotification('No se encontró la ruta del PDF', 'error');
-            return;
-        }
-        
-        showNotification('Descargando constancia...', 'info');
-        
-        const token = localStorage.getItem('token');
-        const basePath = window.location.hostname === 'localhost' ? 'http://localhost/Sistema-de-tutorias/backend' : '/backend';
-        
-        // Descargar el PDF desde la ruta almacenada
-        const response = await fetch(`${basePath}/${rutaPDF}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error('Error al descargar la constancia');
-        }
-        
-        const blob = await response.blob();
-        
-        if (blob.size === 0) {
-            throw new Error('El PDF está vacío');
-        }
-        
-        const downloadUrl = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = downloadUrl;
-        a.download = `Constancia_Tutorias.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(downloadUrl);
-        
-        showNotification('Constancia descargada exitosamente', 'success');
-    } catch (error) {
-        console.error('Error al descargar constancia:', error);
-        showNotification(error.message || 'Error al descargar la constancia', 'error');
-    }
-}
-
-// Cargar semestres para búsqueda de sesiones
-async function cargarSemestresParaBusqueda() {
-    const semestreBusqueda = document.getElementById('semestreBusqueda');
-    
-    try {
-        const response = await apiGet('/semestre?action=list');
-        
-        if (response?.success && response.data) {
-            semestreBusqueda.innerHTML = '<option value="">Semestre Actual</option>';
-            
-            response.data.forEach(semestre => {
-                const option = document.createElement('option');
-                option.value = semestre.id;
-                option.textContent = semestre.nombre;
-                semestreBusqueda.appendChild(option);
-            });
-        }
-    } catch (error) {
-        console.error('Error al cargar semestres:', error);
-    }
-}
-
-// Buscar sesiones del estudiante
-async function buscarMisSesiones() {
-    const semestreBusqueda = document.getElementById('semestreBusqueda');
-    const misSesionesLista = document.getElementById('misSesionesLista');
-    const semesterId = semestreBusqueda.value;
-    
-    try {
-        misSesionesLista.innerHTML = '<p style="text-align: center; color: #6b7280; padding: 2rem;"><i class="fa-solid fa-spinner fa-spin"></i> Buscando sesiones...</p>';
-        
-        // Obtener sesiones del estudiante
-        let url = '/student?action=sessions';
-        if (semesterId) {
-            url += `&semesterId=${semesterId}`;
-        }
-        
-        const response = await apiGet(url);
-        
-        if (response?.success && response.data && response.data.length > 0) {
-            const sesiones = response.data;
-            
-            let html = `
-                <div style="margin-bottom: 1rem;">
-                    <p style="font-weight: 600; color: #374151;">
-                        <i class="fa-solid fa-calendar-check"></i> Total de sesiones encontradas: ${sesiones.length}
-                    </p>
-                </div>
-                <div style="display: grid; gap: 1rem;">
-            `;
-            
-            sesiones.forEach(sesion => {
-                // Formatear fecha
-                let fechaFormateada = 'Fecha no disponible';
-                if (sesion.fechaRealizada || sesion.fecha) {
-                    const fecha = new Date(sesion.fechaRealizada || sesion.fecha);
-                    const dia = fecha.getDate();
-                    const mes = fecha.toLocaleDateString('es-ES', { month: 'long' });
-                    const anio = fecha.getFullYear();
-                    fechaFormateada = `${dia} de ${mes.charAt(0).toUpperCase() + mes.slice(1)} del ${anio}`;
-                }
-                
-                // Color según estado
-                let estadoColor = '#6b7280';
-                let estadoIcono = 'fa-circle';
-                if (sesion.estado === 'Realizada' || sesion.estado === 'completada') {
-                    estadoColor = '#10b981';
-                    estadoIcono = 'fa-check-circle';
-                } else if (sesion.estado === 'cancelada') {
-                    estadoColor = '#ef4444';
-                    estadoIcono = 'fa-times-circle';
-                } else if (sesion.estado === 'ausente') {
-                    estadoColor = '#f59e0b';
-                    estadoIcono = 'fa-exclamation-circle';
-                }
-                
-                html += `
-                    <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 1rem;">
-                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
-                            <div>
-                                <p style="font-weight: 600; color: #1f2937; margin: 0 0 0.25rem 0;">
-                                    <i class="fa-solid fa-calendar"></i> ${fechaFormateada}
-                                </p>
-                                ${sesion.horaInicio ? `<p style="font-size: 0.875rem; color: #6b7280; margin: 0;"><i class="fa-solid fa-clock"></i> ${sesion.horaInicio.substring(0, 5)}</p>` : ''}
-                            </div>
-                            <span style="display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 600; background-color: ${estadoColor}20; color: ${estadoColor};">
-                                <i class="fa-solid ${estadoIcono}"></i>
-                                ${sesion.estado || 'Sin estado'}
-                            </span>
-                        </div>
-                        <div style="margin-top: 0.75rem;">
-                            <p style="font-size: 0.875rem; color: #6b7280; margin: 0;">
-                                <strong>Tipo:</strong> ${sesion.tipo || 'No especificado'}
-                            </p>
-                            ${sesion.modalidad ? `<p style="font-size: 0.875rem; color: #6b7280; margin: 0.25rem 0 0 0;"><strong>Modalidad:</strong> ${sesion.modalidad}</p>` : ''}
-                            ${sesion.observaciones ? `<p style="font-size: 0.875rem; color: #6b7280; margin: 0.25rem 0 0 0;"><strong>Observaciones:</strong> ${sesion.observaciones}</p>` : ''}
-                        </div>
-                    </div>
-                `;
-            });
-            
-            html += '</div>';
-            misSesionesLista.innerHTML = html;
-            
-        } else {
-            misSesionesLista.innerHTML = `
-                <div style="text-align: center; padding: 3rem;">
-                    <i class="fa-solid fa-calendar-xmark" style="font-size: 3rem; color: #d1d5db; margin-bottom: 1rem;"></i>
-                    <p style="font-weight: 600; color: #6b7280; margin: 0;">No se encontraron sesiones</p>
-                    <p style="font-size: 0.875rem; color: #9ca3af; margin: 0.5rem 0 0 0;">
-                        ${semesterId ? 'No tienes sesiones registradas en este semestre' : 'No tienes sesiones registradas en el semestre actual'}
-                    </p>
-                </div>
-            `;
-        }
-    } catch (error) {
-        console.error('Error al buscar sesiones:', error);
-        misSesionesLista.innerHTML = `
-            <div style="text-align: center; padding: 2rem; background: #fef2f2; border: 1px solid #fecaca; border-radius: 0.5rem;">
-                <i class="fa-solid fa-exclamation-triangle" style="font-size: 2rem; color: #ef4444; margin-bottom: 0.5rem;"></i>
-                <p style="font-weight: 600; color: #991b1b; margin: 0;">Error al buscar sesiones</p>
-            </div>
-        `;
-    }
-}
-
-// Cargar datos del tutor asignado
+/**
+ * Cargar datos del tutor asignado
+ */
 async function loadMyTutor() {
     const tutorWidget = document.getElementById('tutorWidget');
     const noTutorWidget = document.getElementById('noTutorWidget');
     
     try {
         console.log('🔄 Obteniendo datos del tutor asignado...');
-        const response = await apiGet('/student?action=myTutor');
+        const response = await apiGet('/sesionActual.php?action=myTutor');
         
         if (response?.success && response.data) {
             const tutor = response.data;
@@ -346,7 +109,9 @@ async function loadMyTutor() {
     }
 }
 
-// Función para contactar al tutor
+/**
+ * Función para contactar al tutor vía email
+ */
 function contactarTutor() {
     const emailEl = document.getElementById('tutorEmail');
     if (emailEl && emailEl.textContent && emailEl.textContent !== '-') {
@@ -356,7 +121,10 @@ function contactarTutor() {
     }
 }
 
-// Cargar estadísticas del estudiante
+/**
+ * Cargar estadísticas del estudiante
+ * Muestra: sesiones completadas, porcentaje de avance, horas de tutoría y próxima sesión
+ */
 async function loadMyStats() {
     const progressWidget = document.getElementById('progressWidget');
     
@@ -365,7 +133,7 @@ async function loadMyStats() {
         console.log('📊 ESTADÍSTICAS DE TUTORÍAS');
         console.log('📊 ============================================');
         
-        const response = await apiGet('/student?action=stats');
+        const response = await apiGet('/student.php?action=stats');
         
         if (response?.success && response.data) {
             const stats = response.data;
@@ -434,7 +202,10 @@ async function loadMyStats() {
     }
 }
 
-// Cargar sesiones realizadas
+/**
+ * Cargar últimas sesiones realizadas
+ * Muestra las 4 sesiones más recientes del estudiante
+ */
 async function loadMySessions() {
     const sessionsList = document.getElementById('sessionsList');
     const sessionsContainer = document.getElementById('sessionsContainer');
@@ -442,19 +213,20 @@ async function loadMySessions() {
     
     try {
         console.log('\n📚 ============================================');
-        console.log('📚 SESIONES REALIZADAS');
+        console.log('📚 ÚLTIMAS SESIONES REALIZADAS');
         console.log('📚 ============================================\n');
         
-        const response = await apiGet('/student?action=sessions');
+        const response = await apiGet('/student.php?action=sessions');
         
         if (response?.success && response.data && response.data.length > 0) {
-            const sesiones = response.data;
+            // Limitar a las últimas 4 sesiones
+            const sesiones = response.data.slice(0, 4);
             
             // Mostrar sección de sesiones
             if (sessionsList) sessionsList.style.display = 'block';
             if (noSessionsMessage) noSessionsMessage.style.display = 'none';
             
-            console.log(`Total de sesiones realizadas: ${sesiones.length}\n`);
+            console.log(`Mostrando las últimas ${sesiones.length} de ${response.data.length} sesiones\n`);
             
             // Limpiar contenedor
             if (sessionsContainer) {
@@ -688,14 +460,17 @@ async function loadMySessions() {
     }
 }
 
-// Cargar datos del semestre actual (usa la misma lógica del header)
-async function loadCurrentSemester() {
+/**
+ * Cargar datos del semestre actual
+ * Muestra: nombre, estado (badge) y período con días restantes
+ */
+async function loadCurrentSemestre() {
     try {
         console.log('🔄 Cargando semestre actual en dashboard estudiante...');
         
         // Intentar obtener del API (misma lógica que header_panel.js)
         try {
-            const response = await apiGet('/semestre?action=current');
+            const response = await apiGet('/semestre.php?action=current');
             
             if (response?.success && response.data?.semester) {
                 const semester = response.data.semester;
@@ -709,23 +484,50 @@ async function loadCurrentSemester() {
                 
                 // Actualizar estado del semestre
                 const estadoSemestreEl = document.getElementById('estadoSemestre');
+                const estadoBadgeEl = document.getElementById('estadoBadge');
                 if (estadoSemestreEl) {
                     const estado = semester.status || semester.estado || 'Inactivo';
                     estadoSemestreEl.textContent = estado;
                     
-                    // Cambiar color según el estado
-                    const estadoSpan = estadoSemestreEl.parentElement;
-                    if (estadoSpan) {
+                    // Cambiar clase según el estado (usa CSS en lugar de inline styles)
+                    if (estadoBadgeEl) {
+                        // Limpiar clases anteriores
+                        estadoBadgeEl.classList.remove('badge-activo', 'badge-cerrado', 'badge-programado', 'badge-inactivo');
+                        
                         if (estado === 'Activo') {
-                            estadoSpan.style.backgroundColor = '#10b981'; // Verde
+                            estadoBadgeEl.classList.add('badge-activo');
                         } else if (estado === 'Cerrado' || estado === 'Finalizado') {
-                            estadoSpan.style.backgroundColor = '#ef4444'; // Rojo
+                            estadoBadgeEl.classList.add('badge-cerrado');
                         } else if (estado === 'Programado') {
-                            estadoSpan.style.backgroundColor = '#f59e0b'; // Amarillo
+                            estadoBadgeEl.classList.add('badge-programado');
                         } else {
-                            estadoSpan.style.backgroundColor = '#6b7280'; // Gris
+                            estadoBadgeEl.classList.add('badge-inactivo');
                         }
                     }
+                }
+                
+                // Actualizar período y días restantes
+                const periodoSemestreEl = document.getElementById('periodoSemestre');
+                if (periodoSemestreEl && semester.startDate && semester.endDate) {
+                    const startDate = new Date(semester.startDate);
+                    const endDate = new Date(semester.endDate);
+                    const today = new Date();
+                    
+                    // Calcular días restantes
+                    const diffTime = endDate - today;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    
+                    // Formatear fechas
+                    const formatDate = (date) => {
+                        const day = date.getDate();
+                        const month = date.toLocaleDateString('es-ES', { month: 'long' });
+                        return `${day} de ${month}`;
+                    };
+                    
+                    const periodoTexto = `Período: ${formatDate(startDate)} - ${formatDate(endDate)}`;
+                    const diasRestantes = diffDays > 0 ? `${diffDays} días restantes` : 'Finalizado';
+                    
+                    periodoSemestreEl.innerHTML = `<i class="fa-solid fa-calendar-days"></i> ${periodoTexto} - ${diasRestantes}`;
                 }
                 
                 console.log('✅ Semestre cargado en dashboard:', semester.name || semester.nombre);
@@ -744,9 +546,15 @@ async function loadCurrentSemester() {
             }
             
             const estadoSemestreEl = document.getElementById('estadoSemestre');
+            const estadoBadgeEl = document.getElementById('estadoBadge');
             if (estadoSemestreEl) {
                 estadoSemestreEl.textContent = 'Activo';
-                estadoSemestreEl.parentElement.style.backgroundColor = '#10b981';
+                if (estadoBadgeEl) estadoBadgeEl.style.backgroundColor = '#10b981';
+            }
+            
+            const periodoSemestreEl = document.getElementById('periodoSemestre');
+            if (periodoSemestreEl) {
+                periodoSemestreEl.textContent = 'Período: Sin información disponible';
             }
             
             console.log('✅ Semestre del token:', user.semestre);
@@ -760,9 +568,15 @@ async function loadCurrentSemester() {
         }
         
         const estadoSemestreEl = document.getElementById('estadoSemestre');
+        const estadoBadgeEl = document.getElementById('estadoBadge');
         if (estadoSemestreEl) {
             estadoSemestreEl.textContent = 'Inactivo';
-            estadoSemestreEl.parentElement.style.backgroundColor = '#6b7280';
+            if (estadoBadgeEl) estadoBadgeEl.style.backgroundColor = '#6b7280';
+        }
+        
+        const periodoSemestreEl = document.getElementById('periodoSemestre');
+        if (periodoSemestreEl) {
+            periodoSemestreEl.textContent = 'Período: Sin información';
         }
         
     } catch (error) {
@@ -772,19 +586,25 @@ async function loadCurrentSemester() {
             semestreActualEl.textContent = 'Error al cargar';
         }
         const estadoSemestreEl = document.getElementById('estadoSemestre');
+        const estadoBadgeEl = document.getElementById('estadoBadge');
         if (estadoSemestreEl) {
             estadoSemestreEl.textContent = 'Error';
-            estadoSemestreEl.parentElement.style.backgroundColor = '#6b7280';
+            if (estadoBadgeEl) estadoBadgeEl.style.backgroundColor = '#6b7280';
+        }
+        const periodoSemestreEl = document.getElementById('periodoSemestre');
+        if (periodoSemestreEl) {
+            periodoSemestreEl.textContent = 'Período: Error al cargar';
         }
     }
 }
 
 // ============================================
-// FUNCIONES DE CARGA DE MÓDULOS DE ESTUDIANTE
+// FUNCIONES DE NAVEGACIÓN ENTRE MÓDULOS
 // ============================================
 
 /**
  * Cargar contenido del módulo "Inicio" (estudiante.html)
+ * Carga el panel principal con: semestre, tutor, estadísticas y últimas sesiones
  */
 async function loadEstudianteContent() {
     const content = document.getElementById('dashboardContent');
@@ -824,48 +644,11 @@ async function loadEstudianteContent() {
     }
 }
 
-/**
- * Cargar contenido del módulo "Sesión actual" (sesion-estudiante.html)
- */
-async function loadSesionActualContent() {
-    const content = document.getElementById('dashboardContent');
-    if (!content) return;
-    
-    try {
-        content.innerHTML = '<div class="loading-message" style="text-align:center;padding:40px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:32px;color:#a42727;"></i><p style="margin-top:16px;color:#666;">Cargando sesión actual...</p></div>';
-        
-        // Cargar CSS si es necesario
-        const cssPath = window.PATH?.css('estudiante/sesion-estudiante.css') || 
-                       '/Sistema-de-tutorias/frontend/css/estudiante/sesion-estudiante.css';
-        
-        if (!document.querySelector(`link[href*="sesion-estudiante.css"]`)) {
-            const cssLink = document.createElement('link');
-            cssLink.rel = 'stylesheet';
-            cssLink.href = cssPath;
-            document.head.appendChild(cssLink);
-        }
-        
-        // Cargar HTML
-        const url = window.PATH?.component('estudiante/sesion-estudiante.html') || 
-                    '/Sistema-de-tutorias/frontend/components/estudiante/sesion-estudiante.html';
-        
-        const response = await fetch(url, { cache: 'no-store' });
-        if (!response.ok) throw new Error(`Error al cargar: ${response.status}`);
-        
-        const htmlText = await response.text();
-        content.innerHTML = htmlText;
-        
-        // Inicializar funcionalidad de sesión actual
-        // TODO: Implementar lógica de sesión actual
-        console.log('✅ Módulo de sesión actual cargado');
-    } catch (error) {
-        console.error('❌ Error al cargar módulo de sesión actual:', error);
-        content.innerHTML = '<div class="error-message" style="text-align:center;padding:40px;color:#d32f2f;">Error al cargar el módulo</div>';
-    }
-}
+// La función loadSesionActualContent() ahora está en sesion-actual.js
 
 /**
  * Cargar contenido del módulo "Historial de tutorías" (historial-estudiante.html)
+ * Muestra el registro completo de sesiones de tutoría con filtros
  */
 async function loadHistorialTutoriasContent() {
     const content = document.getElementById('dashboardContent');
@@ -908,6 +691,6 @@ async function loadHistorialTutoriasContent() {
 // EXPONER FUNCIONES GLOBALES
 // ============================================
 window.loadEstudianteContent = loadEstudianteContent;
-window.loadSesionActualContent = loadSesionActualContent;
+// window.loadSesionActualContent está en sesion-actual.js
 window.loadHistorialTutoriasContent = loadHistorialTutoriasContent;
 window.contactarTutor = contactarTutor;

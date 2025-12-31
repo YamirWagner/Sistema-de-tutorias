@@ -3,7 +3,7 @@
 // Enviar código de verificación
 async function sendVerificationCode(email) {
     try {
-        const response = await apiPost('/auth/send-code', { email });
+        const response = await apiPost('/auth/send-code.php', { email });
         return response;
     } catch (error) {
         console.error('Error al enviar código:', error);
@@ -14,7 +14,7 @@ async function sendVerificationCode(email) {
 // Verificar código
 async function verifyCode(email, code) {
     try {
-        const response = await apiPost('/auth/verify-code', { email, code });
+        const response = await apiPost('/auth/verify-code.php', { email, code });
         
         console.log('Respuesta verify-code:', response);
         

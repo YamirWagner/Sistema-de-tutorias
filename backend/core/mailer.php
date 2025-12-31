@@ -26,6 +26,10 @@ class Mailer {
      */
     public function sendSessionClosedEmail($email, $name = null, array $meta = [], $reason = 'inactividad') {
         try {
+            // Limpiar destinatarios previos para evitar duplicados
+            $this->mail->clearAddresses();
+            $this->mail->clearAttachments();
+            
             $this->mail->addAddress($email);
             $this->mail->isHTML(true);
             $subjectReason = 'inactividad';
@@ -150,6 +154,10 @@ class Mailer {
      */
     public function sendVerificationCode($email, $code, $name = null, array $meta = []) {
         try {
+            // Limpiar destinatarios previos para evitar duplicados
+            $this->mail->clearAddresses();
+            $this->mail->clearAttachments();
+            
             $this->mail->addAddress($email);
             $this->mail->isHTML(true);
             $this->mail->Subject = 'Código de verificación - ' . (defined('APP_NAME') ? APP_NAME : 'Sistema de Tutorías');
@@ -239,6 +247,10 @@ class Mailer {
      */
     public function send($to, $subject, $body, $altBody = '') {
         try {
+            // Limpiar destinatarios previos para evitar duplicados
+            $this->mail->clearAddresses();
+            $this->mail->clearAttachments();
+            
             $this->mail->addAddress($to);
             $this->mail->isHTML(true);
             $this->mail->Subject = $subject;
@@ -253,4 +265,39 @@ class Mailer {
             return false;
         }
     }
+    
+    /**
+     * Enviar correo usando una plantilla PHP
+     * @param string $to Correo destinatario
+     * @param string $subject Asunto del correo
+     * @param string $templateName Nombre del archivo de plantilla (sin .php)
+     * @param array $data Datos para la plantilla
+     * @return bool
+     */
+    public function sendTemplate($to, $subject, $templateName, $data = []) {
+        try {
+            $templatePath = __DIR__ . '/templates/' . $templateName . '.php';
+            
+            if (!file_exists($templatePath)) {
+                error_log("Plantilla de correo no encontrada: " . $templatePath);
+                return false;
+            }
+            
+            // Extraer variables para la plantilla
+            extract($data);
+            
+            // Capturar salida de la plantilla
+            ob_start();
+            include $templatePath;
+            $body = ob_get_clean();
+            
+            // Enviar correo
+            return $this->send($to, $subject, $body);
+            
+        } catch (Exception $e) {
+            error_log("Error al enviar correo con plantilla: " . $e->getMessage());
+            return false;
+        }
+    }
 }
+

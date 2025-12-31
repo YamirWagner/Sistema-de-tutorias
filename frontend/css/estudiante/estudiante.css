@@ -1,103 +1,275 @@
 /* Estilos para el Panel de Inicio del Estudiante */
 
 .estudiante-dashboard {
-    padding: 20px;
+    padding: 0.5%;
     max-width: 1200px;
     margin: 0 auto;
 }
 
-/* Utilidades de Tailwind-like para el widget del semestre */
-.text-white {
-    color: white;
-}
-
-.p-6 {
+/* Widget de Semestre */
+.semester-widget {
+    background: #9B192D;
     padding: 1.5rem;
-}
-
-.rounded-lg {
-    border-radius: 0.5rem;
-}
-
-.shadow-lg {
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-}
-
-.mb-6 {
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 12px #7B1113;
     margin-bottom: 1.5rem;
 }
 
-.flex {
+.semester-widget-content {
     display: flex;
-}
-
-.justify-between {
     justify-content: space-between;
-}
-
-.items-center {
     align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
 }
 
-.text-sm {
+.semester-info {
+    flex: 1;
+    min-width: 200px;
+}
+
+.semester-widget .semester-title {
     font-size: 0.875rem;
-}
-
-.font-semibold {
     font-weight: 600;
+    margin-bottom: 0.75rem;
+    letter-spacing: 0.05em;
+    color: #F59E0B !important;
 }
 
-.opacity-90 {
-    opacity: 0.9;
-}
-
-.mb-2 {
+.semester-name-container {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
     margin-bottom: 0.5rem;
 }
 
-.gap-3 {
-    gap: 0.75rem;
-}
-
-.text-2xl {
-    font-size: 1.5rem;
+.semester-widget .semester-name {
+    font-size: 1.75rem;
     line-height: 2rem;
-}
-
-.font-bold {
     font-weight: 700;
+    margin: 0;
+    color: #FFF !important;
 }
 
-.bg-green-500 {
-    background-color: #10b981;
-}
-
-.px-3 {
-    padding-left: 0.75rem;
-    padding-right: 0.75rem;
-}
-
-.py-1 {
-    padding-top: 0.25rem;
-    padding-bottom: 0.25rem;
-}
-
-.rounded-full {
-    border-radius: 9999px;
-}
-
-.text-xs {
-    font-size: 0.75rem;
-}
-
-.gap-2 {
+.semester-widget .status-badge {
+    display: inline-flex;
+    align-items: center;
     gap: 0.5rem;
+    padding: 0.375rem 0.875rem;
+    border-radius: 9999px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    box-shadow: 0 2px 4px #000;
+    color: #FFF !important;
 }
 
-/* Estilos para botones */
+/* Estados del badge */
+.semester-widget .status-badge.badge-activo {
+    background-color: #10b981 !important;
+}
+
+.semester-widget .status-badge.badge-cerrado {
+    background-color: #ef4444 !important;
+}
+
+.semester-widget .status-badge.badge-programado {
+    background-color: #f59e0b !important;
+}
+
+.semester-widget .status-badge.badge-inactivo {
+    background-color: #6b7280 !important;
+}
+
+.semester-widget .status-badge i {
+    font-size: 0.625rem;
+    color: #FFF !important;
+}
+
+.semester-widget .status-badge span {
+    color: #FFF !important;
+}
+
+.semester-widget .semester-period {
+    font-size: 0.9375rem;
+    margin: 0;
+    font-weight: 500;
+    color: #FFF !important;
+    line-height: 1.6;
+}
+
+.semester-widget .semester-period i {
+    font-size: 0.8rem;
+    margin-right: 0.25rem;
+    color: #FFF !important;
+}
+
+.semester-widget .semester-period strong {
+    color: #FFF !important;
+    font-weight: 500;
+}
+
+/* Widget de Tutor */
+.tutor-widget {
+    background: linear-gradient(135deg, #9B192D 0%, #7B1113 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 12px rgba(155, 25, 45, 0.3);
+    margin-bottom: 1.5rem;
+    display: none;
+}
+
+.tutor-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    opacity: 0.9;
+    margin: 0 0 0.75rem 0;
+    letter-spacing: 0.05em;
+}
+
+.tutor-name {
+    font-size: 1.875rem;
+    font-weight: 700;
+    margin: 0 0 0.375rem 0;
+}
+
+.tutor-specialty {
+    font-size: 1rem;
+    opacity: 0.9;
+    margin: 0;
+    font-weight: 500;
+}
+
+/* Widget de No Tutor */
+.no-tutor-widget {
+    background: #f3f4f6;
+    color: #6b7280;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    border: 2px dashed #d1d5db;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    display: none;
+}
+
+.no-tutor-widget i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.5;
+}
+
+.no-tutor-widget p {
+    margin: 0;
+    font-weight: 600;
+}
+
+/* Widget de Progreso */
+.progress-widget {
+    margin-bottom: 1.5rem;
+    display: none;
+}
+
+.progress-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0 0 1rem 0;
+}
+
+.progress-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.progress-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.progress-card-label {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0 0 0.75rem 0;
+}
+
+.progress-card-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #9B192D;
+    margin: 0;
+}
+
+.progress-card-value-small {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #9B192D;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.progress-card-value i {
+    font-size: 1.5rem;
+}
+
+.progress-card-value-small i {
+    font-size: 1rem;
+}
+
+/* Sección de Últimas Sesiones */
+.sessions-list {
+    margin-bottom: 1.5rem;
+    display: none;
+}
+
+.sessions-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.sessions-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0;
+}
+
+.sessions-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.no-sessions-message {
+    background: #f3f4f6;
+    color: #6b7280;
+    padding: 2rem;
+    border-radius: 0.5rem;
+    text-align: center;
+    display: none;
+}
+
+.no-sessions-message i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.5;
+}
+
+.no-sessions-message p {
+    margin: 0;
+    font-weight: 600;
+}
+
+/* Botones */
 .btn {
     padding: 0.5rem 1rem;
-    border-radius: 0.375rem;
+    border-radius: 0.5rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
@@ -105,6 +277,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+    font-size: 0.875rem;
 }
 
 .btn-primary {
@@ -124,6 +297,7 @@
 
 .btn-secondary:hover {
     background-color: #4b5563;
+    transform: translateY(-1px);
 }
 
 .btn-success {
@@ -133,9 +307,10 @@
 
 .btn-success:hover {
     background-color: #059669;
+    transform: translateY(-1px);
 }
 
-/* Estilos para formularios */
+/* Formularios */
 .form-control {
     padding: 0.5rem;
     border: 1px solid #d1d5db;
@@ -156,16 +331,8 @@
         padding: 15px;
     }
 
-    .text-2xl {
-        font-size: 1.25rem;
-    }
-
-    .flex {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .gap-3 {
-        gap: 0.5rem;
+    .btn {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.8rem;
     }
 }

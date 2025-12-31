@@ -1,82 +1,55 @@
 <?php
-// student.php - Endpoints del Estudiante
+/**
+ * ============================================================
+ * API ESTUDIANTE - Sistema de Tutorías UNSAAC
+ * ============================================================
+ * 
+ * Endpoints disponibles:
+ * - myTutor: Obtener tutor asignado
+ * - stats: Estadísticas del estudiante (sesiones, avance, horas)
+ * - sessions: Historial de sesiones realizadas
+ * - materials: Materiales de una tutoría específica
+ * 
+ * Nota: Para sesiones activas y próximas usar sesionActual.php
+ */
+
+// Limpiar cualquier salida previa
+ob_start();
 
 require_once __DIR__ . '/../core/config.php';
 require_once __DIR__ . '/../core/database.php';
 require_once __DIR__ . '/../core/response.php';
 require_once __DIR__ . '/../core/jwt.php';
 
+// Limpiar buffer antes de enviar JSON
+ob_clean();
+
 try {
-    // Activar logging de errores temporalmente
-    error_reporting(E_ALL);
-    ini_set('display_errors', '1');
-    error_log("=== student.php iniciado ===");
-    
     // Verificar autenticación
     $token = JWT::getBearerToken();
-    error_log("Token obtenido: " . ($token ? "SI" : "NO"));
     
     if (!$token) {
         Response::unauthorized('Token no proporcionado');
+        exit;
     }
     
     $payload = JWT::decode($token);
-    error_log("Payload decodificado - user_id: " . ($payload['user_id'] ?? 'N/A') . ", role: " . ($payload['role'] ?? 'N/A'));
     
     // Verificar rol de estudiante
     if ($payload['role'] !== 'student') {
-        error_log("Rol incorrecto: " . $payload['role']);
-        Response::forbidden('Acceso denegado');
+        Response::forbidden('Acceso denegado. Solo estudiantes pueden acceder.');
+        exit;
     }
     
     $userId = $payload['user_id'];
-    error_log("User ID: $userId");
-    
-    // Obtener acción
     $action = $_GET['action'] ?? '';
-    error_log("Action: $action");
     
     $database = new Database();
     $db = $database->getConnection();
-    error_log("Conexión a BD establecida");
     
     switch ($action) {
-        case 'myTutor':
-            error_log("=== Ejecutando myTutor ===");
-            // Obtener tutor asignado al estudiante
-            $query = "SELECT 
-                        u.id,
-                        u.nombres,
-                        u.apellidos,
-                        CONCAT(u.nombres, ' ', u.apellidos) as nombre,
-                        u.correo as email,
-                        u.especialidad,
-                        a.fechaAsignacion,
-                        a.estado as estadoAsignacion
-                      FROM asignaciontutor a
-                      INNER JOIN usuariosistema u ON a.idTutor = u.id
-                      WHERE a.idEstudiante = :student_id 
-                      AND a.estado = 'Activa'
-                      ORDER BY a.fechaAsignacion DESC
-                      LIMIT 1";
-            
-            error_log("Query preparada");
-            $stmt = $db->prepare($query);
-            $stmt->bindParam(':student_id', $userId, PDO::PARAM_INT);
-            error_log("Ejecutando query con student_id: $userId");
-            $stmt->execute();
-            $tutor = $stmt->fetch(PDO::FETCH_ASSOC);
-            error_log("Resultado: " . ($tutor ? json_encode($tutor) : "NULL"));
-            
-            if ($tutor) {
-                Response::success($tutor);
-            } else {
-                Response::success(null, 'No tienes tutor asignado');
-            }
-            break;
-            
         case 'stats':
-            error_log("=== Ejecutando stats ===");
+            // Obtener estadísticas del estudiante
             
             // Obtener ID de asignación activa
             $queryAsignacion = "SELECT id FROM asignaciontutor 
@@ -155,16 +128,13 @@ try {
             break;
             
         case 'sessions':
-            error_log("=== Ejecutando sessions ===");
+            // Obtener historial de sesiones realizadas
             
             // Verificar si se especifica un semestre
             $semesterId = $_GET['semesterId'] ?? null;
             
             if ($semesterId) {
                 // Buscar sesiones por semestre específico
-                error_log("Buscando sesiones para semestre: $semesterId");
-                
-                // Obtener ID de asignación para el semestre específico
                 $queryAsignacion = "SELECT id FROM asignaciontutor 
                                    WHERE idEstudiante = :student_id 
                                    AND idSemestre = :semestre_id
@@ -181,8 +151,6 @@ try {
                 }
             } else {
                 // Obtener ID de asignación activa (semestre actual)
-                error_log("Buscando sesiones del semestre actual");
-                
                 $queryAsignacion = "SELECT id FROM asignaciontutor 
                                    WHERE idEstudiante = :student_id 
                                    AND estado = 'Activa' 
@@ -200,7 +168,7 @@ try {
             
             $idAsignacion = $asignacion['id'];
             
-            // Obtener todas las sesiones realizadas
+            // Obtener todas las sesiones (realizadas, programadas, etc.)
             $querySesiones = "SELECT 
                                 t.id,
                                 t.fecha,
@@ -217,8 +185,13 @@ try {
                             FROM tutoria t
                             LEFT JOIN cronograma c ON t.idCronograma = c.id
                             WHERE t.idAsignacion = :id_asignacion 
-                            AND t.estado = 'Realizada'
-                            ORDER BY t.fechaRealizada DESC, t.fecha DESC";
+                            ORDER BY 
+                                CASE 
+                                    WHEN t.fechaRealizada IS NOT NULL THEN t.fechaRealizada
+                                    WHEN t.fecha IS NOT NULL THEN t.fecha
+                                    ELSE c.fecha
+                                END DESC,
+                                t.created_at DESC";
             
             $stmtSesiones = $db->prepare($querySesiones);
             $stmtSesiones->bindParam(':id_asignacion', $idAsignacion, PDO::PARAM_INT);
@@ -228,20 +201,62 @@ try {
             Response::success($sesiones);
             break;
             
+        case 'materials':
+            // Obtener materiales de una tutoría específica
+            $tutoriaId = $_GET['tutoriaId'] ?? null;
+            
+            if (!$tutoriaId) {
+                Response::error('ID de tutoría no proporcionado');
+                break;
+            }
+            
+            // Verificar que la tutoría pertenece al estudiante
+            $queryVerificar = "SELECT t.id 
+                              FROM tutoria t
+                              INNER JOIN asignaciontutor a ON t.idAsignacion = a.id
+                              WHERE t.id = :tutoria_id 
+                              AND a.idEstudiante = :student_id";
+            
+            $stmtVerificar = $db->prepare($queryVerificar);
+            $stmtVerificar->bindParam(':tutoria_id', $tutoriaId, PDO::PARAM_INT);
+            $stmtVerificar->bindParam(':student_id', $userId, PDO::PARAM_INT);
+            $stmtVerificar->execute();
+            $tutoriaAccess = $stmtVerificar->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$tutoriaAccess) {
+                Response::forbidden('No tienes acceso a esta tutoría');
+                break;
+            }
+            
+            // Obtener materiales
+            $queryMateriales = "SELECT 
+                                    id,
+                                    titulo,
+                                    descripcion,
+                                    tipo,
+                                    enlace,
+                                    fechaRegistro
+                                FROM materiales
+                                WHERE idTutoria = :tutoria_id
+                                ORDER BY fechaRegistro DESC";
+            
+            $stmtMateriales = $db->prepare($queryMateriales);
+            $stmtMateriales->bindParam(':tutoria_id', $tutoriaId, PDO::PARAM_INT);
+            $stmtMateriales->execute();
+            $materiales = $stmtMateriales->fetchAll(PDO::FETCH_ASSOC);
+            
+            Response::success($materiales);
+            break;
+
         default:
             Response::error('Acción no válida');
     }
     
 } catch (Exception $e) {
-    error_log("=== ERROR EN student.php ===");
-    error_log("Mensaje: " . $e->getMessage());
-    error_log("Archivo: " . $e->getFile());
-    error_log("Línea: " . $e->getLine());
-    error_log("Trace: " . $e->getTraceAsString());
-    
     if ($e->getMessage() === 'Token expirado') {
         Response::unauthorized('Sesión expirada');
+    } else {
+        error_log("Error en student.php: " . $e->getMessage());
+        Response::serverError('Error en el servidor');
     }
-    
-    Response::serverError('Error en el servidor: ' . $e->getMessage());
 }

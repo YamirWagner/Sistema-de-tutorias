@@ -1,69 +1,234 @@
-<!-- Sesión Actual del Estudiante -->
-<div class="sesion-actual-container">
+<!-- Mis Sesiones - Módulo Estudiante -->
+<div class="sesiones-container">
+    <!-- Encabezado -->
     <div class="dashboard-header">
-        <h2><i class="fa-solid fa-calendar-check"></i> Sesión Actual</h2>
-        <p>Información de tu sesión de tutoría en curso</p>
-    </div>
-
-    <!-- Estado de la sesión -->
-    <div class="session-status-card">
-        <div id="sessionStatus" class="session-status">
-            <div class="no-session">
-                <i class="fa-solid fa-info-circle"></i>
-                <h3>No hay sesión activa</h3>
-                <p>Actualmente no tienes ninguna sesión de tutoría en curso</p>
+        <div class="header-content">
+            <div class="header-text">
+                <h2><i class="fa-solid fa-calendar-days"></i> Mis sesiones</h2>
+                <p>Historial completo de tus sesiones de tutoría</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn-solicitar" onclick="solicitarCambioTutor()">
+                    <i class="fa-solid fa-user-clock"></i>
+                    Solicitar cambio de tutor
+                </button>
+                <button class="btn-contactar" onclick="contactarTutor()">
+                    <i class="fa-solid fa-envelope"></i>
+                    Contactar tutor
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- Detalles de la sesión activa (se muestra cuando hay sesión) -->
-    <div id="activeSessionDetails" class="active-session" style="display: none;">
-        <div class="session-info-card">
-            <h3><i class="fa-solid fa-user-graduate"></i> Detalles de la Sesión</h3>
-            <div class="info-grid">
-                <div class="info-item">
-                    <label>Tutor:</label>
-                    <span id="sessionTutor">-</span>
-                </div>
-                <div class="info-item">
-                    <label>Fecha:</label>
-                    <span id="sessionDate">-</span>
-                </div>
-                <div class="info-item">
-                    <label>Hora:</label>
-                    <span id="sessionTime">-</span>
-                </div>
-                <div class="info-item">
-                    <label>Modalidad:</label>
-                    <span id="sessionMode">-</span>
-                </div>
-                <div class="info-item">
-                    <label>Tema:</label>
-                    <span id="sessionTopic">-</span>
-                </div>
-                <div class="info-item">
-                    <label>Estado:</label>
-                    <span id="sessionState" class="badge badge-success">En curso</span>
+    <!-- Sesión Activa (si existe) -->
+    <div id="activeSessionCard" class="active-session-card" style="display: none;">
+        <div class="active-badge">
+            <i class="fa-solid fa-circle-dot"></i>
+            Sesión en curso
+        </div>
+        <div class="session-details">
+            <div class="session-info">
+                <h3 id="activeSessionTitle">Tutoría Académica</h3>
+                <div class="session-meta">
+                    <span><i class="fa-solid fa-user"></i> <span id="activeTutor">-</span></span>
+                    <span><i class="fa-solid fa-clock"></i> <span id="activeTime">-</span></span>
+                    <span><i class="fa-solid fa-location-dot"></i> <span id="activeLocation">-</span></span>
                 </div>
             </div>
-        </div>
-
-        <!-- Acciones de la sesión -->
-        <div class="session-actions">
-            <button class="btn btn-primary" onclick="joinSession()">
-                <i class="fa-solid fa-video"></i> Unirse a la sesión
-            </button>
-            <button class="btn btn-secondary" onclick="viewSessionMaterials()">
-                <i class="fa-solid fa-folder"></i> Ver materiales
+            <button class="btn-join" onclick="unirseASesion()">
+                <i class="fa-solid fa-video"></i>
+                Unirse ahora
             </button>
         </div>
     </div>
 
-    <!-- Historial reciente -->
-    <div class="recent-sessions-card">
-        <h3><i class="fa-solid fa-clock-rotate-left"></i> Sesiones Recientes</h3>
-        <div id="recentSessions" class="recent-list">
-            <p class="text-muted">No hay sesiones recientes</p>
+    <!-- Próximas Sesiones Agendadas -->
+    <div class="upcoming-section">
+        <h3 class="section-title">
+            <i class="fa-solid fa-calendar-plus"></i>
+            Mis sesiones agendadas
+        </h3>
+        <div id="upcomingSessionsList" class="upcoming-list">
+            <!-- Se llenará dinámicamente -->
+        </div>
+    </div>
+
+    <!-- Lista de Sesiones (Historial) -->
+    <div class="sessions-history">
+        <div id="sessionsList" class="sessions-list">
+            <!-- Se llenará dinámicamente -->
+        </div>
+
+        <!-- Mensaje cuando no hay resultados -->
+        <div id="noResultsMessage" class="no-results" style="display: none;">
+            <i class="fa-solid fa-inbox"></i>
+            <h3>No se encontraron sesiones</h3>
+            <p>Intenta ajustar los filtros o realiza una búsqueda diferente</p>
+        </div>
+
+        <!-- Loader -->
+        <div id="sessionsLoader" class="loader">
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            <p>Cargando sesiones...</p>
+        </div>
+    </div>
+
+    <!-- Sección de Materiales de Apoyo -->
+    <div class="materials-section">
+        <h3 class="section-title">
+            <i class="fa-solid fa-folder-open"></i>
+            Materiales de apoyo
+        </h3>
+        <div id="materialsList" class="materials-grid">
+            <!-- Se llenará dinámicamente -->
+        </div>
+        <div id="noMaterialsMessage" class="no-materials" style="display: none;">
+            <i class="fa-solid fa-folder-open"></i>
+            <p>No hay materiales de apoyo disponibles</p>
+        </div>
+    </div>
+
+    <!-- Sección de Constancias -->
+    <div class="constancias-section">
+        <h3 class="section-title">
+            <i class="fa-solid fa-file-certificate"></i>
+            Mis constancias
+        </h3>
+        <div id="constanciasList" class="constancias-grid">
+            <!-- Se llenará dinámicamente -->
+        </div>
+        <div id="noConstanciasMessage" class="no-constancias" style="display: none;">
+            <i class="fa-solid fa-file-circle-xmark"></i>
+            <h4>Ninguna constancia disponible</h4>
+            <p>Aún no tienes constancias generadas. Contacta con tu tutor para más información.</p>
+            <button class="btn-contactar-tutor" onclick="contactarTutor()">
+                <i class="fa-solid fa-envelope"></i>
+                Contactar con tutor
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Contactar Tutor -->
+<div id="modalContactarTutor" class="modal-overlay" style="display: none;">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-envelope"></i> Contactar con tu tutor</h3>
+            <button class="modal-close" onclick="cerrarModalContactar()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="tutor-info-box">
+                <div class="tutor-avatar">
+                    <i class="fa-solid fa-user-tie"></i>
+                </div>
+                <div class="tutor-details">
+                    <h4 id="contactTutorNombre">Cargando...</h4>
+                    <p id="contactTutorEspecialidad">-</p>
+                    <p><i class="fa-solid fa-envelope"></i> <span id="contactTutorCorreo">-</span></p>
+                </div>
+            </div>
+            
+            <form id="formContactarTutor" onsubmit="enviarMensajeTutor(event)">
+                <div class="form-group">
+                    <label for="contactAsunto"><i class="fa-solid fa-heading"></i> Asunto *</label>
+                    <input type="text" id="contactAsunto" class="form-control" placeholder="Ej: Consulta sobre sesión" required maxlength="100">
+                </div>
+                
+                <div class="form-group">
+                    <label for="contactMensaje"><i class="fa-solid fa-message"></i> Mensaje *</label>
+                    <textarea id="contactMensaje" class="form-control" rows="5" placeholder="Escribe tu mensaje aquí..." required maxlength="500"></textarea>
+                    <small class="char-count"><span id="contactCharCount">0</span>/500 caracteres</small>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="cerrarModalContactar()">Cancelar</button>
+                    <button type="submit" class="btn-primary">
+                        <i class="fa-solid fa-paper-plane"></i> Enviar mensaje
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Solicitar Cambio de Tutor -->
+<div id="modalSolicitarCambio" class="modal-overlay" style="display: none;">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-user-clock"></i> Solicitar cambio de tutor</h3>
+            <button class="modal-close" onclick="cerrarModalSolicitud()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="alert-warning">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <p>Selecciona el administrador que revisará tu solicitud y explica claramente el motivo del cambio.</p>
+            </div>
+
+            <div class="tutor-info-box">
+                <div class="tutor-avatar">
+                    <i class="fa-solid fa-user-tie"></i>
+                </div>
+                <div class="tutor-details">
+                    <h4>Tutor actual</h4>
+                    <p id="cambioTutorNombre">Cargando...</p>
+                    <p id="cambioTutorEspecialidad">-</p>
+                    <p><i class="fa-solid fa-envelope"></i> <span id="cambioTutorCorreo">-</span></p>
+                </div>
+            </div>
+            
+            <form id="formSolicitarCambio" onsubmit="enviarSolicitudCambio(event)">
+                <div class="form-group">
+                    <label for="cambioAdministrador"><i class="fa-solid fa-user-shield"></i> Enviar solicitud a *</label>
+                    <select id="cambioAdministrador" class="form-control" required>
+                        <option value="">Selecciona un administrador</option>
+                    </select>
+                    <small class="form-text">Elige el administrador que revisará tu solicitud</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="cambioMotivo"><i class="fa-solid fa-clipboard-question"></i> Motivo de la solicitud *</label>
+                    <select id="cambioMotivo" class="form-control" required>
+                        <option value="">Selecciona un motivo</option>
+                        <option value="Incompatibilidad de horarios">Incompatibilidad de horarios</option>
+                        <option value="Diferencias metodológicas">Diferencias metodológicas</option>
+                        <option value="Necesidad de otra especialidad">Necesidad de otra especialidad</option>
+                        <option value="Problemas de comunicación">Problemas de comunicación</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="cambioDetalles"><i class="fa-solid fa-pen-to-square"></i> Detalles adicionales (opcional)</label>
+                    <textarea id="cambioDetalles" class="form-control" rows="5" placeholder="Explica con más detalle tu situación..." maxlength="500"></textarea>
+                    <small class="char-count"><span id="cambioCharCount">0</span>/500 caracteres</small>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="cerrarModalSolicitud()">Cancelar</button>
+                    <button type="submit" class="btn-warning">
+                        <i class="fa-solid fa-paper-plane"></i> Enviar solicitud
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Confirmación -->
+<div id="modalConfirmacion" class="modal-overlay" style="display: none;">
+    <div class="modal-container modal-small">
+        <div class="modal-header">
+            <h3 id="confirmTitulo"></h3>
+            <button class="modal-close" onclick="cerrarModalConfirmacion()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="confirm-icon">
+                <i id="confirmIcon" class="fa-solid fa-check-circle"></i>
+            </div>
+            <p id="confirmMensaje"></p>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-primary" onclick="cerrarModalConfirmacion()">Aceptar</button>
         </div>
     </div>
 </div>

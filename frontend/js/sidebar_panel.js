@@ -220,7 +220,7 @@ async function loadSidebarMenu() {
             { icon: 'fa-solid fa-user-graduate', text: 'Mis estudiantes', module: 'mis-estudiantes' },
         ],
         student: [
-            { icon: 'fa-solid fa-house', text: 'Inicio', module: null, active: true },
+            { icon: 'fa-solid fa-house', text: 'Inicio', module: 'estudiante', active: true },
             { icon: 'fa-solid fa-calendar-check', text: 'Mis sesiones', module: 'sesion-actual' },
             { icon: 'fa-solid fa-clock-rotate-left', text: 'Historial de tutorías', module: 'historial-tutorias' },
         ],
@@ -237,10 +237,31 @@ async function loadSidebarMenu() {
     // Obtener el módulo actual de la URL
     const currentPath = window.location.pathname;
     const pathSegments = currentPath.split('/').filter(s => s);
-    const currentModule = pathSegments[pathSegments.length - 1];
+    const lastSegment = pathSegments[pathSegments.length - 1];
     
-    // El módulo "panel" es equivalente a "Inicio" (no hay módulo específico)
-    const isPanelPage = currentModule === 'panel' || !currentModule;
+    console.log('📍 Detección de módulo activo:');
+    console.log('   Path:', currentPath);
+    console.log('   Último segmento:', lastSegment);
+    console.log('   Rol:', role);
+    
+    // Determinar si estamos en la página de inicio según el rol
+    let isPanelPage = false;
+    
+    if (role === 'student') {
+        // Para estudiantes, SOLO /estudiante es inicio
+        isPanelPage = lastSegment === 'estudiante';
+    } else if (role === 'tutor') {
+        // Para tutores, SOLO /tutor es inicio
+        isPanelPage = lastSegment === 'tutor';
+    } else {
+        // Para admin y verificador, /panel o /dashboard es inicio
+        isPanelPage = lastSegment === 'panel' || 
+                     lastSegment === 'dashboard' || 
+                     lastSegment === 'Sistema-de-tutorias' ||
+                     !lastSegment;
+    }
+    
+    console.log('   ¿Es página de inicio?', isPanelPage);
     
     let menuHTML = '';
     menuItems.forEach((item) => { 
@@ -248,15 +269,19 @@ async function loadSidebarMenu() {
         let isActive = false;
         
         if (item.module === null) {
-            // El botón de Inicio se activa cuando estamos en panel
+            // El botón de Inicio se activa cuando estamos en panel, dashboard o raíz
             isActive = isPanelPage;
         } else {
             // Los demás botones se activan cuando el módulo coincide con la URL
-            isActive = item.module === currentModule;
+            isActive = item.module === lastSegment;
         }
         
         const activeClass = isActive ? 'active' : '';
         const moduleAttr = item.module ? `data-module="${item.module}"` : '';
+        
+        if (isActive) {
+            console.log('   ✅ Botón activo:', item.text);
+        }
         
         menuHTML += `
             <li>
@@ -290,9 +315,6 @@ function navigateToModule(element) {
     
     // Si no hay módulo, ir a inicio
     if (!module || module === 'null') {
-        // Cambiar URL sin recargar
-        window.history.pushState({module: 'inicio'}, '', `${basePath}/panel`);
-        
         // Obtener el rol del usuario
         const token = localStorage.getItem('token');
         let role = 'student';
@@ -305,14 +327,35 @@ function navigateToModule(element) {
             }
         }
         
-        // Para estudiante, cargar módulo de inicio
-        if (role === 'student' && typeof window.loadEstudianteContent === 'function') {
-            window.loadEstudianteContent();
-            return;
+        // Cambiar URL según el rol
+        let homeUrl = `${basePath}/panel`;
+        if (role === 'student') {
+            homeUrl = `${basePath}/estudiante`;
+        } else if (role === 'tutor') {
+            homeUrl = `${basePath}/tutor`;
         }
         
-        // Para otros roles, recargar página
-        window.location.href = `${basePath}/panel`;
+        window.history.pushState({module: 'inicio'}, '', homeUrl);
+        
+        // Cargar contenido según el rol
+        console.log('📍 Cargando inicio para rol:', role);
+        
+        if (role === 'student' && typeof window.loadEstudianteContent === 'function') {
+            window.loadEstudianteContent();
+        } else if (role === 'tutor' && typeof window.loadTutorDashboard === 'function') {
+            window.loadTutorDashboard();
+        } else if (role === 'admin' && typeof window.loadAdminPanelContent === 'function') {
+            window.loadAdminPanelContent();
+        } else if (role === 'verifier' && typeof window.loadVerifierDashboard === 'function') {
+            window.loadVerifierDashboard();
+        } else {
+            // Fallback: cargar dashboard genérico
+            console.log('⚠️ Función de dashboard no encontrada, usando loadDashboardByRole');
+            if (typeof window.loadDashboardByRole === 'function') {
+                window.loadDashboardByRole(role);
+            }
+        }
+        
         return;
     }
     
@@ -331,6 +374,7 @@ function navigateToModule(element) {
         'asignacionTutor': 'loadAsignacionTutorContent',
         'mis-estudiantes': 'loadMisEstudiantesContent',
         // Estudiante
+        'estudiante': 'loadEstudianteContent',
         'sesion-actual': 'loadSesionActualContent',
         'historial-tutorias': 'loadHistorialTutoriasContent',
         // Verificador

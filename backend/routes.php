@@ -80,6 +80,10 @@ $routes = [
     'GET|api/student' => 'api/student.php',
     'POST|api/student' => 'api/student.php',
     
+    // Rutas de sesión actual del estudiante
+    'GET|api/sesionActual' => 'api/sesionActual.php',
+    'POST|api/sesionActual' => 'api/sesionActual.php',
+    
     // Rutas de verificador
     'GET|api/verifier' => 'api/verifier.php',
     'POST|api/verifier' => 'api/verifier.php',

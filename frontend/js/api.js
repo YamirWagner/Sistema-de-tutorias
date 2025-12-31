@@ -14,7 +14,7 @@ const API_BASE_URL = (function() {
     }
 
     const basePath = (window.APP_BASE_PATH || '/Sistema-de-tutorias').replace(/\/$/, '');
-    return `${basePath}/api`;
+    return `${basePath}/backend/api`;
 })();
 
 // Exponer para depuración

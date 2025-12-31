@@ -41,8 +41,9 @@ try {
         $roleMap = ['admin' => 'Administrador', 'tutor' => 'Tutor', 'verifier' => 'Verificador', 'student' => 'Estudiante'];
         $tipoAcceso = $roleMap[$user['role']] ?? ($user['rol'] ?? ($user['userType'] === 'estudiante' ? 'Estudiante' : null));
         $closedPrev = Activity::closeActiveIfExists($db, (int)$user['id'], $user['name'] ?? null, $tipoAcceso, 'Cierre de sesión por acceso desde otro dispositivo', $user['userType']);
+        
+        // SOLO enviar correo si realmente había una sesión activa
         if ($closedPrev) {
-            // Notificar por correo cierre por acceso desde otro dispositivo
             try {
                 $mailerTmp = new Mailer();
                 $meta = [
@@ -51,6 +52,7 @@ try {
                     'datetime' => date('d/m/Y H:i:s')
                 ];
                 $mailerTmp->sendSessionClosedEmail($email, $user['name'] ?? null, $meta, 'acceso desde otro dispositivo');
+                unset($mailerTmp); // Liberar instancia
             } catch (Exception $e) {
                 error_log('No se pudo enviar correo por cierre desde otro dispositivo: ' . $e->getMessage());
             }

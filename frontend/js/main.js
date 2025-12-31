@@ -51,6 +51,7 @@ function checkAuth() {
     
     const isPanel = path.includes('panel') || path.includes('dashboard');
     const isTutor = path.includes('tutor');
+    const isEstudiante = path.includes('estudiante');
     const isSemestre = path.includes('semestre');
     const isGestionUsuarios = path.includes('gestion-usuarios');
     const isAsignaciones = path.includes('asignaciones');
@@ -58,11 +59,13 @@ function checkAuth() {
     const isAuditoria = path.includes('auditoria');
     const isAsignacionTutor = path.includes('asignacionTutor');
     const isMisEstudiantes = path.includes('mis-estudiantes');
+    const isSesionActual = path.includes('sesion-actual');
+    const isHistorialTutorias = path.includes('historial-tutorias');
     const isLogin = path.includes('login');
     const isVerify = path.includes('verify');
     const isIndex = path.endsWith('/') || path.includes('index');
     
-    const isProtectedPage = isPanel || isTutor || isSemestre || isGestionUsuarios || isAsignaciones || isReportes || isAuditoria || isAsignacionTutor || isMisEstudiantes;
+    const isProtectedPage = isPanel || isTutor || isEstudiante || isSemestre || isGestionUsuarios || isAsignaciones || isReportes || isAuditoria || isAsignacionTutor || isMisEstudiantes || isSesionActual || isHistorialTutorias;
     
     console.log('   - Es página protegida:', isProtectedPage);
     console.log('   - Es tutor:', isTutor);
@@ -81,6 +84,9 @@ function checkAuth() {
         if (user && (user.role === 'tutor' || user.role === 'Tutor')) {
             redirectPath = '/tutor';
             console.log('➡️ Redirigiendo tutor autenticado a /tutor');
+        } else if (user && (user.role === 'student' || user.role === 'Estudiante')) {
+            redirectPath = '/estudiante';
+            console.log('➡️ Redirigiendo estudiante autenticado a /estudiante');
         }
         
         window.location.href = basePath + redirectPath;
@@ -273,6 +279,17 @@ async function initDashboard() {
     // Actualizar información del usuario
     if (user) {
         const userRoleName = getRoleName(user.role);
+        const normalizedRole = normalizeRole(user.role);
+        const currentPath = window.location.pathname;
+        
+        // Si es estudiante y está en /panel, redirigir a /estudiante
+        if (normalizedRole === 'student' && currentPath.includes('/panel') && !currentPath.includes('/estudiante')) {
+            const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+            console.log('⚠️ Estudiante intentando acceder a /panel, redirigiendo a /estudiante');
+            window.location.href = basePath + '/estudiante';
+            return;
+        }
+        
         const welcomeMsg = document.getElementById('welcomeMessage');
         const userRoleEl = document.getElementById('userRole');
         
@@ -290,7 +307,6 @@ async function initDashboard() {
         }, 200);
         
         // ============= DETECCIÓN DE MÓDULOS =============
-        const currentPath = window.location.pathname;
         const urlParams = new URLSearchParams(window.location.search);
         const moduleParam = urlParams.get('module');
         
@@ -347,6 +363,11 @@ async function initDashboard() {
                 paths: ['/mis-estudiantes', '/Sistema-de-tutorias/mis-estudiantes'],
                 param: 'mis-estudiantes',
                 loadFn: 'loadMisEstudiantesContent'
+            },
+            'estudiante': {
+                paths: ['/estudiante', '/Sistema-de-tutorias/estudiante'],
+                param: 'estudiante',
+                loadFn: 'loadEstudianteContent'
             }
         };
         
@@ -534,6 +555,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const isPanelPage = path.includes('panel') || 
                        path.includes('dashboard') || 
                        path.includes('tutor') ||
+                       path.includes('estudiante') ||
                        path.includes('semestre') || 
                        path.includes('gestion-usuarios') || 
                        path.includes('asignaciones') ||
@@ -541,7 +563,13 @@ document.addEventListener('DOMContentLoaded', () => {
                        path.includes('historial') ||
                        path.includes('auditoria') ||
                        path.includes('asignacionTutor') ||
-                       path.includes('mis-estudiantes');
+                       path.includes('mis-estudiantes') ||
+                       path.includes('sesion-actual') ||
+                       path.includes('historial-tutorias') ||
+                       path.includes('asistencias') ||
+                       path.includes('buscar-tutorias') ||
+                       path.includes('historial-estudiante') ||
+                       path.includes('seguimiento-tutor');
     
     console.log('🔍 Detección de página:');
     console.log('   - isPanelPage:', isPanelPage);
