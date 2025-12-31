@@ -129,8 +129,18 @@ try {
     $stmt->execute();
     $sesiones = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    // Formatear respuesta
-    $resultado = array_map(function($sesion) {
+    // Formatear respuesta y obtener materiales
+    $resultado = array_map(function($sesion) use ($db) {
+        // Obtener materiales asociados a la tutoría
+        $queryMateriales = "SELECT id, titulo, descripcion, tipo, enlace, fechaRegistro 
+                           FROM materiales 
+                           WHERE idTutoria = :id_tutoria 
+                           ORDER BY fechaRegistro DESC";
+        $stmtMat = $db->prepare($queryMateriales);
+        $stmtMat->bindValue(':id_tutoria', $sesion['id'], PDO::PARAM_INT);
+        $stmtMat->execute();
+        $materiales = $stmtMat->fetchAll(PDO::FETCH_ASSOC);
+        
         return [
             'id' => (int)$sesion['id'],
             'tipo' => $sesion['tipo'],
@@ -143,7 +153,8 @@ try {
             'estado' => $sesion['estado'],
             'tutorNombre' => $sesion['tutorNombre'],
             'tutorEspecialidad' => $sesion['tutorEspecialidad'],
-            'ambiente' => $sesion['ambiente']
+            'ambiente' => $sesion['ambiente'],
+            'materiales' => $materiales
         ];
     }, $sesiones);
     

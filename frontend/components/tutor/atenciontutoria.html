@@ -78,12 +78,6 @@
                                   placeholder="• Resolver ejercicios del 1 al 13 de la pág. 23&#10;• Preparar preguntas sobre el tema&#10;• Revisar material complementario..."></textarea>
                     </div>
 
-                    <div class="form-group-atencion">
-                        <label for="recursosRecomendadosAtencion">🔗 Recursos Recomendados (Enlaces, libros, videos)</label>
-                        <textarea id="recursosRecomendadosAtencion" class="form-control-atencion" rows="3"
-                                  placeholder="Agrega enlaces, títulos de libros, videos o recursos que el estudiante pueda consultar..."></textarea>
-                    </div>
-
                     <div style="text-align: right; margin-top: 15px;">
                         <button type="button" class="btn-atencion btn-success-atencion" onclick="guardarSeccionAcademica()">
                             💾 Guardar Tutoría Académica
@@ -199,32 +193,87 @@
                     </div>
                 </div>
 
-                <!-- ========== MATERIALES Y TAREAS (COMÚN) ========== -->
+                <!-- ========== MATERIALES Y RECURSOS (COMÚN) ========== -->
                 <div class="form-section-atencion">
-                    <h3 class="section-title-atencion">📚 MATERIALES Y TAREAS</h3>
+                    <h3 class="section-title-atencion">📚 MATERIALES Y RECURSOS</h3>
+                    <p class="section-description-atencion">Agrega materiales de apoyo según su tipo. Selecciona el tipo de material y proporciona archivo o enlace según corresponda.</p>
                     
                     <div class="form-group-atencion">
-                        <label for="materialesApoyo">📎 Materiales de Apoyo (opcional)</label>
-                        <div class="materiales-container">
-                            <div class="file-upload-zone" onclick="document.getElementById('archivosMateriales').click()">
-                                <div class="file-upload-icon">📁</div>
-                                <p><strong>Haz clic para subir archivos</strong></p>
-                                <small>PDF, Word, Excel, PowerPoint, imágenes (Máx. 10MB por archivo)</small>
-                            </div>
-                            <input type="file" id="archivosMateriales" class="file-input-hidden" 
-                                   accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png" multiple 
-                                   onchange="procesarArchivos(this)">
-                            
-                            <div id="listaArchivosCargados" class="lista-archivos"></div>
+                        <label>📎 Agregar Material de Apoyo (opcional)</label>
+                        
+                        <!-- Selector de Tipo de Material -->
+                        <div style="margin-bottom: 15px;">
+                            <label for="tipoMaterialSelect" style="font-size: 0.9rem; margin-bottom: 5px;">Tipo de Material:</label>
+                            <select id="tipoMaterialSelect" class="form-control-atencion" onchange="cambiarTipoMaterial()">
+                                <option value="">-- Seleccionar tipo --</option>
+                                <option value="PDF">📄 PDF</option>
+                                <option value="Video">🎥 Video</option>
+                                <option value="Documento">📝 Documento (Word, Excel, PowerPoint)</option>
+                                <option value="Enlace">🔗 Enlace / URL</option>
+                                <option value="Otro">📦 Otro</option>
+                            </select>
                         </div>
-                        <textarea id="descripcionMateriales" class="form-control-atencion" rows="2" style="margin-top: 10px;"
-                                  placeholder="Lista las tareas, ejercicios o actividades que el estudiante debe completar antes de la próxima sesión...&#10;&#10;1. Resolver ejercicios del 1 al 13 de la pág. 23&#10;2. Preparar preguntas sobre el tema&#10;3. Saludar a todas las personas..."></textarea>
+
+                        <!-- Zona para PDF -->
+                        <div id="zonaPDF" class="zona-tipo-material" style="display: none;">
+                            <label for="archivoPDF">Subir archivo PDF:</label>
+                            <input type="file" id="archivoPDF" class="form-control-atencion" accept=".pdf" style="margin-bottom: 10px;">
+                            <input type="text" id="tituloPDF" class="form-control-atencion" placeholder="Título del PDF (opcional)" style="margin-bottom: 10px;">
+                            <textarea id="descripcionPDF" class="form-control-atencion" rows="2" placeholder="Descripción breve del contenido..."></textarea>
+                            <button type="button" class="btn-add-material" onclick="agregarMaterialTipo('PDF')">➕ Agregar PDF</button>
+                        </div>
+
+                        <!-- Zona para Video -->
+                        <div id="zonaVideo" class="zona-tipo-material" style="display: none;">
+                            <label for="archivoVideo">Subir archivo de video:</label>
+                            <input type="file" id="archivoVideo" class="form-control-atencion" accept=".mp4,.avi,.mov,.wmv,.flv,.mkv" style="margin-bottom: 10px;">
+                            <small style="color: #666; display: block; margin-bottom: 10px;">O proporciona un enlace de YouTube, Vimeo, etc.:</small>
+                            <input type="url" id="enlaceVideo" class="form-control-atencion" placeholder="https://youtube.com/watch?v=..." style="margin-bottom: 10px;">
+                            <input type="text" id="tituloVideo" class="form-control-atencion" placeholder="Título del video (opcional)" style="margin-bottom: 10px;">
+                            <textarea id="descripcionVideo" class="form-control-atencion" rows="2" placeholder="Descripción del video..."></textarea>
+                            <button type="button" class="btn-add-material" onclick="agregarMaterialTipo('Video')">➕ Agregar Video</button>
+                        </div>
+
+                        <!-- Zona para Documento -->
+                        <div id="zonaDocumento" class="zona-tipo-material" style="display: none;">
+                            <label for="archivoDocumento">Subir documento:</label>
+                            <input type="file" id="archivoDocumento" class="form-control-atencion" 
+                                   accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.odt,.ods,.odp" style="margin-bottom: 10px;">
+                            <small style="color: #666; display: block; margin-bottom: 10px;">Formatos: Word, Excel, PowerPoint</small>
+                            <input type="text" id="tituloDocumento" class="form-control-atencion" placeholder="Título del documento (opcional)" style="margin-bottom: 10px;">
+                            <textarea id="descripcionDocumento" class="form-control-atencion" rows="2" placeholder="Descripción del documento..."></textarea>
+                            <button type="button" class="btn-add-material" onclick="agregarMaterialTipo('Documento')">➕ Agregar Documento</button>
+                        </div>
+
+                        <!-- Zona para Enlace -->
+                        <div id="zonaEnlace" class="zona-tipo-material" style="display: none;">
+                            <label for="urlEnlace">URL del recurso:</label>
+                            <input type="url" id="urlEnlace" class="form-control-atencion" 
+                                   placeholder="https://ejemplo.com/recurso" style="margin-bottom: 10px;" required>
+                            <input type="text" id="tituloEnlace" class="form-control-atencion" placeholder="Título del enlace (opcional)" style="margin-bottom: 10px;">
+                            <textarea id="descripcionEnlace" class="form-control-atencion" rows="2" placeholder="Descripción del recurso..."></textarea>
+                            <button type="button" class="btn-add-material" onclick="agregarMaterialTipo('Enlace')">➕ Agregar Enlace</button>
+                        </div>
+
+                        <!-- Zona para Otro -->
+                        <div id="zonaOtro" class="zona-tipo-material" style="display: none;">
+                            <label for="archivoOtro">Subir archivo:</label>
+                            <input type="file" id="archivoOtro" class="form-control-atencion" style="margin-bottom: 10px;">
+                            <small style="color: #666; display: block; margin-bottom: 10px;">O proporciona un enlace:</small>
+                            <input type="url" id="enlaceOtro" class="form-control-atencion" placeholder="https://..." style="margin-bottom: 10px;">
+                            <input type="text" id="tituloOtro" class="form-control-atencion" placeholder="Título (opcional)" style="margin-bottom: 10px;">
+                            <textarea id="descripcionOtro" class="form-control-atencion" rows="2" placeholder="Descripción..."></textarea>
+                            <button type="button" class="btn-add-material" onclick="agregarMaterialTipo('Otro')">➕ Agregar Material</button>
+                        </div>
+
+                        <!-- Lista de Materiales Agregados -->
+                        <div id="listaMaterialesAgregados" class="lista-materiales" style="margin-top: 20px;"></div>
                     </div>
 
                     <div class="form-group-atencion">
-                        <label for="recursosRecomendados">🔗 Recursos Recomendados (Enlaces, libros, videos)</label>
+                        <label for="recursosRecomendados">� Referencias Bibliográficas / Recursos de Texto (opcional)</label>
                         <textarea id="recursosRecomendados" class="form-control-atencion" rows="3"
-                                  placeholder="Agrega enlaces, títulos de libros, videos de YouTube o cualquier recurso que el estudiante pueda consultar..."></textarea>
+                                  placeholder="Agrega referencias bibliográficas, títulos de libros, artículos o recursos de texto que no sean archivos...&#10;&#10;Ejemplo:&#10;• Libro: Programación Avanzada - Autor: Juan Pérez&#10;• Artículo: Introducción a la POO - Revista XYZ, 2024"></textarea>
                     </div>
 
                     <div class="form-group-atencion">

@@ -347,38 +347,99 @@
         }
 
         // Observaciones
-        const observaciones = sesion.observaciones || 'Sin observaciones registradas';
+        const observaciones = sesion.observaciones;
         const observacionesContainer = document.getElementById('detalleObservaciones');
         
-        // Intentar parsear si es JSON
-        try {
-            const obsJSON = JSON.parse(observaciones);
-            if (obsJSON.tema) {
-                observacionesContainer.innerHTML = `
-                    <div style="margin-bottom:10px;">
-                        <strong style="color:#a42727;">Tema tratado:</strong>
-                        <p style="margin:5px 0;">${obsJSON.tema}</p>
-                    </div>
-                    ${obsJSON.observaciones ? `
-                    <div>
-                        <strong style="color:#a42727;">Observaciones:</strong>
-                        <p style="margin:5px 0;">${obsJSON.observaciones}</p>
-                    </div>
-                    ` : ''}
-                `;
-            } else {
-                observacionesContainer.innerHTML = `<p>${observaciones}</p>`;
+        if (!observaciones || observaciones === 'null' || observaciones.trim() === '') {
+            observacionesContainer.innerHTML = '<p class="text-muted">Sin observaciones registradas</p>';
+        } else {
+            // Intentar parsear si es JSON
+            try {
+                const obsJSON = JSON.parse(observaciones);
+                let contenido = '';
+                
+                // Mapeo de campos conocidos a etiquetas legibles
+                const fieldLabels = {
+                    'temaProfesional': 'Tema Profesional',
+                    'notasAdicionales': 'Notas Adicionales',
+                    'observacionesProfesionales': 'Observaciones Profesionales',
+                    'tema': 'Tema',
+                    'observaciones': 'Observaciones',
+                    'descripcionTema': 'Descripción',
+                    'avancesLogros': 'Avances y Logros',
+                    'recursosUtilizados': 'Recursos Utilizados',
+                    'recomendaciones': 'Recomendaciones'
+                };
+                
+                // Iterar sobre todas las propiedades del JSON
+                for (const [key, value] of Object.entries(obsJSON)) {
+                    if (value && value !== '' && value !== 'null' && key !== 'idTutoria' && key !== 'tipo') {
+                        const label = fieldLabels[key] || key.replace(/([A-Z])/g, ' $1').trim();
+                        const labelCapitalized = label.charAt(0).toUpperCase() + label.slice(1);
+                        contenido += `<div class="obs-item"><strong>${labelCapitalized}:</strong> <span>${value}</span></div>`;
+                    }
+                }
+                
+                observacionesContainer.innerHTML = contenido || '<p class="text-muted">Sin observaciones</p>';
+            } catch {
+                // Si no es JSON, mostrar como texto plano
+                observacionesContainer.innerHTML = `<div class="obs-item">${observaciones}</div>`;
             }
-        } catch {
-            observacionesContainer.innerHTML = `<p>${observaciones}</p>`;
         }
 
-        // Archivos adjuntos (simulado - necesitarías agregar esto a la BD)
+        // Archivos adjuntos - mostrar materiales de la BD
         const seccionArchivos = document.getElementById('seccionArchivos');
         const archivosContainer = document.getElementById('detalleArchivos');
         
-        // Por ahora ocultar, se puede implementar después si se agregan archivos a la BD
-        seccionArchivos.style.display = 'none';
+        if (sesion.materiales && sesion.materiales.length > 0) {
+            seccionArchivos.style.display = 'block';
+            
+            // Mapeo de iconos por tipo de material
+            const iconosPorTipo = {
+                'PDF': 'fa-file-pdf',
+                'Video': 'fa-video',
+                'Documento': 'fa-file-word',
+                'Enlace': 'fa-link',
+                'Otro': 'fa-file'
+            };
+            
+            // Colores por tipo
+            const coloresPorTipo = {
+                'PDF': '#ef4444',
+                'Video': '#8b5cf6',
+                'Documento': '#3b82f6',
+                'Enlace': '#10b981',
+                'Otro': '#6b7280'
+            };
+            
+            let materialesHtml = '<div class="materiales-list">';
+            
+            sesion.materiales.forEach(material => {
+                const icono = iconosPorTipo[material.tipo] || 'fa-file';
+                const color = coloresPorTipo[material.tipo] || '#6b7280';
+                
+                materialesHtml += `
+                    <div class="material-item">
+                        <div class="material-icon" style="background-color: ${color};">
+                            <i class="fa-solid ${icono}"></i>
+                        </div>
+                        <div class="material-info">
+                            <strong>${material.titulo}</strong>
+                            ${material.descripcion ? `<p>${material.descripcion}</p>` : ''}
+                            <span class="material-tipo">${material.tipo}</span>
+                        </div>
+                        <a href="${material.enlace}" target="_blank" class="material-download" title="Abrir material">
+                            <i class="fa-solid fa-external-link-alt"></i>
+                        </a>
+                    </div>
+                `;
+            });
+            
+            materialesHtml += '</div>';
+            archivosContainer.innerHTML = materialesHtml;
+        } else {
+            seccionArchivos.style.display = 'none';
+        }
 
         // Mostrar modal
         document.getElementById('modalDetallesSesion').style.display = 'flex';
@@ -389,6 +450,132 @@
      */
     window.cerrarModalDetalles = function() {
         document.getElementById('modalDetallesSesion').style.display = 'none';
+    };
+
+    /**
+     * Imprimir detalles de la sesión
+     */
+    window.imprimirDetalles = function() {
+        const modalBody = document.querySelector('#modalDetallesSesion .modal-body');
+        const modalHeader = document.querySelector('#modalDetallesSesion .modal-header h3');
+        
+        // Crear una ventana de impresión con estilos
+        const printWindow = window.open('', '_blank', 'width=800,height=600');
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Detalles de Sesión - Sistema de Tutorías UNSAAC</title>
+                <style>
+                    * { margin: 0; padding: 0; box-sizing: border-box; }
+                    body { 
+                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+                        padding: 30px;
+                        color: #333;
+                    }
+                    .header { 
+                        text-align: center; 
+                        border-bottom: 3px solid #a42727; 
+                        padding-bottom: 20px; 
+                        margin-bottom: 30px;
+                    }
+                    .header h1 { color: #a42727; font-size: 24px; margin-bottom: 10px; }
+                    .header h2 { color: #666; font-size: 18px; font-weight: normal; }
+                    .detalles-grid { display: block; }
+                    .detalle-section { 
+                        margin-bottom: 25px; 
+                        border-left: 4px solid #a42727; 
+                        padding-left: 15px;
+                    }
+                    .detalle-section h4 { 
+                        color: #a42727; 
+                        font-size: 16px; 
+                        margin-bottom: 15px;
+                        text-transform: uppercase;
+                    }
+                    .detalle-item { 
+                        margin: 10px 0; 
+                        display: flex;
+                        line-height: 1.6;
+                    }
+                    .detalle-label { 
+                        font-weight: bold; 
+                        min-width: 130px;
+                        color: #666;
+                    }
+                    .detalle-value { color: #333; }
+                    .detalle-observaciones { 
+                        background: #f9f9f9; 
+                        padding: 15px; 
+                        border-radius: 5px;
+                        margin-top: 10px;
+                    }
+                    .obs-item { 
+                        margin: 12px 0; 
+                        padding-bottom: 12px;
+                        border-bottom: 1px solid #e0e0e0;
+                    }
+                    .obs-item:last-child { border-bottom: none; }
+                    .obs-item strong { 
+                        display: block; 
+                        color: #a42727; 
+                        font-size: 11px;
+                        text-transform: uppercase;
+                        margin-bottom: 5px;
+                    }
+                    .obs-item span { display: block; color: #444; }
+                    .badge { 
+                        padding: 4px 10px; 
+                        border-radius: 12px; 
+                        font-size: 11px;
+                        font-weight: 600;
+                        text-transform: uppercase;
+                    }
+                    .badge-success { background: #d1fae5; color: #065f46; }
+                    .badge-warning { background: #fef3c7; color: #92400e; }
+                    .badge-danger { background: #fee2e2; color: #991b1b; }
+                    .tutor-info-detalle { margin: 10px 0; }
+                    @media print {
+                        body { padding: 20px; }
+                        .no-print { display: none; }
+                    }
+                    .footer {
+                        margin-top: 40px;
+                        padding-top: 20px;
+                        border-top: 2px solid #e0e0e0;
+                        text-align: center;
+                        color: #999;
+                        font-size: 12px;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h1>Sistema de Tutorías - UNSAAC</h1>
+                    <h2>${modalHeader ? modalHeader.textContent : 'Detalles de la Sesión'}</h2>
+                </div>
+                ${modalBody ? modalBody.innerHTML : ''}
+                <div class="footer">
+                    <p>Generado el ${new Date().toLocaleDateString('es-PE', { 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    })}</p>
+                    <p>Universidad Nacional de San Antonio Abad del Cusco</p>
+                </div>
+            </body>
+            </html>
+        `);
+        
+        printWindow.document.close();
+        
+        // Esperar a que cargue e imprimir
+        setTimeout(() => {
+            printWindow.focus();
+            printWindow.print();
+        }, 250);
     };
 
     // Cerrar modal al hacer clic fuera

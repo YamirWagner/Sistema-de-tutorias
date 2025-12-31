@@ -303,167 +303,89 @@ textarea.form-control-atencion {
     100% { transform: rotate(360deg); }
 }
 
-/* ==================== MATERIALES DE APOYO ==================== */
+/* ==================== MATERIALES DE APOYO - NUEVO SISTEMA ==================== */
 .materiales-container {
     margin-top: 10px;
 }
 
-.file-upload-zone {
-    border: 2px dashed #8B1C1C;
-    border-radius: 8px;
-    padding: 30px;
-    text-align: center;
-    background: #fff;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.file-upload-zone:hover {
-    background: #fff9f9;
-    border-color: #6B1414;
-    transform: scale(1.02);
-}
-
-.file-upload-icon {
-    font-size: 48px;
-    margin-bottom: 10px;
-}
-
-.file-upload-zone p {
-    margin: 10px 0 5px 0;
-    color: #2c3e50;
-    font-size: 14px;
-}
-
-.file-upload-zone small {
-    color: #7f8c8d;
-    font-size: 12px;
-}
-
-.file-input-hidden {
-    display: none;
-}
-
-.lista-archivos {
-    margin-top: 15px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.archivo-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 12px;
+/* Zonas dinámicas por tipo de material */
+.zona-tipo-material {
     background: #f8f9fa;
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
-    transition: all 0.2s ease;
+    padding: 20px;
+    border-radius: 8px;
+    border: 2px solid #e0e0e0;
+    margin-top: 15px;
+    animation: fadeInDown 0.3s ease;
 }
 
-.archivo-item:hover {
-    background: #fff;
-    border-color: #8B1C1C;
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-.archivo-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex: 1;
-}
-
-.archivo-icono {
-    font-size: 20px;
-}
-
-.archivo-nombre {
-    font-size: 13px;
-    font-weight: 600;
-    color: #2c3e50;
-}
-
-.archivo-tamano {
-    font-size: 11px;
-    color: #7f8c8d;
-    margin-left: 8px;
-}
-
-.btn-remove-archivo {
-    padding: 4px 10px;
-    background: #e74c3c;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.btn-remove-archivo:hover {
-    background: #c0392b;
-    transform: scale(1.05);
-}
-
-.material-input-row {
-    display: flex;
-    gap: 12px;
-    align-items: flex-end;
-    margin-bottom: 20px;
-}
-
-.material-file-group {
-    flex: 1;
-    min-width: 200px;
-}
-
-.material-text-group {
-    flex: 2;
-    min-width: 300px;
-}
-
-.material-file-group label,
-.material-text-group label {
+.zona-tipo-material label {
     display: block;
-    font-size: 13px;
     font-weight: 600;
     color: #2c3e50;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
 }
 
-.form-control-file-atencion {
+.zona-tipo-material small {
+    color: #7f8c8d;
+    font-size: 0.85rem;
+    display: block;
+    margin-top: -5px;
+}
+
+.zona-tipo-material input[type="file"],
+.zona-tipo-material input[type="text"],
+.zona-tipo-material input[type="url"],
+.zona-tipo-material textarea {
     width: 100%;
     padding: 10px 12px;
-    font-size: 14px;
-    border: 2px solid #e0e0e0;
+    border: 1px solid #ccc;
     border-radius: 6px;
-    background-color: white;
-    cursor: pointer;
-    transition: all 0.3s ease;
+    font-size: 0.95rem;
+    font-family: inherit;
+    transition: all 0.2s;
+    background: white;
+    box-sizing: border-box;
 }
 
-.form-control-file-atencion:hover {
-    border-color: #8B1C1C;
-}
-
-.form-control-file-atencion:focus {
+.zona-tipo-material input:focus,
+.zona-tipo-material textarea:focus {
     outline: none;
     border-color: #8B1C1C;
     box-shadow: 0 0 0 3px rgba(139, 28, 28, 0.1);
 }
 
+.zona-tipo-material textarea {
+    resize: vertical;
+    min-height: 60px;
+}
+
+/* Botón agregar material */
 .btn-add-material {
     padding: 10px 20px;
     background: linear-gradient(135deg, #27ae60, #229954);
     color: white;
     border: none;
     border-radius: 6px;
-    font-size: 14px;
+    font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
-    white-space: nowrap;
+    margin-top: 15px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .btn-add-material:hover {
@@ -472,73 +394,99 @@ textarea.form-control-atencion {
     box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
 }
 
+.btn-add-material:active {
+    transform: translateY(0);
+}
+
+/* Lista de materiales agregados */
 .lista-materiales {
-    margin-top: 15px;
+    margin-top: 20px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
+}
+
+.lista-materiales h4 {
+    font-size: 1rem;
+    color: #2c3e50;
+    margin-bottom: 10px;
+    font-weight: 700;
 }
 
 .material-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 16px;
-    background: #f8f9fa;
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
+    padding: 15px 18px;
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
     transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .material-item:hover {
-    background: #fff;
     border-color: #8B1C1C;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(139, 28, 28, 0.15);
+    transform: translateX(5px);
 }
 
 .material-info {
     flex: 1;
     display: flex;
-    flex-direction: column;
-    gap: 4px;
+    align-items: center;
+    gap: 12px;
 }
 
-.material-nombre {
-    font-size: 14px;
-    font-weight: 600;
-    color: #2c3e50;
+.material-info > span {
+    flex-shrink: 0;
 }
 
-.material-descripcion {
-    font-size: 13px;
-    color: #7f8c8d;
+.material-info > div {
+    flex: 1;
 }
 
 .material-tipo {
     display: inline-block;
-    padding: 2px 8px;
+    padding: 3px 10px;
     background: #8B1C1C;
     color: white;
-    font-size: 11px;
-    font-weight: 600;
-    border-radius: 3px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: 4px;
     text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .btn-remove-material {
-    padding: 6px 12px;
-    background: #e74c3c;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
     color: white;
     border: none;
-    border-radius: 4px;
-    font-size: 13px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
+    white-space: nowrap;
 }
 
 .btn-remove-material:hover {
-    background: #c0392b;
+    background: linear-gradient(135deg, #c0392b, #a93226);
     transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+}
+
+.btn-remove-material:active {
+    transform: scale(0.98);
+}
+
+/* Estilos para los archivos antiguos (mantener por compatibilidad pero ocultos) */
+.file-upload-zone,
+.file-input-hidden,
+.lista-archivos,
+.archivo-item {
+    display: none !important;
 }
 
 /* ==================== ANIMACIONES Y SCROLLBAR ==================== */

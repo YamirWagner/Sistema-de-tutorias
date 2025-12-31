@@ -69,6 +69,15 @@ window.cerrarModalAtencion = function() {
     limpiarFormulariosAtencion();
     document.getElementById('vistaFormularioAtencion').style.display = 'none';
     agendamientoActual = null;
+    materialesAgregados = []; // Limpiar materiales agregados
+    actualizarListaMaterialesAgregados();
+    
+    // Resetear selector de tipo si existe
+    const tipoSelect = document.getElementById('tipoMaterialSelect');
+    if (tipoSelect) {
+        tipoSelect.value = '';
+        cambiarTipoMaterial();
+    }
 };
 
 function mostrarFormularioRegistroDirecto() {
@@ -349,60 +358,261 @@ function cerrarModalConfirmacionAtencion() {
 
 window.cerrarModalConfirmacionAtencion = cerrarModalConfirmacionAtencion;
 
-// ==================== GESTIÓN DE MATERIALES ====================
-let archivosCargados = [];
+// ==================== GESTIÓN DE MATERIALES POR TIPO ====================
+let materialesAgregados = [];
 
-window.procesarArchivos = function(input) {
-    const archivos = Array.from(input.files);
+window.cambiarTipoMaterial = function() {
+    const tipoSelect = document.getElementById('tipoMaterialSelect');
     
-    archivos.forEach(archivo => {
-        // Validar tamaño (máx 10MB)
-        if (archivo.size > 10 * 1024 * 1024) {
-            mostrarError(`El archivo ${archivo.name} excede el tamaño máximo de 10MB`);
-            return;
-        }
-        
-        archivosCargados.push({
-            id: Date.now() + Math.random(),
-            archivo: archivo,
-            nombre: archivo.name,
-            tamano: formatearTamano(archivo.size),
-            tipo: obtenerTipoArchivo(archivo.name)
-        });
+    // Si el selector no existe, salir
+    if (!tipoSelect) return;
+    
+    const tipoSeleccionado = tipoSelect.value;
+    
+    // Ocultar todas las zonas
+    document.querySelectorAll('.zona-tipo-material').forEach(zona => {
+        zona.style.display = 'none';
     });
     
-    actualizarListaArchivos();
-    input.value = ''; // Limpiar input
+    // Mostrar zona correspondiente
+    if (tipoSeleccionado) {
+        const zonaId = `zona${tipoSeleccionado}`;
+        const zona = document.getElementById(zonaId);
+        if (zona) zona.style.display = 'block';
+    }
 };
 
-window.eliminarArchivo = function(id) {
-    archivosCargados = archivosCargados.filter(a => a.id !== id);
-    actualizarListaArchivos();
-};
-
-function actualizarListaArchivos() {
-    const listaArchivos = document.getElementById('listaArchivosCargados');
+window.agregarMaterialTipo = function(tipo) {
+    let material = {
+        id: Date.now(),
+        tipo: tipo,
+        titulo: '',
+        descripcion: '',
+        archivo: null,
+        enlace: ''
+    };
     
-    if (archivosCargados.length === 0) {
-        listaArchivos.innerHTML = '';
+    let validado = false;
+    
+    switch(tipo) {
+        case 'PDF':
+            const archivoPDF = document.getElementById('archivoPDF').files[0];
+            const tituloPDF = document.getElementById('tituloPDF').value.trim();
+            const descripcionPDF = document.getElementById('descripcionPDF').value.trim();
+            
+            if (!archivoPDF) {
+                mostrarError('Por favor selecciona un archivo PDF');
+                return;
+            }
+            if (archivoPDF.size > 10 * 1024 * 1024) {
+                mostrarError('El archivo PDF no debe exceder 10MB');
+                return;
+            }
+            
+            material.archivo = archivoPDF;
+            material.titulo = tituloPDF || archivoPDF.name;
+            material.descripcion = descripcionPDF;
+            material.tamano = formatearTamano(archivoPDF.size);
+            validado = true;
+            
+            // Limpiar campos
+            document.getElementById('archivoPDF').value = '';
+            document.getElementById('tituloPDF').value = '';
+            document.getElementById('descripcionPDF').value = '';
+            break;
+            
+        case 'Video':
+            const archivoVideo = document.getElementById('archivoVideo').files[0];
+            const enlaceVideo = document.getElementById('enlaceVideo').value.trim();
+            const tituloVideo = document.getElementById('tituloVideo').value.trim();
+            const descripcionVideo = document.getElementById('descripcionVideo').value.trim();
+            
+            if (!archivoVideo && !enlaceVideo) {
+                mostrarError('Proporciona un archivo de video o un enlace');
+                return;
+            }
+            
+            if (archivoVideo) {
+                if (archivoVideo.size > 50 * 1024 * 1024) {
+                    mostrarError('El archivo de video no debe exceder 50MB');
+                    return;
+                }
+                material.archivo = archivoVideo;
+                material.titulo = tituloVideo || archivoVideo.name;
+                material.tamano = formatearTamano(archivoVideo.size);
+            } else {
+                material.enlace = enlaceVideo;
+                material.titulo = tituloVideo || 'Video en línea';
+            }
+            
+            material.descripcion = descripcionVideo;
+            validado = true;
+            
+            // Limpiar campos
+            document.getElementById('archivoVideo').value = '';
+            document.getElementById('enlaceVideo').value = '';
+            document.getElementById('tituloVideo').value = '';
+            document.getElementById('descripcionVideo').value = '';
+            break;
+            
+        case 'Documento':
+            const archivoDoc = document.getElementById('archivoDocumento').files[0];
+            const tituloDoc = document.getElementById('tituloDocumento').value.trim();
+            const descripcionDoc = document.getElementById('descripcionDocumento').value.trim();
+            
+            if (!archivoDoc) {
+                mostrarError('Por favor selecciona un documento');
+                return;
+            }
+            if (archivoDoc.size > 10 * 1024 * 1024) {
+                mostrarError('El documento no debe exceder 10MB');
+                return;
+            }
+            
+            material.archivo = archivoDoc;
+            material.titulo = tituloDoc || archivoDoc.name;
+            material.descripcion = descripcionDoc;
+            material.tamano = formatearTamano(archivoDoc.size);
+            validado = true;
+            
+            // Limpiar campos
+            document.getElementById('archivoDocumento').value = '';
+            document.getElementById('tituloDocumento').value = '';
+            document.getElementById('descripcionDocumento').value = '';
+            break;
+            
+        case 'Enlace':
+            const urlEnlace = document.getElementById('urlEnlace').value.trim();
+            const tituloEnlace = document.getElementById('tituloEnlace').value.trim();
+            const descripcionEnlace = document.getElementById('descripcionEnlace').value.trim();
+            
+            if (!urlEnlace) {
+                mostrarError('Por favor ingresa una URL');
+                return;
+            }
+            
+            // Validar formato URL
+            try {
+                new URL(urlEnlace);
+            } catch(e) {
+                mostrarError('La URL no es válida. Debe empezar con http:// o https://');
+                return;
+            }
+            
+            material.enlace = urlEnlace;
+            material.titulo = tituloEnlace || urlEnlace;
+            material.descripcion = descripcionEnlace;
+            validado = true;
+            
+            // Limpiar campos
+            document.getElementById('urlEnlace').value = '';
+            document.getElementById('tituloEnlace').value = '';
+            document.getElementById('descripcionEnlace').value = '';
+            break;
+            
+        case 'Otro':
+            const archivoOtro = document.getElementById('archivoOtro').files[0];
+            const enlaceOtro = document.getElementById('enlaceOtro').value.trim();
+            const tituloOtro = document.getElementById('tituloOtro').value.trim();
+            const descripcionOtro = document.getElementById('descripcionOtro').value.trim();
+            
+            if (!archivoOtro && !enlaceOtro) {
+                mostrarError('Proporciona un archivo o un enlace');
+                return;
+            }
+            
+            if (archivoOtro) {
+                if (archivoOtro.size > 20 * 1024 * 1024) {
+                    mostrarError('El archivo no debe exceder 20MB');
+                    return;
+                }
+                material.archivo = archivoOtro;
+                material.titulo = tituloOtro || archivoOtro.name;
+                material.tamano = formatearTamano(archivoOtro.size);
+            } else {
+                material.enlace = enlaceOtro;
+                material.titulo = tituloOtro || 'Recurso';
+            }
+            
+            material.descripcion = descripcionOtro;
+            validado = true;
+            
+            // Limpiar campos
+            document.getElementById('archivoOtro').value = '';
+            document.getElementById('enlaceOtro').value = '';
+            document.getElementById('tituloOtro').value = '';
+            document.getElementById('descripcionOtro').value = '';
+            break;
+    }
+    
+    if (validado) {
+        materialesAgregados.push(material);
+        actualizarListaMaterialesAgregados();
+        mostrarExito(`${tipo} agregado correctamente`);
+        
+        // Resetear selector
+        document.getElementById('tipoMaterialSelect').value = '';
+        cambiarTipoMaterial();
+    }
+};
+
+window.eliminarMaterialAgregado = function(id) {
+    materialesAgregados = materialesAgregados.filter(m => m.id !== id);
+    actualizarListaMaterialesAgregados();
+};
+
+function actualizarListaMaterialesAgregados() {
+    const lista = document.getElementById('listaMaterialesAgregados');
+    
+    // Si el elemento no existe (modal no cargado), salir sin error
+    if (!lista) {
         return;
     }
     
-    listaArchivos.innerHTML = archivosCargados.map(archivo => `
-        <div class="archivo-item">
-            <div class="archivo-info">
-                <span class="archivo-icono">📄</span>
-                <div>
-                    <span class="archivo-nombre">${archivo.nombre}</span>
-                    <span class="archivo-tamano">${archivo.tamano}</span>
+    if (materialesAgregados.length === 0) {
+        lista.innerHTML = '<p style="color: #888; font-style: italic;">No hay materiales agregados</p>';
+        return;
+    }
+    
+    lista.innerHTML = '<h4 style="margin-bottom: 10px; color: #333;">📋 Materiales Agregados:</h4>' + 
+        materialesAgregados.map(material => {
+            const iconos = {
+                'PDF': '📄',
+                'Video': '🎥',
+                'Documento': '📝',
+                'Enlace': '🔗',
+                'Otro': '📦'
+            };
+            
+            const icono = iconos[material.tipo] || '📎';
+            const info = material.archivo ? `${material.titulo} (${material.tamano})` : material.titulo;
+            const fuente = material.archivo ? 'Archivo' : 'Enlace';
+            
+            return `
+                <div class="material-item">
+                    <div class="material-info">
+                        <span style="font-size: 1.3rem; margin-right: 10px;">${icono}</span>
+                        <div>
+                            <div style="font-weight: 600; color: #2c3e50;">${info}</div>
+                            <div style="font-size: 0.85rem; color: #7f8c8d;">
+                                <span class="material-tipo">${material.tipo}</span> • 
+                                <span>${fuente}</span>
+                                ${material.descripcion ? ` • ${material.descripcion}` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-remove-material" onclick="eliminarMaterialAgregado(${material.id})">
+                        🗑️ Eliminar
+                    </button>
                 </div>
-            </div>
-            <button type="button" class="btn-remove-archivo" onclick="eliminarArchivo(${archivo.id})">
-                🗑️
-            </button>
-        </div>
-    `).join('');
+            `;
+        }).join('');
 }
+
+// Mantener funciones antiguas para compatibilidad pero vacías
+window.procesarArchivos = function(input) { input.value = ''; };
+window.eliminarArchivo = function(id) {};
+let archivosCargados = [];
 
 function formatearTamano(bytes) {
     if (bytes < 1024) return bytes + ' B';
@@ -544,10 +754,14 @@ window.guardarSeccionAcademica = async function() {
         observacionesDesempeno: document.getElementById('observacionesDesempenoAtencion').value,
         actividadesRealizadas: document.getElementById('actividadesRealizadasAtencion').value,
         tareasAsignadas: document.getElementById('tareasAsignadasAtencion').value,
-        recursosRecomendados: document.getElementById('recursosRecomendadosAtencion').value,
-        materialesApoyo: document.getElementById('descripcionMateriales')?.value || '',
-        notasAdicionales: document.getElementById('notasAdicionalesAtencion')?.value || ''
+        recursosRecomendadosAcademica: document.getElementById('recursosRecomendadosAtencion')?.value || '',
+        // Materiales comunes para todas las modalidades
+        materialesApoyo: obtenerValor('descripcionMateriales'),
+        recursosRecomendados: obtenerValor('recursosRecomendados'),
+        notasAdicionales: obtenerValor('notasComentarios')
     };
+
+    console.log('💾 Guardando parcialmente Académica:', datosAcademicos);
 
     // Validar campos obligatorios
     if (!datosAcademicos.temaPrincipal || !datosAcademicos.contenidoEspecifico || !datosAcademicos.observacionesDesempeno) {
@@ -572,9 +786,14 @@ window.guardarSeccionPersonal = async function() {
         observacionesPersonales: obtenerValor('observacionesPersonales'),
         accionesTomadas: obtenerValor('accionesTomadas'),
         requiereDerivacion: obtenerValor('requiereDerivacion'),
-        motivoDerivacion: obtenerValor('motivoDerivacion'),        recursosRecomendados: document.getElementById('recursosRecomendadosAtencion')?.value || '',
-        materialesApoyo: document.getElementById('descripcionMateriales')?.value || '',        notasAdicionales: obtenerValor('notasComentarios')
+        motivoDerivacion: obtenerValor('motivoDerivacion'),
+        // Materiales comunes para todas las modalidades
+        materialesApoyo: obtenerValor('descripcionMateriales'),
+        recursosRecomendados: obtenerValor('recursosRecomendados'),
+        notasAdicionales: obtenerValor('notasComentarios')
     };
+
+    console.log('💾 Guardando parcialmente Personal:', datosPersonales);
 
     if (!datosPersonales.situacionPersonal || !datosPersonales.estadoEmocional || !datosPersonales.observacionesPersonales) {
         mostrarError('Por favor, complete los campos obligatorios (*) de la tutoría personal');
@@ -597,9 +816,14 @@ window.guardarSeccionProfesional = async function() {
         descripcionTema: obtenerValor('descripcionTema'),
         avancesLogros: obtenerValor('avancesLogros'),
         observacionesProfesionales: obtenerValor('observacionesProfesionales'),
-        recursosContactos: obtenerValor('recursosContactos'),        recursosRecomendados: document.getElementById('recursosRecomendadosAtencion')?.value || '',
-        materialesApoyo: document.getElementById('descripcionMateriales')?.value || '',        notasAdicionales: obtenerValor('notasComentarios')
+        recursosContactos: obtenerValor('recursosContactos'),
+        // Materiales comunes para todas las modalidades
+        materialesApoyo: obtenerValor('descripcionMateriales'),
+        recursosRecomendados: obtenerValor('recursosRecomendados'),
+        notasAdicionales: obtenerValor('notasComentarios')
     };
+
+    console.log('💾 Guardando parcialmente Profesional:', datosProfesionales);
 
     if (!datosProfesionales.temaProfesional || !datosProfesionales.descripcionTema || !datosProfesionales.observacionesProfesionales) {
         mostrarError('Por favor, complete los campos obligatorios (*) de la tutoría profesional');
@@ -669,8 +893,12 @@ window.finalizarTutoria = async function() {
     let datosCompletos = {
         idTutoria: agendamientoActual.id,
         tipoTutoria: agendamientoActual.tipoTutoria,
-        notasAdicionales: document.getElementById('notasComentarios')?.value || ''
+        notasAdicionales: document.getElementById('notasComentarios')?.value || '',
+        // Recursos de texto comunes para todas las modalidades (campo opcional)
+        recursosRecomendados: obtenerValor('recursosRecomendados')
     };
+
+    console.log('📦 Datos iniciales:', datosCompletos);
 
     // Agregar datos específicos según el tipo
     if (agendamientoActual.tipoTutoria === 'Academica') {
@@ -680,9 +908,7 @@ window.finalizarTutoria = async function() {
             contenidoEspecifico: document.getElementById('contenidoEspecificoAtencion').value,
             observacionesDesempeno: document.getElementById('observacionesDesempenoAtencion').value,
             actividadesRealizadas: document.getElementById('actividadesRealizadasAtencion').value,
-            tareasAsignadas: document.getElementById('tareasAsignadasAtencion').value,
-            recursosRecomendados: document.getElementById('recursosRecomendadosAtencion').value,
-            materialesApoyo: document.getElementById('descripcionMateriales')?.value || ''
+            tareasAsignadas: document.getElementById('tareasAsignadasAtencion').value
         };
         
         // Validar campos obligatorios
@@ -698,9 +924,7 @@ window.finalizarTutoria = async function() {
             observacionesPersonales: document.getElementById('observacionesPersonales').value,
             accionesTomadas: document.getElementById('accionesTomadas').value,
             requiereDerivacion: document.getElementById('requiereDerivacion').value,
-            motivoDerivacion: document.getElementById('motivoDerivacion').value,
-            recursosRecomendados: document.getElementById('recursosRecomendadosAtencion')?.value || '',
-            materialesApoyo: document.getElementById('descripcionMateriales')?.value || ''
+            motivoDerivacion: document.getElementById('motivoDerivacion').value
         };
         
         // Validar campos obligatorios
@@ -715,9 +939,7 @@ window.finalizarTutoria = async function() {
             descripcionTema: document.getElementById('descripcionTema').value,
             avancesLogros: document.getElementById('avancesLogros').value,
             observacionesProfesionales: document.getElementById('observacionesProfesionales').value,
-            recursosContactos: document.getElementById('recursosContactos').value,
-            recursosRecomendados: document.getElementById('recursosRecomendadosAtencion')?.value || '',
-            materialesApoyo: document.getElementById('descripcionMateriales')?.value || ''
+            recursosContactos: document.getElementById('recursosContactos').value
         };
         
         // Validar campos obligatorios
@@ -726,6 +948,9 @@ window.finalizarTutoria = async function() {
             return;
         }
     }
+
+    console.log('📤 Datos completos antes de enviar:', datosCompletos);
+    console.log('� Total materiales estructurados a enviar:', materialesAgregados.length);
 
     // Validar campos obligatorios antes de mostrar confirmación
     const camposVacios = validarCamposObligatorios(agendamientoActual.tipoTutoria);
@@ -777,26 +1002,64 @@ async function ejecutarFinalizacion(datosCompletos) {
     try {
         mostrarLoaderAtencion();
         
-        console.log('=== FINALIZANDO TUTORÍA ===');
-        console.log('Datos completos:', datosCompletos);
+        console.log('============ FINALIZANDO TUTORÍA ============');
+        console.log('📋 Tipo:', datosCompletos.tipoTutoria);
+        console.log('🆔 ID:', datosCompletos.idTutoria);
+        console.log('📎 Materiales de apoyo:', datosCompletos.materialesApoyo);
+        console.log('🔗 Recursos recomendados:', datosCompletos.recursosRecomendados);
+        console.log('� Total archivos:', archivosCargados.length);
         
         const token = localStorage.getItem('token');
+        
+        // Usar FormData para enviar archivos + datos JSON
+        const formData = new FormData();
+        
+        // Agregar datos JSON como un campo
+        formData.append('datos', JSON.stringify(datosCompletos));
+        
+        // Agregar materiales estructurados con archivos
+        let archivoIndex = 0;
+        materialesAgregados.forEach((material) => {
+            if (material.archivo) {
+                // Material con archivo físico
+                formData.append(`archivo_${archivoIndex}`, material.archivo);
+                formData.append(`archivo_${archivoIndex}_tipo`, material.tipo);
+                formData.append(`archivo_${archivoIndex}_titulo`, material.titulo);
+                formData.append(`archivo_${archivoIndex}_descripcion`, material.descripcion || '');
+                console.log(`📄 Archivo ${archivoIndex}: ${material.titulo} - Tipo: ${material.tipo} (${material.tamano || 'N/A'})`);
+                archivoIndex++;
+            }
+        });
+        
+        // Agregar materiales sin archivo (solo enlaces) como JSON
+        const materialesSinArchivo = materialesAgregados.filter(m => !m.archivo && m.enlace);
+        if (materialesSinArchivo.length > 0) {
+            formData.append('materialesEstructurados', JSON.stringify(materialesSinArchivo.map(m => ({
+                tipo: m.tipo,
+                titulo: m.titulo,
+                descripcion: m.descripcion || '',
+                enlace: m.enlace,
+                tieneArchivo: false
+            }))));
+            console.log('🔗 Materiales de solo enlace:', materialesSinArchivo.length);
+        }
+        
         const response = await fetch(
             `${APP_CONFIG.API.BASE_URL}/atencionTutoria?action=registrar-final`,
             {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
+                    'Authorization': `Bearer ${token}`
+                    // NO incluir Content-Type, el navegador lo establece automáticamente con boundary
                 },
-                body: JSON.stringify(datosCompletos)
+                body: formData
             }
         );
         
-        console.log('Response status:', response.status);
+        console.log('✅ Response status:', response.status);
         
         const responseText = await response.text();
-        console.log('Response text:', responseText);
+        console.log('📥 Response text:', responseText);
         
         ocultarLoaderAtencion();
         
@@ -804,25 +1067,27 @@ async function ejecutarFinalizacion(datosCompletos) {
         try {
             result = JSON.parse(responseText);
         } catch (e) {
-            console.error('Error parseando JSON:', e);
-            console.error('Respuesta HTML recibida:', responseText.substring(0, 500));
+            console.error('❌ Error parseando JSON:', e);
+            console.error('📄 Respuesta HTML recibida:', responseText.substring(0, 500));
             mostrarError(`Error del servidor: ${response.status}. Revisa la consola para más detalles.`);
             return;
         }
         
         if (result.success) {
-            mostrarExito('Tutoría finalizada correctamente');
+            console.log('✅ Tutoría finalizada exitosamente');
+            mostrarExito('✅ Tutoría finalizada correctamente');
             cerrarModalAtencion();
             // Recargar agendamientos
             if (typeof cargarAgendamientos === 'function') {
-                cargarAgendamientos();
+                setTimeout(() => cargarAgendamientos(), 500);
             }
         } else {
+            console.error('❌ Error del servidor:', result.message);
             mostrarError(result.message || 'Error al finalizar tutoría');
         }
     } catch (error) {
         ocultarLoaderAtencion();
-        console.error('Error al finalizar tutoría:', error);
+        console.error('❌ Error al finalizar tutoría:', error);
         mostrarError('Error de conexión al finalizar tutoría');
     }
 };
