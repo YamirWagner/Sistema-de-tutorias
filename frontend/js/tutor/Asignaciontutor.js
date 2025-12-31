@@ -157,6 +157,10 @@
         // Modal de detalle
         document.getElementById('btnCerrarModalDetalle')?.addEventListener('click', cerrarModalDetalle);
 
+        // Modal de agendamientos del día
+        document.getElementById('btnCerrarModalAgendamientosDia')?.addEventListener('click', cerrarModalAgendamientosDia);
+        document.getElementById('btnCerrarAgendamientosDia')?.addEventListener('click', cerrarModalAgendamientosDia);
+
         // Validación de horas - calcular hora fin automáticamente
         document.getElementById('horaInicio')?.addEventListener('change', function() {
             const horaInicio = this.value;
@@ -362,8 +366,12 @@
 
             if (agendamientosDia.length > 3) {
                 const mas = document.createElement('div');
-                mas.className = 'agendamiento-item';
+                mas.className = 'agendamiento-item mas-agendamientos';
                 mas.textContent = `+${agendamientosDia.length - 3} más`;
+                mas.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    mostrarModalAgendamientosDia(fecha, agendamientosDia);
+                });
                 celda.appendChild(mas);
             }
         }
@@ -916,6 +924,136 @@
         document.querySelectorAll('.modal').forEach(modal => {
             modal.classList.remove('active');
         });
+    }
+
+    // ==================== MODAL DE AGENDAMIENTOS DEL DÍA ====================
+    function mostrarModalAgendamientosDia(fecha, agendamientos) {
+        console.log('🔵 Abriendo modal de agendamientos del día', fecha, agendamientos);
+        
+        const modal = document.getElementById('modalAgendamientosDia');
+        const titulo = document.getElementById('tituloAgendamientosDia');
+        const lista = document.getElementById('listaAgendamientosDia');
+
+        if (!modal) {
+            console.error('❌ No se encontró el modal modalAgendamientosDia');
+            return;
+        }
+        
+        if (!titulo || !lista) {
+            console.error('❌ No se encontraron elementos del modal');
+            return;
+        }
+
+        // Formatear la fecha para el título
+        const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const fechaFormateada = fecha.toLocaleDateString('es-ES', opciones);
+        titulo.textContent = `Agendamientos del ${fechaFormateada}`;
+
+        // Ordenar agendamientos por hora
+        const agendamientosOrdenados = [...agendamientos].sort((a, b) => {
+            return a.horaInicio.localeCompare(b.horaInicio);
+        });
+
+        console.log('📋 Agendamientos ordenados:', agendamientosOrdenados.length);
+
+        // Crear la lista de agendamientos
+        lista.innerHTML = '';
+        
+        if (agendamientosOrdenados.length === 0) {
+            lista.innerHTML = '<p style="text-align: center; padding: 20px; color: #666;">No hay agendamientos para este día</p>';
+            console.log('✅ Modal listo (sin agendamientos), mostrando...');
+            modal.classList.add('active');
+            return;
+        }
+        
+        agendamientosOrdenados.forEach((agendamiento, index) => {
+            console.log(`🔍 Procesando agendamiento ${index + 1}:`, agendamiento);
+            
+            // Verificar que sea un objeto válido
+            if (typeof agendamiento !== 'object' || agendamiento === null) {
+                console.error('❌ Agendamiento no es un objeto válido:', agendamiento);
+                return;
+            }
+
+            const item = document.createElement('div');
+            item.className = `agendamiento-dia-item ${(agendamiento.tipoTutoria || 'individual').toLowerCase()}`;
+            
+            if (agendamiento.estado === 'Cancelada' || agendamiento.estado === 'Cancelada_Automatica') {
+                item.classList.add('cancelada');
+            }
+
+            const estadoBadge = obtenerBadgeEstado(agendamiento.estado);
+            const tipoBadge = agendamiento.tipoTutoria === 'Individual' ? 'badge-individual' : 'badge-grupal';
+
+            // Convertir explícitamente a string para evitar mostrar objetos JSON
+            const estudianteNombres = String(agendamiento.estudianteNombres || '');
+            const estudianteApellidos = String(agendamiento.estudianteApellidos || '');
+            const modalidad = String(agendamiento.modalidad || 'No especificado');
+            const observaciones = String(agendamiento.observaciones || 'Sin observaciones');
+            const horaInicio = String(formatearHora(agendamiento.horaInicio) || '');
+            const horaFin = String(formatearHora(agendamiento.horaFin) || '');
+            const tipoTutoria = String(agendamiento.tipoTutoria || 'Individual');
+
+            const htmlContent = `
+                <div class="agendamiento-lista-header">
+                    <div class="agendamiento-badges">
+                        <span class="badge ${tipoBadge}">${tipoTutoria}</span>
+                        <span class="badge ${estadoBadge.clase}">${estadoBadge.texto}</span>
+                    </div>
+                </div>
+                <div class="agendamiento-lista-info">
+                    <div class="info-item">
+                        <strong>Horario:</strong> ${horaInicio} - ${horaFin}
+                    </div>
+                    <div class="info-item">
+                        <strong>Estudiante:</strong> ${estudianteNombres} ${estudianteApellidos}
+                    </div>
+                    <div class="info-item">
+                        <strong>Modalidad:</strong> ${modalidad}
+                    </div>
+                </div>
+                <div class="agendamiento-lista-footer">
+                    <button class="btn-ver-detalle-simple" data-id="${agendamiento.id}">
+                        Ver detalle completo
+                    </button>
+                </div>
+            `;
+
+            item.innerHTML = htmlContent;
+
+            // Agregar evento al botón de ver detalle
+            const btnVerDetalle = item.querySelector('.btn-ver-detalle-simple');
+            btnVerDetalle.addEventListener('click', () => {
+                cerrarModalAgendamientosDia();
+                setTimeout(() => {
+                    mostrarDetalleAgendamiento(agendamiento);
+                }, 300);
+            });
+
+            lista.appendChild(item);
+        });
+
+        console.log('✅ Modal listo, mostrando...');
+        modal.classList.add('active');
+    }
+
+    function cerrarModalAgendamientosDia() {
+        const modal = document.getElementById('modalAgendamientosDia');
+        if (modal) {
+            modal.classList.remove('active');
+        }
+    }
+
+    function obtenerBadgeEstado(estado) {
+        const badges = {
+            'Pendiente': { texto: 'Pendiente', clase: 'badge-pendiente' },
+            'Confirmada': { texto: 'Confirmada', clase: 'badge-confirmada' },
+            'Realizada': { texto: 'Realizada', clase: 'badge-realizada' },
+            'Cancelada': { texto: 'Cancelada', clase: 'badge-cancelada' },
+            'Cancelada_Automatica': { texto: 'Cancelada Auto.', clase: 'badge-cancelada' },
+            'Realizando': { texto: 'En progreso', clase: 'badge-realizando' }
+        };
+        return badges[estado] || { texto: estado, clase: 'badge-default' };
     }
 
     // ==================== ACCIONES ====================
