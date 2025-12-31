@@ -50,8 +50,8 @@ function checkAuth() {
     console.log('   - Token presente:', token ? 'SÍ' : 'NO');
     
     const isPanel = path.includes('panel') || path.includes('dashboard');
-    const isTutor = path.includes('tutor');
-    const isEstudiante = path.includes('estudiante');
+    const isTutor = path.includes('tutor') && !path.includes('seguimiento-tutor');
+    const isEstudiante = path.includes('estudiante') && !path.includes('historial-estudiante');
     const isSemestre = path.includes('semestre');
     const isGestionUsuarios = path.includes('gestion-usuarios');
     const isAsignaciones = path.includes('asignaciones');
@@ -61,14 +61,22 @@ function checkAuth() {
     const isMisEstudiantes = path.includes('mis-estudiantes');
     const isSesionActual = path.includes('sesion-actual');
     const isHistorialTutorias = path.includes('historial-tutorias');
+    const isVerificador = path.includes('verificador');
+    const isAdministradores = path.includes('administradores');
+    const isHistorialEstudiante = path.includes('historial-estudiante');
+    const isSeguimientoTutor = path.includes('seguimiento-tutor');
     const isLogin = path.includes('login');
     const isVerify = path.includes('verify');
     const isIndex = path.endsWith('/') || path.includes('index');
     
-    const isProtectedPage = isPanel || isTutor || isEstudiante || isSemestre || isGestionUsuarios || isAsignaciones || isReportes || isAuditoria || isAsignacionTutor || isMisEstudiantes || isSesionActual || isHistorialTutorias;
+    const isProtectedPage = isPanel || isTutor || isEstudiante || isSemestre || isGestionUsuarios || 
+                           isAsignaciones || isReportes || isAuditoria || isAsignacionTutor || 
+                           isMisEstudiantes || isSesionActual || isHistorialTutorias ||
+                           isVerificador || isAdministradores || isHistorialEstudiante || isSeguimientoTutor;
     
     console.log('   - Es página protegida:', isProtectedPage);
     console.log('   - Es tutor:', isTutor);
+    console.log('   - Es verificador:', isVerificador);
     
     if (!token && isProtectedPage) {
         console.log('❌ Sin token, redirigiendo a login');
@@ -87,6 +95,9 @@ function checkAuth() {
         } else if (user && (user.role === 'student' || user.role === 'Estudiante')) {
             redirectPath = '/estudiante';
             console.log('➡️ Redirigiendo estudiante autenticado a /estudiante');
+        } else if (user && (user.role === 'verifier' || user.role === 'Verificador')) {
+            redirectPath = '/verificador';
+            console.log('➡️ Redirigiendo verificador autenticado a /verificador');
         }
         
         window.location.href = basePath + redirectPath;

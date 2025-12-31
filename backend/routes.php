@@ -93,8 +93,18 @@ $routes = [
     'GET|api/historiaestudiante' => 'api/historiaestudiante.php',
     
     // Rutas de verificador
+    'GET|api/verificador' => 'api/verificador.php',
+    'POST|api/verificador' => 'api/verificador.php',
     'GET|api/verifier' => 'api/verifier.php',
     'POST|api/verifier' => 'api/verifier.php',
+    
+    // Rutas de módulos del verificador
+    'GET|api/administradores' => 'api/administradores.php',
+    'POST|api/administradores' => 'api/administradores.php',
+    'GET|api/historialEstudiante' => 'api/historialEstudiante.php',
+    'POST|api/historialEstudiante' => 'api/historialEstudiante.php',
+    'GET|api/seguimientoTutor' => 'api/seguimientoTutor.php',
+    'POST|api/seguimientoTutor' => 'api/seguimientoTutor.php',
     
     // Rutas de calendario
     'GET|api/calendar' => 'api/calendar.php',

@@ -1,0 +1,111 @@
+<!-- Dashboard de Verificador -->
+<div class="verificador-dashboard">
+    <!-- Estadísticas principales -->
+    <div class="stats-container">
+        <div class="stat-card stat-primary">
+            <div class="stat-icon">
+                <i class="fa-solid fa-clipboard-check"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="totalSessions">0</h3>
+                <p>Total de Sesiones</p>
+            </div>
+        </div>
+
+        <div class="stat-card stat-warning">
+            <div class="stat-icon">
+                <i class="fa-solid fa-clock"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="pendingSessions">0</h3>
+                <p>Sesiones Pendientes</p>
+            </div>
+        </div>
+
+        <div class="stat-card stat-success">
+            <div class="stat-icon">
+                <i class="fa-solid fa-check-circle"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="verifiedSessions">0</h3>
+                <p>Sesiones Verificadas</p>
+            </div>
+        </div>
+
+        <div class="stat-card stat-danger">
+            <div class="stat-icon">
+                <i class="fa-solid fa-exclamation-triangle"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="missingSessions">0</h3>
+                <p>Tutorías Faltantes</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos y datos visuales -->
+    <div class="dashboard-grid">
+        <!-- Gráfico de asistencia -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3><i class="fa-solid fa-chart-pie"></i> Asistencia General</h3>
+            </div>
+            <div class="card-body">
+                <canvas id="attendanceChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Gráfico de tutorías por mes -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3><i class="fa-solid fa-chart-line"></i> Tutorías por Mes</h3>
+            </div>
+            <div class="card-body">
+                <canvas id="monthlyChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Estudiantes más activos -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3><i class="fa-solid fa-user-graduate"></i> Estudiantes Más Activos</h3>
+            </div>
+            <div class="card-body">
+                <div class="student-list" id="topStudentsList">
+                    <p class="loading-text">Cargando datos...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tutores más activos -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3><i class="fa-solid fa-chalkboard-teacher"></i> Tutores Más Activos</h3>
+            </div>
+            <div class="card-body">
+                <div class="tutor-list" id="topTutorsList">
+                    <p class="loading-text">Cargando datos...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acciones rápidas -->
+    <div class="quick-actions">
+        <h3 class="section-title">Acciones Rápidas</h3>
+        <div class="actions-grid">
+            <button onclick="navigateToModule(document.querySelector('[data-module=administradores]'))" class="action-btn btn-primary">
+                <i class="fa-solid fa-users-gear"></i>
+                <span>Administradores</span>
+            </button>
+            <button onclick="navigateToModule(document.querySelector('[data-module=historial-estudiante]'))" class="action-btn btn-success">
+                <i class="fa-solid fa-user-clock"></i>
+                <span>Historial por Estudiante</span>
+            </button>
+            <button onclick="navigateToModule(document.querySelector('[data-module=seguimiento-tutor]'))" class="action-btn btn-warning">
+                <i class="fa-solid fa-chalkboard-teacher"></i>
+                <span>Seguimiento por Tutor</span>
+            </button>
+        </div>
+    </div>
+</div>

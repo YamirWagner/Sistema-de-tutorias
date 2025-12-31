@@ -1,0 +1,97 @@
+<!-- Módulo de Historial por Estudiantes -->
+<div class="verificador-historial-estudiante">
+    <div class="module-header">
+        <h2><i class="fa-solid fa-user-clock"></i> Historial por Estudiante</h2>
+        <p class="module-subtitle">Consultar el historial completo de tutorías de cada estudiante</p>
+    </div>
+
+    <!-- Búsqueda de estudiante -->
+    <div class="search-section">
+        <div class="search-card">
+            <h3><i class="fa-solid fa-magnifying-glass"></i> Buscar Estudiante</h3>
+            <div class="search-form">
+                <div class="form-group">
+                    <label>Código del Estudiante:</label>
+                    <input type="text" id="codigoEstudiante" placeholder="Ej: 123456" />
+                </div>
+                <div class="form-group">
+                    <label>Nombre del Estudiante:</label>
+                    <input type="text" id="nombreEstudiante" placeholder="Buscar por nombre..." />
+                </div>
+                <button onclick="buscarEstudianteVerificador()" class="btn-search">
+                    <i class="fa-solid fa-search"></i>
+                    Buscar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Información del estudiante -->
+    <div id="studentInfo" class="student-info" style="display: none;">
+        <div class="info-card">
+            <div class="student-avatar">
+                <i class="fa-solid fa-user-graduate"></i>
+            </div>
+            <div class="student-details">
+                <h3 id="studentName">-</h3>
+                <p><strong>Código:</strong> <span id="studentCode">-</span></p>
+                <p><strong>Correo:</strong> <span id="studentEmail">-</span></p>
+                <p><strong>Carrera:</strong> <span id="studentCareer">-</span></p>
+            </div>
+            <div class="student-stats">
+                <div class="stat">
+                    <h4 id="totalTutorias">0</h4>
+                    <p>Total Tutorías</p>
+                </div>
+                <div class="stat">
+                    <h4 id="asistencias">0</h4>
+                    <p>Asistencias</p>
+                </div>
+                <div class="stat">
+                    <h4 id="faltas">0</h4>
+                    <p>Faltas</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Historial de tutorías -->
+    <div id="tutoriasHistory" class="tutorias-history" style="display: none;">
+        <div class="history-header">
+            <h3><i class="fa-solid fa-clock-rotate-left"></i> Historial de Tutorías</h3>
+            <div class="filters">
+                <select id="filterSemestre">
+                    <option value="">Todos los semestres</option>
+                </select>
+                <select id="filterEstado">
+                    <option value="">Todos los estados</option>
+                    <option value="asistio">Asistió</option>
+                    <option value="no_asistio">No Asistió</option>
+                    <option value="pendiente">Pendiente</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Tutor</th>
+                        <th>Tema</th>
+                        <th>Duración</th>
+                        <th>Estado</th>
+                        <th>Observaciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tutoriasTableBody">
+                    <tr>
+                        <td colspan="6" class="empty-row">
+                            Busque un estudiante para ver su historial
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

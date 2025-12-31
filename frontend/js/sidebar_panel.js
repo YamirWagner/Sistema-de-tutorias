@@ -225,8 +225,8 @@ async function loadSidebarMenu() {
             { icon: 'fa-solid fa-clock-rotate-left', text: 'Historial de tutorías', module: 'historial-tutorias' },
         ],
         verifier: [
-            { icon: 'fa-solid fa-clipboard-check', text: 'Lista de Asistencias', module: 'asistencias', active: true },
-            { icon: 'fa-solid fa-search', text: 'Búsqueda de Tutorías', module: 'buscar-tutorias' },
+            { icon: 'fa-solid fa-house', text: 'Inicio', module: 'verificador', active: true },
+            { icon: 'fa-solid fa-users-gear', text: 'Administradores', module: 'administradores' },
             { icon: 'fa-solid fa-user-clock', text: 'Historial por Estudiante', module: 'historial-estudiante' },
             { icon: 'fa-solid fa-chalkboard-teacher', text: 'Seguimiento por Tutor', module: 'seguimiento-tutor' },
         ]
@@ -253,8 +253,11 @@ async function loadSidebarMenu() {
     } else if (role === 'tutor') {
         // Para tutores, SOLO /tutor es inicio
         isPanelPage = lastSegment === 'tutor';
+    } else if (role === 'verifier') {
+        // Para verificadores, SOLO /verificador es inicio
+        isPanelPage = lastSegment === 'verificador';
     } else {
-        // Para admin y verificador, /panel o /dashboard es inicio
+        // Para admin, /panel o /dashboard es inicio
         isPanelPage = lastSegment === 'panel' || 
                      lastSegment === 'dashboard' || 
                      lastSegment === 'Sistema-de-tutorias' ||
@@ -333,6 +336,8 @@ function navigateToModule(element) {
             homeUrl = `${basePath}/estudiante`;
         } else if (role === 'tutor') {
             homeUrl = `${basePath}/tutor`;
+        } else if (role === 'verifier') {
+            homeUrl = `${basePath}/verificador`;
         }
         
         window.history.pushState({module: 'inicio'}, '', homeUrl);
@@ -378,9 +383,9 @@ function navigateToModule(element) {
         'sesion-actual': 'loadSesionActualContent',
         'historial-tutorias': 'loadHistorialEstudianteContent',
         // Verificador
-        'asistencias': 'loadAsistenciasContent',
-        'buscar-tutorias': 'loadBuscarTutoriasContent',
-        'historial-estudiante': 'loadHistorialEstudianteContent',
+        'verificador': 'loadVerifierDashboard',
+        'administradores': 'loadAdministradoresContent',
+        'historial-estudiante': 'loadHistorialEstudianteVerificadorContent',
         'seguimiento-tutor': 'loadSeguimientoTutorContent'
     };
     
@@ -403,8 +408,19 @@ function navigateToModule(element) {
         window[loaderFn]();
         console.log(`✅ Módulo ${module} cargado`);
     } else {
-        console.warn(`⚠️ Módulo ${module} en desarrollo o función no encontrada`);
-        showNotification(`Módulo "${module}" en desarrollo`, 'info');
+        // Intentar esperar un poco por si el script aún se está cargando
+        setTimeout(() => {
+            if (loaderFn && typeof window[loaderFn] === 'function') {
+                console.log(`✅ Ejecutando ${loaderFn}() (retry)...`);
+                window[loaderFn]();
+                console.log(`✅ Módulo ${module} cargado`);
+            } else {
+                console.warn(`⚠️ Módulo ${module} en desarrollo o función no encontrada`);
+                console.warn(`   Función buscada: ${loaderFn}`);
+                console.warn(`   Tipo encontrado: ${typeof window[loaderFn]}`);
+                showNotification(`Módulo "${module}" en desarrollo`, 'info');
+            }
+        }, 100);
     }
 }
 

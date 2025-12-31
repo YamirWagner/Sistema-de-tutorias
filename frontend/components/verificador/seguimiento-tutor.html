@@ -1,0 +1,125 @@
+<!-- Módulo de Seguimiento por Tutor -->
+<div class="verificador-seguimiento-tutor">
+    <div class="module-header">
+        <h2><i class="fa-solid fa-chalkboard-teacher"></i> Seguimiento por Tutor</h2>
+        <p class="module-subtitle">Monitorear y verificar la actividad de cada tutor</p>
+    </div>
+
+    <!-- Selección de tutor -->
+    <div class="selector-section">
+        <div class="selector-card">
+            <h3><i class="fa-solid fa-user-tie"></i> Seleccionar Tutor</h3>
+            <div class="selector-form">
+                <select id="selectTutor" onchange="cargarDatosTutor()">
+                    <option value="">Seleccione un tutor...</option>
+                </select>
+                <button onclick="cargarListaTutores()" class="btn-refresh">
+                    <i class="fa-solid fa-rotate"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Información del tutor -->
+    <div id="tutorInfo" class="tutor-info" style="display: none;">
+        <div class="info-card">
+            <div class="tutor-avatar">
+                <i class="fa-solid fa-chalkboard-teacher"></i>
+            </div>
+            <div class="tutor-details">
+                <h3 id="tutorName">-</h3>
+                <p><strong>Código:</strong> <span id="tutorCode">-</span></p>
+                <p><strong>Correo:</strong> <span id="tutorEmail">-</span></p>
+                <p><strong>Especialidad:</strong> <span id="tutorSpecialty">-</span></p>
+            </div>
+            <div class="tutor-stats">
+                <div class="stat">
+                    <h4 id="totalSesiones">0</h4>
+                    <p>Total Sesiones</p>
+                </div>
+                <div class="stat">
+                    <h4 id="sesionesRealizadas">0</h4>
+                    <p>Realizadas</p>
+                </div>
+                <div class="stat">
+                    <h4 id="sesionesPendientes">0</h4>
+                    <p>Pendientes</p>
+                </div>
+                <div class="stat">
+                    <h4 id="estudiantesAtendidos">0</h4>
+                    <p>Estudiantes</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos de seguimiento -->
+    <div id="tutorCharts" class="charts-section" style="display: none;">
+        <div class="chart-card">
+            <h3><i class="fa-solid fa-chart-bar"></i> Sesiones por Mes</h3>
+            <canvas id="tutorMonthlyChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3><i class="fa-solid fa-chart-pie"></i> Distribución de Estados</h3>
+            <canvas id="tutorStatusChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Historial de sesiones del tutor -->
+    <div id="tutorSessions" class="sessions-section" style="display: none;">
+        <div class="sessions-header">
+            <h3><i class="fa-solid fa-list"></i> Historial de Sesiones</h3>
+            <div class="filters">
+                <select id="filterMes">
+                    <option value="">Todos los meses</option>
+                    <option value="1">Enero</option>
+                    <option value="2">Febrero</option>
+                    <option value="3">Marzo</option>
+                    <option value="4">Abril</option>
+                    <option value="5">Mayo</option>
+                    <option value="6">Junio</option>
+                    <option value="7">Julio</option>
+                    <option value="8">Agosto</option>
+                    <option value="9">Septiembre</option>
+                    <option value="10">Octubre</option>
+                    <option value="11">Noviembre</option>
+                    <option value="12">Diciembre</option>
+                </select>
+                <select id="filterEstadoTutor">
+                    <option value="">Todos los estados</option>
+                    <option value="realizada">Realizada</option>
+                    <option value="pendiente">Pendiente</option>
+                    <option value="cancelada">Cancelada</option>
+                </select>
+                <button onclick="exportarReporteTutor()" class="btn-export">
+                    <i class="fa-solid fa-file-pdf"></i>
+                    Exportar PDF
+                </button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Hora</th>
+                        <th>Estudiante</th>
+                        <th>Tema</th>
+                        <th>Duración</th>
+                        <th>Estado</th>
+                        <th>Asistencia</th>
+                        <th>Observaciones</th>
+                    </tr>
+                </thead>
+                <tbody id="sessionsTableBody">
+                    <tr>
+                        <td colspan="8" class="empty-row">
+                            Seleccione un tutor para ver sus sesiones
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

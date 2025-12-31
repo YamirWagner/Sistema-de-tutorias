@@ -1,0 +1,365 @@
+/* ============================================
+   SEGUIMIENTO POR TUTOR - Verificador
+   ============================================ */
+
+.verificador-seguimiento-tutor {
+    padding: 2rem;
+    background-color: #f5f5f5;
+    min-height: 100vh;
+}
+
+.module-header {
+    margin-bottom: 2rem;
+}
+
+.module-header h2 {
+    color: #2c3e50;
+    font-size: 1.8rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.module-header h2 i {
+    color: #9B192D;
+}
+
+.module-subtitle {
+    color: #7f8c8d;
+    font-size: 1rem;
+    margin: 0;
+}
+
+/* Selector de tutor */
+.selector-section {
+    margin-bottom: 2rem;
+}
+
+.selector-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.selector-card h3 {
+    color: #2c3e50;
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.selector-form {
+    display: flex;
+    gap: 1rem;
+}
+
+.selector-form select {
+    flex: 1;
+    padding: 0.75rem;
+    border: 2px solid #ecf0f1;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: border-color 0.3s;
+}
+
+.selector-form select:focus {
+    outline: none;
+    border-color: #9B192D;
+}
+
+.btn-refresh {
+    padding: 0.75rem 1rem;
+    background: linear-gradient(135deg, #9B192D, #7B1113);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-refresh:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(155, 25, 45, 0.3);
+}
+
+/* Información del tutor */
+.tutor-info {
+    margin-bottom: 2rem;
+}
+
+.info-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 2rem;
+    align-items: center;
+}
+
+.tutor-avatar {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, #9B192D, #7B1113);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 3rem;
+}
+
+.tutor-details h3 {
+    color: #2c3e50;
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.tutor-details p {
+    color: #7f8c8d;
+    margin: 0.25rem 0;
+    font-size: 0.95rem;
+}
+
+.tutor-stats {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.tutor-stats .stat {
+    text-align: center;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    min-width: 90px;
+}
+
+.tutor-stats .stat h4 {
+    color: #9B192D;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.tutor-stats .stat p {
+    color: #7f8c8d;
+    font-size: 0.8rem;
+    margin: 0.5rem 0 0 0;
+}
+
+/* Gráficos */
+.charts-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.chart-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.chart-card h3 {
+    color: #2c3e50;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Historial de sesiones */
+.sessions-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sessions-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.sessions-header h3 {
+    color: #2c3e50;
+    font-size: 1.3rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+}
+
+.filters {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.filters select {
+    padding: 0.5rem 1rem;
+    border: 2px solid #ecf0f1;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.filters select:focus {
+    outline: none;
+    border-color: #9B192D;
+}
+
+.btn-export {
+    padding: 0.5rem 1.5rem;
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s;
+}
+
+.btn-export:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3);
+}
+
+/* Tabla */
+.table-container {
+    overflow-x: auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table thead {
+    background: linear-gradient(135deg, #9B192D, #7B1113);
+    color: white;
+}
+
+.data-table th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.95rem;
+    white-space: nowrap;
+}
+
+.data-table tbody tr {
+    border-bottom: 1px solid #ecf0f1;
+    transition: background-color 0.2s;
+}
+
+.data-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.data-table td {
+    padding: 1rem;
+    font-size: 0.9rem;
+    color: #2c3e50;
+}
+
+.empty-row {
+    text-align: center;
+    padding: 3rem !important;
+    color: #7f8c8d;
+    font-style: italic;
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.status-realizada {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-pendiente {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-cancelada {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.asistencia-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.asistencia-si {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.asistencia-no {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.asistencia-pendiente {
+    background-color: #e2e3e5;
+    color: #6c757d;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .info-card {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+
+    .tutor-stats {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .charts-section {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .verificador-seguimiento-tutor {
+        padding: 1rem;
+    }
+
+    .sessions-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .data-table {
+        min-width: 900px;
+    }
+}
