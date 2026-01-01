@@ -355,7 +355,8 @@
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('/Sistema-de-tutorias/backend/api/listar-constancias.php', {
+            const basePath = (window.APP_BASE_PATH || '').replace(/\/$/, '');
+            const response = await fetch(`${basePath}/backend/api/listar-constancias.php`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
@@ -522,7 +523,8 @@
         
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('/Sistema-de-tutorias/backend/api/contactarTutor.php', {
+            const basePath = (window.APP_BASE_PATH || '').replace(/\/$/, '');
+            const response = await fetch(`${basePath}/backend/api/contactarTutor.php`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -576,7 +578,8 @@
         
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('/Sistema-de-tutorias/backend/api/solicitarCambio.php', {
+            const basePath = (window.APP_BASE_PATH || '').replace(/\/$/, '');
+            const response = await fetch(`${basePath}/backend/api/solicitarCambio.php`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,

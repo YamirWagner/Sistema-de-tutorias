@@ -132,7 +132,7 @@
     <div class="modal-content">
         <div class="modal-header">
             <h2 id="modalTitulo">Nuevo Agendamiento</h2>
-            <button id="btnCerrarModal" class="btn-close">
+            <button id="btnCerrarModal" class="btn-close" type="button">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
                     <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -269,34 +269,7 @@
     </div>
 </div>
 
-<!-- Modal de Cancelación -->
-<div id="modalCancelar" class="modal">
-    <div class="modal-content modal-small">
-        <div class="modal-header">
-            <h2>Cancelar Agendamiento</h2>
-            <button id="btnCerrarModalCancelar" class="btn-close">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-            </button>
-        </div>
-
-        <div class="modal-body">
-            <p>¿Está seguro que desea cancelar este agendamiento?</p>
-            <div class="form-group">
-                <label for="motivoCancelacion">Motivo de Cancelación <span class="required">*</span></label>
-                <textarea id="motivoCancelacion" class="form-control" rows="3" 
-                          placeholder="Ingrese el motivo de la cancelación..." required></textarea>
-            </div>
-        </div>
-
-        <div class="modal-footer">
-            <button type="button" id="btnCerrarCancelar" class="btn btn-secondary">No, volver</button>
-            <button type="button" id="btnConfirmarCancelar" class="btn btn-danger">Sí, cancelar</button>
-        </div>
-    </div>
-</div>
+<!-- Modal de Cancelación eliminado: la cancelación ahora es automática por fecha -->
 
 <!-- Modal de Detalle -->
 <div id="modalDetalle" class="modal">
@@ -317,28 +290,6 @@
 
         <div class="modal-footer" id="detalleAgendamientoFooter">
             <!-- Botones dinámicos -->
-        </div>
-    </div>
-</div>
-<!-- Modal de Agendamientos del Día -->
-<div id="modalAgendamientosDia" class="modal">
-    <div class="modal-content modal-agendamientos-dia">
-        <div class="modal-header">
-            <h2 id="tituloAgendamientosDia">Agendamientos del Día</h2>
-            <button id="btnCerrarModalAgendamientosDia" class="btn-close">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-            </button>
-        </div>
-
-        <div class="modal-body" id="listaAgendamientosDia">
-            <!-- Contenido dinámico con la lista de agendamientos -->
-        </div>
-
-        <div class="modal-footer">
-            <button type="button" id="btnCerrarAgendamientosDia" class="btn btn-secondary">Cerrar</button>
         </div>
     </div>
 </div>

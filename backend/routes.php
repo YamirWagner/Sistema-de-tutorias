@@ -38,13 +38,54 @@ require_once __DIR__ . '/core/config.php';
 require_once __DIR__ . '/core/database.php';
 require_once __DIR__ . '/core/response.php';
 
+// ============================================
+// DETECCIÓN AUTOMÁTICA DEL BASE PATH
+// ============================================
+
+/**
+ * Detecta automáticamente el base path del proyecto
+ * Funciona con cualquier dominio y estructura de carpetas
+ * 
+ * Ejemplos:
+ * - http://localhost/Sistema-de-tutorias/api/login → BASE_PATH = '/Sistema-de-tutorias'
+ * - https://tudominio.com/api/login               → BASE_PATH = ''
+ * - https://api.tudominio.com/api/login           → BASE_PATH = ''
+ */
+function detectBasePath() {
+    $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+    $requestUri = $_SERVER['REQUEST_URI'] ?? '';
+    
+    // Si SCRIPT_NAME es /backend/routes.php, el base path es todo lo que viene antes de /backend
+    if (preg_match('#^(.*)(/backend/routes\.php)$#', $scriptName, $matches)) {
+        return $matches[1];
+    }
+    
+    // Si routes.php está en la raíz del servidor
+    if (preg_match('#^/routes\.php$#', $scriptName)) {
+        return '';
+    }
+    
+    // Fallback: detectar desde REQUEST_URI
+    // Si la URL contiene /api/, todo lo anterior es el base path
+    if (preg_match('#^(.*?)(/api/|/backend/api/)#', $requestUri, $matches)) {
+        return $matches[1];
+    }
+    
+    // Por defecto, asumir raíz
+    return '';
+}
+
+$basePath = detectBasePath();
+
+// Log para debugging (comentar en producción)
+error_log("🔍 Base Path detectado: " . ($basePath ?: '(raíz)'));
+
 // Obtener la ruta solicitada
 $requestUri = $_SERVER['REQUEST_URI'];
 $path = parse_url($requestUri, PHP_URL_PATH);
 
-// Remover el prefijo del proyecto si existe
-$basePath = '/Sistema-de-tutorias';
-if (strpos($path, $basePath) === 0) {
+// Remover el basePath si existe
+if ($basePath && strpos($path, $basePath) === 0) {
     $path = substr($path, strlen($basePath));
 }
 

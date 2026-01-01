@@ -444,7 +444,7 @@ function searchStudentByCode($db) {
         $student = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if (!$student) {
-            Response::error('Estudiante no encontrado', 404);
+            Response::error('El estudiante no existe en la BD', 404);
             return;
         }
         

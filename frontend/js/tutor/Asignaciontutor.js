@@ -16,7 +16,7 @@
         console.log('🎯 Cargando módulo de Asignación de Tutor / Agendamientos');
         
         try {
-            const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+            const basePath = (window.APP_BASE_PATH || '').replace(/\/+$/, '');
             const componentPath = `${basePath}/frontend/components/tutor/asignacionTutor.html`;
             
             console.log('📄 Cargando componente desde:', componentPath);
@@ -149,17 +149,14 @@
         document.getElementById('btnCancelarModal')?.addEventListener('click', cerrarModalAgendamiento);
         document.getElementById('formAgendamiento')?.addEventListener('submit', guardarAgendamiento);
 
-        // Modal de cancelación
-        document.getElementById('btnCerrarModalCancelar')?.addEventListener('click', cerrarModalCancelar);
-        document.getElementById('btnCerrarCancelar')?.addEventListener('click', cerrarModalCancelar);
-        document.getElementById('btnConfirmarCancelar')?.addEventListener('click', confirmarCancelacion);
+        // Modal de cancelación (DESHABILITADO: la cancelación ahora es automática por fecha)
+        // Se mantienen los IDs en el HTML para compatibilidad visual, pero sin lógica JS.
 
         // Modal de detalle
         document.getElementById('btnCerrarModalDetalle')?.addEventListener('click', cerrarModalDetalle);
 
         // Modal de agendamientos del día
-        document.getElementById('btnCerrarModalAgendamientosDia')?.addEventListener('click', cerrarModalAgendamientosDia);
-        document.getElementById('btnCerrarAgendamientosDia')?.addEventListener('click', cerrarModalAgendamientosDia);
+            // Modal de agendamientos del día eliminado: ya no se usa, todo se gestiona con el modal de nuevo agendamiento
 
         // Validación de horas - calcular hora fin automáticamente
         document.getElementById('horaInicio')?.addEventListener('change', function() {
@@ -211,12 +208,9 @@
             }
         });
 
-        // Cerrar modales al hacer clic fuera
-        window.addEventListener('click', function(e) {
-            if (e.target.classList.contains('modal')) {
-                cerrarTodosModales();
-            }
-        });
+        // Asegurar que los modales estén cerrados al iniciar
+        cerrarModalAgendamiento();
+        cerrarModalDetalle();
     }
 
     // ==================== CARGA DE DATOS ====================
@@ -368,10 +362,7 @@
                 const mas = document.createElement('div');
                 mas.className = 'agendamiento-item mas-agendamientos';
                 mas.textContent = `+${agendamientosDia.length - 3} más`;
-                mas.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    mostrarModalAgendamientosDia(fecha, agendamientosDia);
-                });
+                // Ya no abre un modal adicional, solo informa que hay más agendamientos
                 celda.appendChild(mas);
             }
         }
@@ -710,17 +701,21 @@
     }
 
     function cerrarModalAgendamiento() {
-        document.getElementById('modalAgendamiento').classList.remove('active');
+        const modal = document.getElementById('modalAgendamiento');
+        if (modal) {
+            modal.classList.remove('active');
+        }
     }
 
+    // Cancelación manual deshabilitada: la cancelación se maneja de forma automática por fecha
     function abrirModalCancelar(agendamiento) {
-        agendamientoSeleccionado = agendamiento;
-        document.getElementById('motivoCancelacion').value = '';
-        document.getElementById('modalCancelar').classList.add('active');
+        console.log('ℹ️ abrirModalCancelar llamado, funcionalidad deshabilitada.', agendamiento);
+        return;
     }
 
     function cerrarModalCancelar() {
-        document.getElementById('modalCancelar').classList.remove('active');
+        const modal = document.getElementById('modalCancelar');
+        if (modal) modal.classList.remove('active');
         agendamientoSeleccionado = null;
     }
 
@@ -921,128 +916,14 @@
     }
 
     function cerrarTodosModales() {
-        document.querySelectorAll('.modal').forEach(modal => {
-            modal.classList.remove('active');
-        });
+        cerrarModalAgendamiento();
+        cerrarModalDetalle();
     }
 
     // ==================== MODAL DE AGENDAMIENTOS DEL DÍA ====================
-    function mostrarModalAgendamientosDia(fecha, agendamientos) {
-        console.log('🔵 Abriendo modal de agendamientos del día', fecha, agendamientos);
-        
-        const modal = document.getElementById('modalAgendamientosDia');
-        const titulo = document.getElementById('tituloAgendamientosDia');
-        const lista = document.getElementById('listaAgendamientosDia');
-
-        if (!modal) {
-            console.error('❌ No se encontró el modal modalAgendamientosDia');
-            return;
-        }
-        
-        if (!titulo || !lista) {
-            console.error('❌ No se encontraron elementos del modal');
-            return;
-        }
-
-        // Formatear la fecha para el título
-        const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        const fechaFormateada = fecha.toLocaleDateString('es-ES', opciones);
-        titulo.textContent = `Agendamientos del ${fechaFormateada}`;
-
-        // Ordenar agendamientos por hora
-        const agendamientosOrdenados = [...agendamientos].sort((a, b) => {
-            return a.horaInicio.localeCompare(b.horaInicio);
-        });
-
-        console.log('📋 Agendamientos ordenados:', agendamientosOrdenados.length);
-
-        // Crear la lista de agendamientos
-        lista.innerHTML = '';
-        
-        if (agendamientosOrdenados.length === 0) {
-            lista.innerHTML = '<p style="text-align: center; padding: 20px; color: #666;">No hay agendamientos para este día</p>';
-            console.log('✅ Modal listo (sin agendamientos), mostrando...');
-            modal.classList.add('active');
-            return;
-        }
-        
-        agendamientosOrdenados.forEach((agendamiento, index) => {
-            console.log(`🔍 Procesando agendamiento ${index + 1}:`, agendamiento);
-            
-            // Verificar que sea un objeto válido
-            if (typeof agendamiento !== 'object' || agendamiento === null) {
-                console.error('❌ Agendamiento no es un objeto válido:', agendamiento);
-                return;
-            }
-
-            const item = document.createElement('div');
-            item.className = `agendamiento-dia-item ${(agendamiento.tipoTutoria || 'individual').toLowerCase()}`;
-            
-            if (agendamiento.estado === 'Cancelada' || agendamiento.estado === 'Cancelada_Automatica') {
-                item.classList.add('cancelada');
-            }
-
-            const estadoBadge = obtenerBadgeEstado(agendamiento.estado);
-            const tipoBadge = agendamiento.tipoTutoria === 'Individual' ? 'badge-individual' : 'badge-grupal';
-
-            // Convertir explícitamente a string para evitar mostrar objetos JSON
-            const estudianteNombres = String(agendamiento.estudianteNombres || '');
-            const estudianteApellidos = String(agendamiento.estudianteApellidos || '');
-            const modalidad = String(agendamiento.modalidad || 'No especificado');
-            const observaciones = String(agendamiento.observaciones || 'Sin observaciones');
-            const horaInicio = String(formatearHora(agendamiento.horaInicio) || '');
-            const horaFin = String(formatearHora(agendamiento.horaFin) || '');
-            const tipoTutoria = String(agendamiento.tipoTutoria || 'Individual');
-
-            const htmlContent = `
-                <div class="agendamiento-lista-header">
-                    <div class="agendamiento-badges">
-                        <span class="badge ${tipoBadge}">${tipoTutoria}</span>
-                        <span class="badge ${estadoBadge.clase}">${estadoBadge.texto}</span>
-                    </div>
-                </div>
-                <div class="agendamiento-lista-info">
-                    <div class="info-item">
-                        <strong>Horario:</strong> ${horaInicio} - ${horaFin}
-                    </div>
-                    <div class="info-item">
-                        <strong>Estudiante:</strong> ${estudianteNombres} ${estudianteApellidos}
-                    </div>
-                    <div class="info-item">
-                        <strong>Modalidad:</strong> ${modalidad}
-                    </div>
-                </div>
-                <div class="agendamiento-lista-footer">
-                    <button class="btn-ver-detalle-simple" data-id="${agendamiento.id}">
-                        Ver detalle completo
-                    </button>
-                </div>
-            `;
-
-            item.innerHTML = htmlContent;
-
-            // Agregar evento al botón de ver detalle
-            const btnVerDetalle = item.querySelector('.btn-ver-detalle-simple');
-            btnVerDetalle.addEventListener('click', () => {
-                cerrarModalAgendamientosDia();
-                setTimeout(() => {
-                    mostrarDetalleAgendamiento(agendamiento);
-                }, 300);
-            });
-
-            lista.appendChild(item);
-        });
-
-        console.log('✅ Modal listo, mostrando...');
-        modal.classList.add('active');
-    }
-
-    function cerrarModalAgendamientosDia() {
-        const modal = document.getElementById('modalAgendamientosDia');
-        if (modal) {
-            modal.classList.remove('active');
-        }
-    }
+    // Esta funcionalidad ya no se usa; mantenemos la firma para no romper llamadas,
+    // pero no abrimos ningún modal.
+    // Modal de agendamientos del día eliminado: todo se maneja con el modal principal de agendamiento
 
     function obtenerBadgeEstado(estado) {
         const badges = {
@@ -1114,46 +995,10 @@
         }
     }
 
+    // confirmación de cancelación deshabilitada (cancelación automática por fecha)
     async function confirmarCancelacion() {
-        const motivo = document.getElementById('motivoCancelacion').value.trim();
-        
-        if (!motivo) {
-            mostrarError('Debe ingresar un motivo de cancelación');
-            return;
-        }
-
-        if (!agendamientoSeleccionado) {
-            mostrarError('No hay agendamiento seleccionado');
-            return;
-        }
-
-        try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`${APP_CONFIG.API.BASE_URL}/asignacionTutor?action=cancelar`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    id: agendamientoSeleccionado.id,
-                    motivo: motivo
-                })
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                mostrarExito(result.message);
-                cerrarModalCancelar();
-                cargarAgendamientos();
-            } else {
-                mostrarError(result.message);
-            }
-        } catch (error) {
-            console.error('Error al cancelar agendamiento:', error);
-            mostrarError('Error de conexión al cancelar agendamiento');
-        }
+        console.log('ℹ️ confirmarCancelacion llamado, funcionalidad deshabilitada.');
+        return;
     }
 
     // ==================== VALIDACIONES ====================

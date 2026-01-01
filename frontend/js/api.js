@@ -14,7 +14,7 @@ const API_BASE_URL = (function() {
     }
 
     // Usar /api directamente sin el prefijo backend
-    const basePath = (window.APP_BASE_PATH || '/Sistema-de-tutorias').replace(/\/$/, '');
+    const basePath = (window.APP_BASE_PATH || '').replace(/\/$/, '');
     return `${basePath}/api`;
 })();
 

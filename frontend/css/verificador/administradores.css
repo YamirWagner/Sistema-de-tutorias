@@ -228,8 +228,8 @@
     }
 }
 
-/* Modal de detalles */
-.modal {
+/* Modal de detalles (solo verificador) */
+#adminDetailModal {
     position: fixed;
     top: 0;
     left: 0;
@@ -242,7 +242,7 @@
     z-index: 9999;
 }
 
-.modal-content {
+#adminDetailModal .modal-content {
     background: white;
     border-radius: 12px;
     max-height: 90vh;
@@ -262,7 +262,7 @@
     }
 }
 
-.modal-header {
+#adminDetailModal .modal-header {
     padding: 1.5rem;
     border-bottom: 1px solid #e0e0e0;
     display: flex;
@@ -270,7 +270,7 @@
     align-items: center;
 }
 
-.modal-header h3 {
+#adminDetailModal .modal-header h3 {
     margin: 0;
     font-size: 1.4rem;
     color: #2c3e50;

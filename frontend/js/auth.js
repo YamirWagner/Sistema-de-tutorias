@@ -203,8 +203,8 @@ function getUserFromToken() {
 function logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
-    window.location.href = basePath + '/login';
+    const basePath = (window.APP_BASE_PATH || '').replace(/\/$/, '');
+    window.location.href = (basePath || '') + '/login';
 }
 
 // Configurar navegación entre inputs de código

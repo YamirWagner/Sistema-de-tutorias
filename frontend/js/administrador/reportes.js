@@ -330,7 +330,8 @@ window.buscarConstanciaEstudiante = async function() {
         const studentResponse = await apiGet(`/reportes?action=searchStudentByCode&codigo=${encodeURIComponent(codigoEstudiante)}`);
         
         if (!studentResponse.success || !studentResponse.data) {
-            showNotification('No se encontró un estudiante con ese código', 'error');
+            const msg = studentResponse.message || 'El estudiante no existe en la BD';
+            showNotification(msg, 'error');
             document.getElementById('constancia-result').classList.add('hidden');
             return;
         }

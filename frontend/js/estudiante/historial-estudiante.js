@@ -92,7 +92,8 @@
             const token = localStorage.getItem('token');
             if (!token) {
                 alert('Sesión expirada');
-                window.location.href = '/Sistema-de-tutorias/frontend/login.html';
+                const basePath = (window.APP_BASE_PATH || '').replace(/\/$/, '');
+                window.location.href = (basePath || '') + '/login';
                 return;
             }
 
@@ -104,7 +105,8 @@
             if (filtros.fechaFin) params.append('fechaFin', filtros.fechaFin);
             if (filtros.orden) params.append('orden', filtros.orden);
             
-            const url = `/Sistema-de-tutorias/backend/api/historiaestudiante.php?${params.toString()}`;
+            const basePath = (window.APP_BASE_PATH || '').replace(/\/$/, '');
+            const url = `${basePath}/backend/api/historiaestudiante.php?${params.toString()}`;
             
             const response = await fetch(url, {
                 headers: { 'Authorization': `Bearer ${token}` }

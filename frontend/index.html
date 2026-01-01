@@ -77,23 +77,26 @@
         </div>
     </footer>
 
-    <script>window.APP_BASE_PATH = '/Sistema-de-tutorias';</script>
+    <script src="./js/config.js"></script>
     <script>
         // Si el usuario ya está logueado, redirigir al panel INMEDIATAMENTE
         (function() {
             const token = localStorage.getItem('token');
             if (token) {
-                const basePath = window.APP_BASE_PATH || '';
+                const basePath = window.APP_CONFIG.BASE_PATH;
                 window.location.replace(basePath + '/panel');
             }
         })();
     </script>
     <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.1/dist/flowbite.min.js"></script>
     <script>
+        // Usar configuración global
+        const API_CONFIG = window.APP_CONFIG;
+        
         // Cargar configuración y actualizar versión
         document.addEventListener('DOMContentLoaded', async () => {
             try {
-                const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+                const basePath = API_CONFIG.BASE_PATH;
                 const response = await fetch(`${basePath}/api/config`);
                 const config = await response.json();
                 
