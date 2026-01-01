@@ -17,7 +17,7 @@ async function loadAdminPanelContent() {
         
         // Usar helper simplificado
         const url = window.PATH?.adminPanel() || 
-                   '/Sistema-de-tutorias/frontend/components/administrador/panel.html';
+               `${(window.APP_BASE_PATH || '').replace(/\/+$/, '')}/frontend/components/administrador/panel.html`;
         console.log('📡 Cargando desde:', url);
         
         const response = await fetch(url);
@@ -294,7 +294,7 @@ async function loadAdminContent() {
         
         // 3. Cargar el dashboard del administrador (usar helper)
         const dashboardPath = window.PATH?.adminDashboard() || 
-                            '/Sistema-de-tutorias/frontend/components/administrador/dashboard.html';
+                    `${(window.APP_BASE_PATH || '').replace(/\/+$/, '')}/frontend/components/administrador/dashboard.html`;
         const response = await fetch(dashboardPath);
         const html = await response.text();
         

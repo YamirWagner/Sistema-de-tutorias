@@ -18,7 +18,7 @@ async function loadAuditoriaContent() {
         content.innerHTML = '<div class="loading-message"><i class="fa-solid fa-spinner fa-spin"></i><p>Cargando módulo de auditoría...</p></div>';
         
         // Cargar CSS si no existe
-        const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+        const basePath = (window.APP_BASE_PATH || '').replace(/\/+$/, '');
         const cssPath = `${basePath}/frontend/css/administrador/auditoria.css`;
         
         if (!document.querySelector(`link[href*="auditoria.css"]`)) {
@@ -146,7 +146,7 @@ function inicializarAuditoria() {
  */
 async function cargarEstadisticas() {
     try {
-        const API_URL = window.API_URL || '/Sistema-de-tutorias/api';
+        const API_URL = window.API_URL || ((window.APP_BASE_PATH || '').replace(/\/+$/, '') + '/api');
         const token = localStorage.getItem('token');
         
         const response = await fetch(`${API_URL}/auditoria?action=estadisticas`, {
@@ -183,7 +183,7 @@ async function cargarRegistrosAuditoria() {
     }
     
     try {
-        const API_URL = window.API_URL || '/Sistema-de-tutorias/api';
+        const API_URL = window.API_URL || ((window.APP_BASE_PATH || '').replace(/\/+$/, '') + '/api');
         const token = localStorage.getItem('token');
         
         // Obtener filtros

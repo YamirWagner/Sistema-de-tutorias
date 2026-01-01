@@ -16,7 +16,8 @@ async function loadAdministradoresContent() {
     
     try {
         // Cargar el HTML del módulo
-        const response = await fetch('/Sistema-de-tutorias/frontend/components/verificador/administradores.html');
+        const basePath = (window.APP_BASE_PATH || '').replace(/\/+$/, '');
+        const response = await fetch(`${basePath}/frontend/components/verificador/administradores.html`);
         const html = await response.text();
         content.innerHTML = html;
         

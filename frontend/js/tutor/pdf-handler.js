@@ -436,8 +436,8 @@ console.log('🚀 [PDF-HANDLER] Iniciando carga del módulo...');
             }
             
             const baseApi = (window.APP_CONFIG && window.APP_CONFIG.API && window.APP_CONFIG.API.BASE_URL)
-                ? window.APP_CONFIG.API.BASE_URL
-                : '/Sistema-de-tutorias/api';
+                ? window.APP_CONFIG.API.BASE_URL.replace(/\/$/, '')
+                : ((window.APP_BASE_PATH || '').replace(/\/+$/, '') + '/api');
             
             // Usar endpoint diferente según si es reporte o constancia individual
             const url = esReporte 
@@ -540,8 +540,8 @@ console.log('🚀 [PDF-HANDLER] Iniciando carga del módulo...');
             mostrarNotificacion('Generando PDF con firma...', 'info');
             
             const baseApi = (window.APP_CONFIG && window.APP_CONFIG.API && window.APP_CONFIG.API.BASE_URL)
-                ? window.APP_CONFIG.API.BASE_URL
-                : '/Sistema-de-tutorias/api';
+                ? window.APP_CONFIG.API.BASE_URL.replace(/\/$/, '')
+                : ((window.APP_BASE_PATH || '').replace(/\/+$/, '') + '/api');
             
             // Regenerar PDF con firma
             const url = `${baseApi}/generar-pdf?estudianteId=${encodeURIComponent(currentEstudianteId)}&firmar=1`;
@@ -596,8 +596,8 @@ console.log('🚀 [PDF-HANDLER] Iniciando carga del módulo...');
             }
             
             const baseApi = (window.APP_CONFIG && window.APP_CONFIG.API && window.APP_CONFIG.API.BASE_URL)
-                ? window.APP_CONFIG.API.BASE_URL
-                : '/Sistema-de-tutorias/api';
+                ? window.APP_CONFIG.API.BASE_URL.replace(/\/$/, '')
+                : ((window.APP_BASE_PATH || '').replace(/\/+$/, '') + '/api');
             
             // Guardar en BD
             const url = `${baseApi}/generar-pdf?estudianteId=${encodeURIComponent(currentEstudianteId)}&guardar=1`;

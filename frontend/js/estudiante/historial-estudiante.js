@@ -26,7 +26,8 @@
             content.innerHTML = '<div class="loading-message" style="text-align:center;padding:40px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:32px;color:#a42727;"></i><p style="margin-top:16px;color:#666;">Cargando historial...</p></div>';
             
             // Cargar CSS
-            const cssPath = '/Sistema-de-tutorias/frontend/css/estudiante/historial-estudiante.css';
+            const basePath = (window.APP_BASE_PATH || '').replace(/\/+$/, '');
+            const cssPath = `${basePath}/frontend/css/estudiante/historial-estudiante.css`;
             if (!document.querySelector(`link[href="${cssPath}"]`)) {
                 const cssLink = document.createElement('link');
                 cssLink.rel = 'stylesheet';
@@ -35,7 +36,7 @@
             }
             
             // Cargar HTML
-            const url = '/Sistema-de-tutorias/frontend/components/estudiante/historial-estudiante.html';
+            const url = `${basePath}/frontend/components/estudiante/historial-estudiante.html`;
             const response = await fetch(url);
             if (!response.ok) throw new Error(`Error al cargar: ${response.status}`);
             

@@ -25,7 +25,7 @@
         try {
             // Usar helper simplificado
             const htmlPath = window.PATH?.adminAsignaciones() || 
-                           '/Sistema-de-tutorias/frontend/components/administrador/asignaciones.html';
+                           `${(window.APP_BASE_PATH || '').replace(/\/+$/, '')}/frontend/components/administrador/asignaciones.html`;
             
             const response = await fetch(htmlPath);
             if (!response.ok) throw new Error(`Error ${response.status}: ${response.statusText}`);

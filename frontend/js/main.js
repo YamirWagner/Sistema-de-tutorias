@@ -4,7 +4,7 @@ console.log('📜 main.js cargado correctamente');
 // Obtener configuración del sistema
 async function loadAppConfig() {
     try {
-        const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+        const basePath = (window.APP_BASE_PATH || '').replace(/\/+$/, '');
         const apiUrl = basePath.replace(/\/$/, '') + '/api';
         
         const response = await fetch(`${apiUrl}/config`);
@@ -133,8 +133,9 @@ function logout() {
 // Cargar componentes HTML (header, sidebar, footer)
 async function loadComponent(elementId, componentPath) {
     try {
+        const basePath = (window.APP_BASE_PATH || '').replace(/\/+$/, '');
         const fullPath = componentPath.startsWith('/') ? componentPath : 
-                        `${window.APP_BASE_PATH || '/Sistema-de-tutorias'}/${componentPath}`;
+                        `${basePath}/${componentPath}`;
         
         const element = document.getElementById(elementId);
         if (!element) {
@@ -253,7 +254,7 @@ async function initDashboard() {
     // Cargar modales específicos del rol
     if (userRole === 'admin') {
         const adminModalsPath = window.PATH?.adminModals() || 
-                               '/Sistema-de-tutorias/frontend/components/administrador/modals.html';
+                               `${(window.APP_BASE_PATH || '').replace(/\/+$/, '')}/frontend/components/administrador/modals.html`;
         try {
             const response = await fetch(adminModalsPath);
             if (response.ok) {
@@ -267,7 +268,7 @@ async function initDashboard() {
     
     // Cargar componente de PDF para tutores
     if (userRole === 'tutor') {
-        const pdfModalPath = '/Sistema-de-tutorias/frontend/components/tutor/generar-pdf.html';
+        const pdfModalPath = `${(window.APP_BASE_PATH || '').replace(/\/+$/, '')}/frontend/components/tutor/generar-pdf.html`;
         try {
             const response = await fetch(pdfModalPath);
             if (response.ok) {
@@ -295,7 +296,7 @@ async function initDashboard() {
         
         // Si es estudiante y está en /panel, redirigir a /estudiante
         if (normalizedRole === 'student' && currentPath.includes('/panel') && !currentPath.includes('/estudiante')) {
-            const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+            const basePath = (window.APP_BASE_PATH || '').replace(/\/+$/, '');
             console.log('⚠️ Estudiante intentando acceder a /panel, redirigiendo a /estudiante');
             window.location.href = basePath + '/estudiante';
             return;
@@ -331,52 +332,52 @@ async function initDashboard() {
         // Configuración de módulos
         const modulesConfig = {
             'semestre': {
-                paths: ['/semestre', '/Sistema-de-tutorias/semestre'],
+                paths: ['/semestre'],
                 param: 'semestre',
                 loadFn: 'loadCronogramaContent'
             },
             'gestion-usuarios': {
-                paths: ['/gestion-usuarios', '/Sistema-de-tutorias/gestion-usuarios'],
+                paths: ['/gestion-usuarios'],
                 param: 'gestion-usuarios',
                 loadFn: 'loadGestionUsuariosContent'
             },
             'asignaciones': {
-                paths: ['/asignaciones', '/Sistema-de-tutorias/asignaciones'],
+                paths: ['/asignaciones'],
                 param: 'asignaciones',
                 loadFn: 'loadAsignacionesContent'
             },
             'reportes': {
-                paths: ['/reportes', '/Sistema-de-tutorias/reportes'],
+                paths: ['/reportes'],
                 param: 'reportes',
                 loadFn: 'loadReportesContent'
             },
             'historial': {
-                paths: ['/historial', '/Sistema-de-tutorias/historial'],
+                paths: ['/historial'],
                 param: 'historial',
                 loadFn: 'loadHistorialContent'
             },
             'auditoria': {
-                paths: ['/auditoria', '/Sistema-de-tutorias/auditoria'],
+                paths: ['/auditoria'],
                 param: 'auditoria',
                 loadFn: 'loadAuditoriaContent'
             },
             'tutor': {
-                paths: ['/tutor', '/Sistema-de-tutorias/tutor'],
+                paths: ['/tutor'],
                 param: 'tutor',
                 loadFn: 'loadTutorDashboard'
             },
             'asignacionTutor': {
-                paths: ['/asignacionTutor', '/Sistema-de-tutorias/asignacionTutor'],
+                paths: ['/asignacionTutor'],
                 param: 'asignacionTutor',
                 loadFn: 'loadAsignacionTutorContent'
             },
             'mis-estudiantes': {
-                paths: ['/mis-estudiantes', '/Sistema-de-tutorias/mis-estudiantes'],
+                paths: ['/mis-estudiantes'],
                 param: 'mis-estudiantes',
                 loadFn: 'loadMisEstudiantesContent'
             },
             'estudiante': {
-                paths: ['/estudiante', '/Sistema-de-tutorias/estudiante'],
+                paths: ['/estudiante'],
                 param: 'estudiante',
                 loadFn: 'loadEstudianteContent'
             }

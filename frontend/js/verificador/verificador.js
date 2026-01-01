@@ -20,7 +20,8 @@ async function loadVerifierDashboard() {
     
     try {
         // Cargar el HTML del dashboard
-        const response = await fetch('/Sistema-de-tutorias/frontend/components/verificador/verificador.html');
+        const basePath = (window.APP_BASE_PATH || '').replace(/\/+$/, '');
+        const response = await fetch(`${basePath}/frontend/components/verificador/verificador.html`);
         const html = await response.text();
         content.innerHTML = html;
         

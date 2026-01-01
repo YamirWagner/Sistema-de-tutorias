@@ -27,7 +27,8 @@
             content.innerHTML = '<div class="loading-message" style="text-align:center;padding:40px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:32px;color:#a42727;"></i><p style="margin-top:16px;color:#666;">Cargando sesiones...</p></div>';
             
             // Cargar CSS
-            const cssPath = '/Sistema-de-tutorias/frontend/css/estudiante/sesion-estudiante.css';
+            const basePath = (window.APP_BASE_PATH || '').replace(/\/+$/, '');
+            const cssPath = `${basePath}/frontend/css/estudiante/sesion-estudiante.css`;
             if (!document.querySelector(`link[href="${cssPath}"]`)) {
                 const cssLink = document.createElement('link');
                 cssLink.rel = 'stylesheet';
@@ -36,7 +37,7 @@
             }
             
             // Cargar HTML
-            const url = '/Sistema-de-tutorias/frontend/components/estudiante/sesion-estudiante.html';
+            const url = `${basePath}/frontend/components/estudiante/sesion-estudiante.html`;
             const response = await fetch(url);
             if (!response.ok) throw new Error(`Error al cargar: ${response.status}`);
             
@@ -681,7 +682,8 @@
             window.open(enlace, '_blank');
         } else {
             // Abrir archivo en nueva pestaña
-            const fullPath = enlace.startsWith('http') ? enlace : `/Sistema-de-tutorias/${enlace}`;
+            const basePath = (window.APP_BASE_PATH || '').replace(/\/+$/, '');
+            const fullPath = enlace.startsWith('http') ? enlace : `${basePath}/${enlace}`;
             window.open(fullPath, '_blank');
         }
     };
@@ -697,7 +699,8 @@
             return;
         }
 
-        const fullPath = enlace.startsWith('http') ? enlace : `/Sistema-de-tutorias/${enlace}`;
+        const basePath = (window.APP_BASE_PATH || '').replace(/\/+$/, '');
+        const fullPath = enlace.startsWith('http') ? enlace : `${basePath}/${enlace}`;
         
         const link = document.createElement('a');
         link.href = fullPath;
@@ -726,7 +729,8 @@
             rutaPDF = 'backend/' + rutaPDF;
         }
         
-        const url = `/Sistema-de-tutorias/${rutaPDF}`;
+        const basePath = (window.APP_BASE_PATH || '').replace(/\/+$/, '');
+        const url = `${basePath}/${rutaPDF}`;
         window.open(url, '_blank');
     };
 
@@ -749,8 +753,9 @@
         }
 
         // Descargar PDF desde la ruta almacenada en la BD
+        const basePath = (window.APP_BASE_PATH || '').replace(/\/+$/, '');
         const link = document.createElement('a');
-        link.href = `/Sistema-de-tutorias/${rutaPDF}`;
+        link.href = `${basePath}/${rutaPDF}`;
         link.download = `constancia_${constanciaId}.pdf`;
         link.target = '_blank';
         document.body.appendChild(link);

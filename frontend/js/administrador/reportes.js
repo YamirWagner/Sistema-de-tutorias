@@ -22,7 +22,7 @@ async function loadReportesContent() {
     try {
         content.innerHTML = '<div class="loading-message"><i class="fa-solid fa-spinner fa-spin"></i><p>Cargando módulo...</p></div>';
         
-        const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+        const basePath = (window.APP_BASE_PATH || '').replace(/\/+$/, '');
         const cssPath = `${basePath}/frontend/css/administrador/reportes.css`;
         
         // Cargar CSS si no existe
@@ -203,7 +203,7 @@ async function generateTutorListPDF() {
     
     try {
         // Llamar al backend para generar el PDF
-        const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+        const basePath = (window.APP_BASE_PATH || '').replace(/\/+$/, '');
         let url = `${basePath}/api/reporte-pdf?tipo=lista-tutores&semesterId=${semesterId}`;
         
         // Si se seleccionó un tutor específico (no "all" ni vacío), agregarlo a la URL
@@ -420,7 +420,7 @@ function mostrarResultadoConstancia(estudiante, constancias, semesterId) {
 }
 
 window.descargarConstancia = function(rutaPDF, codigoEstudiante) {
-    const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+    const basePath = (window.APP_BASE_PATH || '').replace(/\/+$/, '');
     const url = `${basePath}/backend/${rutaPDF}`;
     const link = document.createElement('a');
     link.href = url;
@@ -432,7 +432,7 @@ window.descargarConstancia = function(rutaPDF, codigoEstudiante) {
 };
 
 window.verConstancia = function(rutaPDF) {
-    const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+    const basePath = (window.APP_BASE_PATH || '').replace(/\/+$/, '');
     const url = `${basePath}/backend/${rutaPDF}`;
     window.open(url, '_blank');
 };
@@ -455,7 +455,7 @@ async function generateConstanciaPDF() {
             displayConstanciaInfo(response.data);
             
             // Ahora generar el PDF desde el backend usando reporte-pdf
-            const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+            const basePath = (window.APP_BASE_PATH || '').replace(/\/+$/, '');
             const url = `${basePath}/api/reporte-pdf?tipo=constancia&estudianteId=${currentStudentData.id}&semesterId=${semesterId}`;
             const token = localStorage.getItem('token');
             

@@ -172,7 +172,7 @@
             if (constancia && constancia.rutaPDF) {
                 // Ya existe constancia - mostrar icono PDF
                 const pdfLink = document.createElement('a');
-                const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+                const basePath = (window.APP_BASE_PATH || '').replace(/\/+$/, '');
                 const pdfUrl = `${basePath}/backend/${constancia.rutaPDF}`;
                 pdfLink.href = pdfUrl;
                 pdfLink.title = 'Descargar constancia';

@@ -44,7 +44,7 @@ async function loadTutorDashboard() {
 // Cargar el HTML del panel del tutor
 async function loadTutorPanelHTML() {
     try {
-        const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+        const basePath = (window.APP_BASE_PATH || '').replace(/\/+$/, '');
         const panelPath = `${basePath}/frontend/components/tutor/tutor.html`;
         
         console.log('🔍 Intentando cargar:', panelPath);
@@ -273,7 +273,7 @@ function renderProximasSesiones() {
 function verAgendamiento() {
     console.log('📅 Navegando a asignacionTutor...');
     
-    const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+    const basePath = (window.APP_BASE_PATH || '').replace(/\/+$/, '');
     window.location.href = `${basePath}/asignacionTutor`;
 }
 

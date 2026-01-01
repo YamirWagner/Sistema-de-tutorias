@@ -18,7 +18,7 @@ async function loadHistorialContent() {
         content.innerHTML = '<div class="loading-message"><i class="fa-solid fa-spinner fa-spin"></i><p>Cargando módulo de historial...</p></div>';
         
         // Cargar CSS si no existe
-        const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+        const basePath = (window.APP_BASE_PATH || '').replace(/\/+$/, '');
         const cssPath = `${basePath}/frontend/css/administrador/historial.css`;
         
         if (!document.querySelector(`link[href*="historial.css"]`)) {
@@ -157,8 +157,8 @@ async function buscarEstudiante(busqueda) {
             return;
         }
         
-        // ✅ CORRECCIÓN: Usar la ruta limpia sin .php
-        const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+        // ✅ CORRECCIÓN: Usar la ruta limpia sin .php y respetar APP_BASE_PATH dinámico
+        const basePath = (window.APP_BASE_PATH || '').replace(/\/+$/, '');
         const url = `${basePath}/api/historial?action=buscar&busqueda=${encodeURIComponent(busqueda)}`;
         
         console.log('📡 URL de búsqueda:', url);
@@ -251,8 +251,8 @@ async function seleccionarEstudiante(idEstudiante) {
             throw new Error('No se encontró token de autenticación');
         }
         
-        // ✅ CORRECCIÓN: Usar la ruta limpia sin .php
-        const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+        // ✅ CORRECCIÓN: Usar la ruta limpia sin .php y respetar APP_BASE_PATH dinámico
+        const basePath = (window.APP_BASE_PATH || '').replace(/\/+$/, '');
         const url = `${basePath}/api/historial?action=historial&id_estudiante=${idEstudiante}`;
         
         console.log('📡 URL de historial:', url);

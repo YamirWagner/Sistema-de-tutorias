@@ -19,7 +19,8 @@
         
         try {
             // Cargar el HTML del módulo
-            const response = await fetch('/Sistema-de-tutorias/frontend/components/verificador/historial-estudiante.html');
+            const basePath = (window.APP_BASE_PATH || '').replace(/\/+$/, '');
+            const response = await fetch(`${basePath}/frontend/components/verificador/historial-estudiante.html`);
             const html = await response.text();
             content.innerHTML = html;
             

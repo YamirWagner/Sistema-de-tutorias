@@ -45,7 +45,7 @@ async function loadCronogramaContent() {
         content.innerHTML = '<div class="loading-message"><i class="fa-solid fa-spinner fa-spin"></i><p>Cargando módulo...</p></div>';
         
         // Cargar CSS si no existe
-        const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+        const basePath = (window.APP_BASE_PATH || '').replace(/\/+$/, '');
         const cssPath = `${basePath}/frontend/css/administrador/semestre.css`;
         
         if (!document.querySelector(`link[href*="semestre.css"]`)) {

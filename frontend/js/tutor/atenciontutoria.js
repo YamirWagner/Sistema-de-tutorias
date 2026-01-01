@@ -838,7 +838,7 @@ async function guardarTutoriaParcial(datos, tipoNombre, action) {
         mostrarLoaderAtencion();
         const token = localStorage.getItem('token');
         if (!token) {
-            const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+            const basePath = (window.APP_BASE_PATH || '').replace(/\/+$/, '');
             ocultarLoaderAtencion();
             mostrarError('Sesión no válida o expirada. Redirigiendo al inicio de sesión...');
             setTimeout(() => {

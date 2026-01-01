@@ -550,8 +550,9 @@ async function loadEstudianteContent() {
         content.innerHTML = '<div class="loading-message" style="text-align:center;padding:40px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:32px;color:#a42727;"></i><p style="margin-top:16px;color:#666;">Cargando módulo...</p></div>';
         
         // Cargar CSS si es necesario
+        const basePath = (window.APP_BASE_PATH || '').replace(/\/+$/, '');
         const cssPath = window.PATH?.css('estudiante/estudiante.css') || 
-                       '/Sistema-de-tutorias/frontend/css/estudiante/estudiante.css';
+                   `${basePath}/frontend/css/estudiante/estudiante.css`;
         
         if (!document.querySelector(`link[href*="estudiante.css"]`)) {
             const cssLink = document.createElement('link');
@@ -562,7 +563,7 @@ async function loadEstudianteContent() {
         
         // Cargar HTML
         const url = window.PATH?.component('estudiante/estudiante.html') || 
-                    '/Sistema-de-tutorias/frontend/components/estudiante/estudiante.html';
+                `${basePath}/frontend/components/estudiante/estudiante.html`;
         
         const response = await fetch(url, { cache: 'no-store' });
         if (!response.ok) throw new Error(`Error al cargar: ${response.status}`);
@@ -594,8 +595,9 @@ async function loadHistorialTutoriasContent() {
         content.innerHTML = '<div class="loading-message" style="text-align:center;padding:40px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:32px;color:#a42727;"></i><p style="margin-top:16px;color:#666;">Cargando historial...</p></div>';
         
         // Cargar CSS si es necesario
+        const basePath = (window.APP_BASE_PATH || '').replace(/\/+$/, '');
         const cssPath = window.PATH?.css('estudiante/historial-estudiante.css') || 
-                       '/Sistema-de-tutorias/frontend/css/estudiante/historial-estudiante.css';
+                   `${basePath}/frontend/css/estudiante/historial-estudiante.css`;
         
         if (!document.querySelector(`link[href*="historial-estudiante.css"]`)) {
             const cssLink = document.createElement('link');
@@ -606,7 +608,7 @@ async function loadHistorialTutoriasContent() {
         
         // Cargar HTML
         const url = window.PATH?.component('estudiante/historial-estudiante.html') || 
-                    '/Sistema-de-tutorias/frontend/components/estudiante/historial-estudiante.html';
+                `${basePath}/frontend/components/estudiante/historial-estudiante.html`;
         
         const response = await fetch(url, { cache: 'no-store' });
         if (!response.ok) throw new Error(`Error al cargar: ${response.status}`);

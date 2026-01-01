@@ -13,7 +13,7 @@ const GESTION_API_BASE = (() => {
     if (configured) {
         return configured.replace(/\/$/, '');
     }
-    const basePath = (window.APP_BASE_PATH || '/Sistema-de-tutorias').replace(/\/$/, '');
+    const basePath = (window.APP_BASE_PATH || '').replace(/\/$/, '');
     return `${basePath}/api`;
 })();
 
@@ -126,7 +126,7 @@ async function loadGestionUsuariosContent() {
         content.innerHTML = '<div class="loading-message" style="text-align:center;padding:40px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:32px;color:#a42727;"></i><p style="margin-top:16px;color:#666;">Cargando módulo...</p></div>';
         
         const cssPath = window.PATH?.css('administrador/gestionUsuarios.css') || 
-                       '/Sistema-de-tutorias/frontend/css/administrador/gestionUsuarios.css';
+                       `${(window.APP_BASE_PATH || '').replace(/\/+$/, '')}/frontend/css/administrador/gestionUsuarios.css`;
         
         if (!document.querySelector(`link[href*="gestionUsuarios.css"]`)) {
             const cssLink = document.createElement('link');
@@ -136,7 +136,7 @@ async function loadGestionUsuariosContent() {
         }
         
         const url = window.PATH?.adminGestionUsuarios() || 
-                    '/Sistema-de-tutorias/frontend/components/administrador/gestionUsuarios.html';
+                `${(window.APP_BASE_PATH || '').replace(/\/+$/, '')}/frontend/components/administrador/gestionUsuarios.html`;
         
         const response = await fetch(url, { cache: 'no-store' });
         if (!response.ok) throw new Error(`Error al cargar: ${response.status}`);

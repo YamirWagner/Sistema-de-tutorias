@@ -304,7 +304,7 @@ async function loadSidebarMenu() {
  */
 function navigateToModule(element) {
     const module = element.getAttribute('data-module');
-    const basePath = window.APP_BASE_PATH || '/Sistema-de-tutorias';
+    const basePath = (window.APP_BASE_PATH || '').replace(/\/+$/, '');
     
     // Remover clase active de todos los enlaces y agregar al actual
     const allLinks = document.querySelectorAll('.sidebar-menu a');
