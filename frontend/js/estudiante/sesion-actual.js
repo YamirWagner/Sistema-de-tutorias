@@ -355,16 +355,13 @@
         if (!container) return;
 
         try {
-            const token = localStorage.getItem('token');
-            const basePath = (window.APP_BASE_PATH || '').replace(/\/$/, '');
-            const response = await fetch(`${basePath}/backend/api/listar-constancias.php`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            const data = await apiGet('/listar-constancias');
 
-            if (!response.ok) throw new Error('Error al cargar constancias');
+            if (!data || data.success === false) {
+                throw new Error(data && data.message ? data.message : 'Error al cargar constancias');
+            }
 
-            const data = await response.json();
-            constanciasData = data.data || [];
+            constanciasData = data.data || data.constancias || [];
 
             if (constanciasData.length === 0) {
                 if (noConstanciasMsg) noConstanciasMsg.style.display = 'block';
@@ -523,18 +520,7 @@
         submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
         
         try {
-            const token = localStorage.getItem('token');
-            const basePath = (window.APP_BASE_PATH || '').replace(/\/$/, '');
-            const response = await fetch(`${basePath}/backend/api/contactarTutor.php`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ asunto, mensaje })
-            });
-            
-            const data = await response.json();
+            const data = await apiPost('/contactarTutor', { asunto, mensaje });
             
             if (data.success) {
                 cerrarModalContactar();
@@ -578,18 +564,7 @@
         submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
         
         try {
-            const token = localStorage.getItem('token');
-            const basePath = (window.APP_BASE_PATH || '').replace(/\/$/, '');
-            const response = await fetch(`${basePath}/backend/api/solicitarCambio.php`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ idAdministrador, motivo, detalles })
-            });
-            
-            const data = await response.json();
+            const data = await apiPost('/solicitarCambio', { idAdministrador, motivo, detalles });
             
             if (data.success) {
                 cerrarModalSolicitud();

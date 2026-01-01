@@ -37,10 +37,12 @@ try {
         Response::error('Usuario no encontrado', 404);
     }
     
-    // Verificar código
+    // Verificar código (sin depender de la zona horaria de la BD)
+    // Obtenemos el registro y validamos la expiración en PHP usando la misma TZ que se usó al guardar
     $query = "SELECT * FROM verification_codes 
-              WHERE correo = :correo AND code = :code AND used = 0 
-              AND expires_at > NOW()";
+              WHERE correo = :correo AND code = :code AND used = 0
+              ORDER BY id DESC
+              LIMIT 1";
     
     $stmt = $db->prepare($query);
     $stmt->bindParam(':correo', $email);
@@ -48,8 +50,15 @@ try {
     $stmt->execute();
     
     $verification = $stmt->fetch();
-    
+
+    // No existe código válido para ese correo/código
     if (!$verification) {
+        Response::error('Código inválido o expirado', 400);
+    }
+
+    // Validar expiración usando PHP (misma zona horaria que send-code.php)
+    $expiresAt = isset($verification['expires_at']) ? strtotime($verification['expires_at']) : 0;
+    if (!$expiresAt || $expiresAt < time()) {
         Response::error('Código inválido o expirado', 400);
     }
     

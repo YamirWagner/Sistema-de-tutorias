@@ -90,14 +90,6 @@
      */
     async function cargarHistorial(filtros = {}) {
         try {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                alert('Sesión expirada');
-                const basePath = (window.APP_BASE_PATH || '').replace(/\/$/, '');
-                window.location.href = (basePath || '') + '/login';
-                return;
-            }
-
             // Construir URL con parámetros de filtro
             const params = new URLSearchParams();
             if (filtros.estado) params.append('estado', filtros.estado);
@@ -105,26 +97,20 @@
             if (filtros.fechaInicio) params.append('fechaInicio', filtros.fechaInicio);
             if (filtros.fechaFin) params.append('fechaFin', filtros.fechaFin);
             if (filtros.orden) params.append('orden', filtros.orden);
-            
-            const basePath = (window.APP_BASE_PATH || '').replace(/\/$/, '');
-            const url = `${basePath}/backend/api/historiaestudiante.php?${params.toString()}`;
-            
-            const response = await fetch(url, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            const endpoint = params.toString()
+                ? `/historiaestudiante?${params.toString()}`
+                : '/historiaestudiante';
 
-            if (!response.ok) throw new Error('Error al cargar historial');
+            const data = await apiGet(endpoint);
 
-            const data = await response.json();
-            
-            if (data.success) {
-                todasLasSesiones = data.data.sesiones || [];
-                estadisticas = data.data.estadisticas || {};
+            if (data && data.success) {
+                todasLasSesiones = (data.data && data.data.sesiones) ? data.data.sesiones : [];
+                estadisticas = (data.data && data.data.estadisticas) ? data.data.estadisticas : {};
                 
                 mostrarEstadisticas();
                 mostrarTabla(todasLasSesiones);
             } else {
-                throw new Error(data.message || 'Error al cargar datos');
+                throw new Error((data && data.message) || 'Error al cargar datos');
             }
 
         } catch (error) {
