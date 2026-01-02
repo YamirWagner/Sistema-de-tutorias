@@ -1,7 +1,5 @@
 <?php
 // asignaciones.php - API para gestión de asignaciones tutor-estudiante
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
 
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
@@ -13,6 +11,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
+// Cargar configuración primero (define constantes necesarias)
+require_once __DIR__ . '/../core/config.php';
 require_once __DIR__ . '/../core/response.php';
 require_once __DIR__ . '/../core/database.php';
 require_once __DIR__ . '/../core/jwt.php';
@@ -79,7 +79,13 @@ try {
     
 } catch (Exception $e) {
     error_log('Error en asignaciones.php: ' . $e->getMessage());
-    Response::error('Error interno del servidor', 500);
+    error_log('Stack trace: ' . $e->getTraceAsString());
+    
+    // En desarrollo, mostrar detalles del error
+    $isDev = ($_ENV['APP_ENV'] ?? 'production') === 'development';
+    $errorMessage = $isDev ? $e->getMessage() : 'Error interno del servidor';
+    
+    Response::error($errorMessage, 500);
 }
 
 /**
@@ -185,14 +191,24 @@ function getData($db, $payload) {
  */
 function assignStudent($db, $payload) {
     try {
-        $data = json_decode(file_get_contents('php://input'), true);
+        $rawInput = file_get_contents('php://input');
+        error_log('assignStudent - Raw input: ' . $rawInput);
+        
+        $data = json_decode($rawInput, true);
+        
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            error_log('JSON decode error: ' . json_last_error_msg());
+            Response::error('Datos JSON inválidos: ' . json_last_error_msg(), 400);
+        }
         
         $tutorId = $data['tutorId'] ?? null;
         $studentId = $data['studentId'] ?? null;
         $semesterId = $data['semesterId'] ?? null;
         
+        error_log("assignStudent - Parámetros: tutorId=$tutorId, studentId=$studentId, semesterId=$semesterId");
+        
         if (!$tutorId || !$studentId || !$semesterId) {
-            Response::error('Datos incompletos', 400);
+            Response::error('Datos incompletos. Se requiere tutorId, studentId y semesterId', 400);
         }
         
         $db->beginTransaction();
@@ -269,7 +285,15 @@ function assignStudent($db, $payload) {
             $db->rollBack();
         }
         error_log('Error en assignStudent: ' . $e->getMessage());
-        Response::error('Error al asignar estudiante', 500);
+        error_log('SQL Error Code: ' . ($e->getCode() ?? 'N/A'));
+        error_log('Stack trace: ' . $e->getTraceAsString());
+        error_log('Request data: ' . json_encode($data ?? []));
+        
+        // En desarrollo, mostrar detalles del error
+        $isDev = ($_ENV['APP_ENV'] ?? 'production') === 'development';
+        $errorMessage = $isDev ? 'Error al asignar estudiante: ' . $e->getMessage() : 'Error al asignar estudiante';
+        
+        Response::error($errorMessage, 500);
     }
 }
 
