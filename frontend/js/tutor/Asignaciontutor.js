@@ -362,7 +362,14 @@
                 const mas = document.createElement('div');
                 mas.className = 'agendamiento-item mas-agendamientos';
                 mas.textContent = `+${agendamientosDia.length - 3} más`;
-                // Ya no abre un modal adicional, solo informa que hay más agendamientos
+                mas.style.cursor = 'pointer';
+                // Al hacer clic en "+x más" ir a la vista semanal centrada en ese día
+                mas.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    fechaActual = fecha;
+                    cambiarVista('semana');
+                });
+                // Ya no abre un modal adicional, ahora redirige a la vista semanal
                 celda.appendChild(mas);
             }
         }

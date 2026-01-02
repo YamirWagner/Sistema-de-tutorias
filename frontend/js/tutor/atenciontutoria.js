@@ -1010,51 +1010,75 @@ async function ejecutarFinalizacion(datosCompletos) {
         console.log('� Total archivos:', archivosCargados.length);
         
         const token = localStorage.getItem('token');
-        
-        // Usar FormData para enviar archivos + datos JSON
-        const formData = new FormData();
-        
-        // Agregar datos JSON como un campo
-        formData.append('datos', JSON.stringify(datosCompletos));
-        
-        // Agregar materiales estructurados con archivos
-        let archivoIndex = 0;
-        materialesAgregados.forEach((material) => {
-            if (material.archivo) {
-                // Material con archivo físico
+
+        // Separar materiales con archivo y sin archivo
+        const materialesConArchivo = materialesAgregados.filter(m => m.archivo);
+        const materialesSinArchivo = materialesAgregados.filter(m => !m.archivo && m.enlace);
+
+        let response;
+
+        if (materialesConArchivo.length > 0) {
+            // Enviar como multipart/form-data (archivos + datos JSON)
+            const formData = new FormData();
+            formData.append('datos', JSON.stringify(datosCompletos));
+
+            let archivoIndex = 0;
+            materialesConArchivo.forEach((material) => {
                 formData.append(`archivo_${archivoIndex}`, material.archivo);
                 formData.append(`archivo_${archivoIndex}_tipo`, material.tipo);
                 formData.append(`archivo_${archivoIndex}_titulo`, material.titulo);
                 formData.append(`archivo_${archivoIndex}_descripcion`, material.descripcion || '');
                 console.log(`📄 Archivo ${archivoIndex}: ${material.titulo} - Tipo: ${material.tipo} (${material.tamano || 'N/A'})`);
                 archivoIndex++;
+            });
+
+            if (materialesSinArchivo.length > 0) {
+                formData.append('materialesEstructurados', JSON.stringify(materialesSinArchivo.map(m => ({
+                    tipo: m.tipo,
+                    titulo: m.titulo,
+                    descripcion: m.descripcion || '',
+                    enlace: m.enlace,
+                    tieneArchivo: false
+                }))));
+                console.log('🔗 Materiales de solo enlace (en FormData):', materialesSinArchivo.length);
             }
-        });
-        
-        // Agregar materiales sin archivo (solo enlaces) como JSON
-        const materialesSinArchivo = materialesAgregados.filter(m => !m.archivo && m.enlace);
-        if (materialesSinArchivo.length > 0) {
-            formData.append('materialesEstructurados', JSON.stringify(materialesSinArchivo.map(m => ({
-                tipo: m.tipo,
-                titulo: m.titulo,
-                descripcion: m.descripcion || '',
-                enlace: m.enlace,
-                tieneArchivo: false
-            }))));
-            console.log('🔗 Materiales de solo enlace:', materialesSinArchivo.length);
+
+            response = await fetch(
+                `${APP_CONFIG.API.BASE_URL}/atencionTutoria?action=registrar-final`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                        // NO incluir Content-Type, el navegador lo establece automáticamente con boundary
+                    },
+                    body: formData
+                }
+            );
+        } else {
+            // No hay archivos: enviar JSON puro. Incluir enlaces como 'materialesApoyo' para que el backend los procese.
+            if (materialesSinArchivo.length > 0) {
+                datosCompletos.materialesApoyo = materialesSinArchivo.map(m => ({
+                    tipo: m.tipo,
+                    titulo: m.titulo,
+                    descripcion: m.descripcion || '',
+                    enlace: m.enlace,
+                    tieneArchivo: false
+                }));
+                console.log('🔗 Materiales de solo enlace (en JSON):', materialesSinArchivo.length);
+            }
+
+            response = await fetch(
+                `${APP_CONFIG.API.BASE_URL}/atencionTutoria?action=registrar-final`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(datosCompletos)
+                }
+            );
         }
-        
-        const response = await fetch(
-            `${APP_CONFIG.API.BASE_URL}/atencionTutoria?action=registrar-final`,
-            {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                    // NO incluir Content-Type, el navegador lo establece automáticamente con boundary
-                },
-                body: formData
-            }
-        );
         
         console.log('✅ Response status:', response.status);
         
